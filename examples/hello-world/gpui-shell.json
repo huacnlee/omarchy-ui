@@ -3,10 +3,6 @@
   "name": "Omarchy UI Hello World",
   "entry": "main.js",
   "dependencies": {
-    "omarchy-ui": {
-      "git": "https://github.com/huacnlee/omarchy-ui",
-      "branch": "main",
-      "entry": "src/index.js"
-    }
+    "omarchy-ui": "huacnlee/omarchy-ui"
   }
 }

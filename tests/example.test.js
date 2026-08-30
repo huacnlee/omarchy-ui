@@ -7,19 +7,22 @@ import { roles, style } from "../src/index.js";
 
 const exampleRoot = new URL("../examples/hello-world/", import.meta.url);
 
-test("Hello World resolves omarchy-ui from its main-branch Git dependency", async () => {
+test("Hello World resolves omarchy-ui from the Git shorthand dependency", async () => {
   const manifest = JSON.parse(
     await Bun.file(new URL("gpui-shell.json", exampleRoot)).text(),
   );
+  const packageManifest = JSON.parse(
+    await Bun.file(new URL("../package.json", import.meta.url)).text(),
+  );
 
   expect(manifest.dependencies).toEqual({
-    "omarchy-ui": {
-      git: "https://github.com/huacnlee/omarchy-ui",
-      branch: "main",
-      entry: "src/index.js",
-    },
+    "omarchy-ui": "huacnlee/omarchy-ui",
   });
+  expect(manifest.dependencies["omarchy-ui"]).toBe("huacnlee/omarchy-ui");
   expect(manifest).not.toHaveProperty("capabilities");
+  expect(packageManifest.main).toBe("src/index.js");
+  expect(packageManifest).not.toHaveProperty("dependencies");
+  expect(packageManifest).not.toHaveProperty("devDependencies");
 });
 
 test("Hello World imports omarchy-ui as a bare module without local package paths", async () => {
