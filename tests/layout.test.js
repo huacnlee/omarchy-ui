@@ -1,0 +1,382 @@
+// @ts-check
+
+import { expect, test } from "bun:test";
+import {
+  ActionBar,
+  AppShell,
+  BottomBar,
+  CenteredWorkspace,
+  Label,
+  MutedText,
+  PageColumn,
+  PanelHeader,
+  PopupSurface,
+  SectionLabel,
+  Surface,
+  Title,
+  TopBar,
+} from "../src/layout.js";
+import { resolveSurfaceColor, style } from "../src/style.js";
+
+const theme = {
+  colors: {
+    background: "#101010ff",
+    border: "#777777ff",
+    foreground: "#eeeeeeff",
+    muted_foreground: "#999999ff",
+    ring: "#2233aaff",
+    surface: "#181818ff",
+  },
+};
+
+const cx = { theme: () => theme };
+
+/** @param {any} element @param {string} method */
+function callsTo(element, method) {
+  return element.calls.filter((call) => call.method === method);
+}
+
+/** @param {any} element */
+function childrenOf(element) {
+  return element.calls
+    .filter((call) => call.method === "child" || call.method === "children")
+    .flatMap((call) =>
+      call.method === "child" ? [call.args[0]] : call.args[0],
+    );
+}
+
+/** @param {any} element */
+function idOf(element) {
+  return callsTo(element, "id")[0]?.args[0];
+}
+
+test("named slot builders chain and preserve semantic child order", () => {
+  const brand = { slot: "brand" };
+  const center = { slot: "center" };
+  const actions = { slot: "actions" };
+  const status = { slot: "status" };
+  const hints = { slot: "hints" };
+  const heading = { slot: "heading" };
+  const content = { slot: "content" };
+  const top = new TopBar();
+  const bottom = new BottomBar();
+  const action = new ActionBar("action");
+  const panel = new PanelHeader("panel");
+  const shell = new AppShell();
+  const workspace = new CenteredWorkspace("workspace");
+
+  expect(top.brand(brand)).toBe(top);
+  expect(top.center(center)).toBe(top);
+  expect(top.actions(actions)).toBe(top);
+  expect(bottom.status(status)).toBe(bottom);
+  expect(bottom.hints(hints)).toBe(bottom);
+  expect(bottom.leadsWithIcon()).toBe(bottom);
+  expect(action.actions(actions)).toBe(action);
+  expect(action.status(status)).toBe(action);
+  expect(panel.heading(heading)).toBe(panel);
+  expect(panel.actions(actions)).toBe(panel);
+  expect(shell.top(brand)).toBe(shell);
+  expect(shell.content(content)).toBe(shell);
+  expect(shell.bottom(hints)).toBe(shell);
+  expect(workspace.content(content)).toBe(workspace);
+
+  expect(
+    childrenOf(
+      new TopBar().brand(brand).center(center).actions(actions).build(cx),
+    ),
+  ).toEqual([brand, center, actions]);
+  expect(childrenOf(new BottomBar().status(status).hints(hints).build(cx))).toEqual([
+    status,
+    hints,
+  ]);
+
+  const actionChildren = childrenOf(
+    new ActionBar("action").actions(actions).status(status).build(cx),
+  );
+  expect(actionChildren[0]).toBe(actions);
+  expect(actionChildren[1].name).toBe("div");
+  expect(callsTo(actionChildren[1], "flex_1")).toHaveLength(1);
+  expect(actionChildren[2]).toBe(status);
+
+  expect(
+    childrenOf(
+      new PanelHeader("panel").heading(heading).actions(actions).build(cx),
+    ),
+  ).toEqual([heading, actions]);
+
+  const shellChildren = childrenOf(
+    new AppShell().top(brand).content(content).bottom(hints).build(cx),
+  );
+  expect(shellChildren[0]).toBe(brand);
+  expect(idOf(shellChildren[1])).toBe("application-content");
+  expect(childrenOf(shellChildren[1])).toEqual([content]);
+  expect(shellChildren[2]).toBe(hints);
+});
+
+test("open-ended container builders append children in call order", () => {
+  const one = { child: 1 };
+  const two = { child: 2 };
+  const three = { child: 3 };
+  const four = { child: 4 };
+
+  const containers = [
+    new PageColumn("page"),
+    new Surface(),
+    new PopupSurface("popup"),
+  ];
+
+  for (const container of containers) {
+    expect(container.child(one)).toBe(container);
+    expect(container.children([two, three])).toBe(container);
+    expect(container.child(four)).toBe(container);
+    expect(childrenOf(container.build(cx))).toEqual([one, two, three, four]);
+  }
+
+  const page = new PageColumn("sized-page");
+  expect(page.maxWidth(720)).toBe(page);
+});
+
+test("build validates required semantic content", () => {
+  const cases = [
+    [new AppShell(), "AppShell requires content before build()"],
+    [
+      new CenteredWorkspace("workspace"),
+      "CenteredWorkspace requires content before build()",
+    ],
+    [new PanelHeader("panel"), "PanelHeader requires heading before build()"],
+    [new Label(), "Label requires text before build()"],
+    [new MutedText(), "MutedText requires text before build()"],
+    [new Title(), "Title requires text before build()"],
+    [new SectionLabel(), "SectionLabel requires text before build()"],
+  ];
+
+  for (const [component, message] of cases) {
+    expect(() => component.build(cx)).toThrow(message);
+  }
+});
+
+test("text builders accept constructor values, chain, and preserve text styling", () => {
+  const tokens = style();
+  const changedText = [
+    [new Label("old"), "Label", "Label"],
+    [new MutedText("old"), "Muted", "Muted"],
+    [new Title("old"), "Title", "Title"],
+    [new SectionLabel("old"), "Section", "SECTION"],
+  ];
+  for (const [component, value, expected] of changedText) {
+    expect(component.text(value)).toBe(component);
+    expect(childrenOf(component.build(cx))).toEqual([expected]);
+  }
+
+  const label = new Label(42).build(cx);
+  expect(callsTo(label, "text_size")[0].args).toEqual([tokens.font.body]);
+  expect(callsTo(label, "line_height")[0].args).toEqual([1.35]);
+  expect(callsTo(label, "text_color")[0].args).toEqual(["#eeeeeeff"]);
+  expect(childrenOf(label)).toEqual([42]);
+
+  const muted = new MutedText("Secondary").build(cx);
+  expect(callsTo(muted, "text_size")[0].args).toEqual([tokens.font.body]);
+  expect(callsTo(muted, "line_height")[0].args).toEqual([1.35]);
+  expect(callsTo(muted, "text_color")[0].args).toEqual(["#999999ff"]);
+
+  const title = new Title("Settings").build(cx);
+  expect(callsTo(title, "text_size")[0].args).toEqual([tokens.font.title]);
+  expect(callsTo(title, "text_color")[0].args).toEqual(["#eeeeeeff"]);
+
+  const section = new SectionLabel("General settings").build(cx);
+  expect(callsTo(section, "text_size")[0].args).toEqual([tokens.font.caption]);
+  expect(callsTo(section, "text_color")[0].args).toEqual(["#999999ff"]);
+  expect(childrenOf(section)).toEqual(["GENERAL SETTINGS"]);
+});
+
+test("build is repeatable and does not consume component configuration", () => {
+  const child = { child: "stable" };
+  const components = [
+    new AppShell().content(child),
+    new TopBar().center(child),
+    new BottomBar().status(child),
+    new ActionBar("action").actions(child),
+    new PanelHeader("panel").heading(child),
+    new CenteredWorkspace("workspace").content(child),
+    new PageColumn("page").child(child),
+    new Surface().child(child),
+    new PopupSurface("popup").child(child),
+    new Label("Label"),
+    new MutedText("Muted"),
+    new Title("Title"),
+    new SectionLabel("Section"),
+  ];
+
+  for (const component of components) {
+    const first = component.build(cx);
+    const second = component.build(cx);
+    expect(second).not.toBe(first);
+    expect(second.name).toBe(first.name);
+    expect(second.calls).toEqual(first.calls);
+  }
+});
+
+test("layout classes preserve stable ids", () => {
+  const shell = new AppShell().content({}).build(cx);
+  expect(idOf(shell)).toBe("application-frame");
+  expect(idOf(childrenOf(shell)[0])).toBe("application-content");
+  expect(idOf(new TopBar().build(cx))).toBe("application-top-bar");
+  expect(idOf(new BottomBar().build(cx))).toBe("application-bottom-bar");
+  expect(idOf(new ActionBar("actions-id").build(cx))).toBe("actions-id");
+  expect(idOf(new PanelHeader("panel-id").heading({}).build(cx))).toBe("panel-id");
+  expect(
+    idOf(new CenteredWorkspace("workspace-id").content({}).build(cx)),
+  ).toBe("workspace-id");
+  expect(idOf(new PageColumn("page-id").build(cx))).toBe("page-id");
+  expect(idOf(new PopupSurface("popup-id").build(cx))).toBe("popup-id");
+});
+
+test("shell and bar classes preserve resolved layout and surface styling", () => {
+  const tokens = style();
+  const shell = new AppShell().content({}).build(cx);
+  expect(callsTo(shell, "size_full")).toHaveLength(1);
+  expect(callsTo(shell, "min_w_0")).toHaveLength(1);
+  expect(callsTo(shell, "min_h_0")).toHaveLength(1);
+  expect(callsTo(shell, "font_family")[0].args).toEqual([tokens.fontFamily]);
+  expect(callsTo(shell, "text_size")[0].args).toEqual([tokens.font.body]);
+  expect(callsTo(shell, "bg")[0].args).toEqual(["#101010ff"]);
+  expect(callsTo(shell, "text_color")[0].args).toEqual(["#eeeeeeff"]);
+
+  const content = childrenOf(shell)[0];
+  expect(callsTo(content, "flex_1")).toHaveLength(1);
+  expect(callsTo(content, "min_w_0")).toHaveLength(1);
+  expect(callsTo(content, "min_h_0")).toHaveLength(1);
+  expect(callsTo(content, "overflow_hidden")).toHaveLength(1);
+
+  const top = new TopBar().build(cx);
+  expect(callsTo(top, "h")[0].args).toEqual([tokens.space(48)]);
+  expect(callsTo(top, "flex_none")).toHaveLength(1);
+  expect(callsTo(top, "items_center")).toHaveLength(1);
+  expect(callsTo(top, "justify_between")).toHaveLength(1);
+  expect(callsTo(top, "gap")[0].args).toEqual([tokens.space(14)]);
+  expect(callsTo(top, "px")[0].args).toEqual([tokens.space(14)]);
+  expect(callsTo(top, "border_b")[0].args).toEqual([
+    tokens.spacing.hairline,
+  ]);
+  expect(callsTo(top, "border_color")[0].args).toEqual(["#777777ff"]);
+  expect(callsTo(top, "bg")[0].args).toEqual(["#101010ff"]);
+
+  const bottom = new BottomBar().build(cx);
+  expect(callsTo(bottom, "h")[0].args).toEqual([tokens.space(28)]);
+  expect(callsTo(bottom, "flex_none")).toHaveLength(1);
+  expect(callsTo(bottom, "items_center")).toHaveLength(1);
+  expect(callsTo(bottom, "justify_between")).toHaveLength(1);
+  expect(callsTo(bottom, "gap")[0].args).toEqual([
+    tokens.spacing.controlGap,
+  ]);
+  expect(callsTo(bottom, "pl")[0].args).toEqual([tokens.space(14)]);
+  expect(callsTo(new BottomBar().leadsWithIcon().build(cx), "pl")[0].args).toEqual([
+    tokens.space(8),
+  ]);
+  expect(callsTo(bottom, "pr")[0].args).toEqual([tokens.space(12)]);
+  expect(callsTo(bottom, "border_t")[0].args).toEqual([
+    tokens.spacing.hairline,
+  ]);
+  expect(callsTo(bottom, "border_color")[0].args).toEqual(["#777777ff"]);
+  expect(callsTo(bottom, "bg")[0].args).toEqual(["#101010ff"]);
+
+  const action = new ActionBar("action").build(cx);
+  expect(callsTo(action, "role")[0].args).toEqual(["toolbar"]);
+  expect(callsTo(action, "flex_none")).toHaveLength(1);
+  expect(callsTo(action, "items_center")).toHaveLength(1);
+  expect(callsTo(action, "gap")[0].args).toEqual([
+    tokens.spacing.controlGap,
+  ]);
+  expect(callsTo(action, "px")[0].args).toEqual([
+    tokens.spacing.panelPadding,
+  ]);
+  expect(callsTo(action, "py")[0].args).toEqual([tokens.spacing.sm]);
+  expect(callsTo(action, "border_t")[0].args).toEqual([
+    tokens.spacing.hairline,
+  ]);
+  expect(callsTo(action, "border_color")[0].args).toEqual(["#777777ff"]);
+
+  const header = new PanelHeader("panel").heading({}).build(cx);
+  expect(callsTo(header, "role")[0].args).toEqual(["section_header"]);
+  expect(callsTo(header, "flex_none")).toHaveLength(1);
+  expect(callsTo(header, "items_center")).toHaveLength(1);
+  expect(callsTo(header, "justify_between")).toHaveLength(1);
+  expect(callsTo(header, "gap")[0].args).toEqual([
+    tokens.spacing.controlGap,
+  ]);
+  expect(callsTo(header, "h")[0].args).toEqual([tokens.space(34)]);
+  expect(callsTo(header, "px")[0].args).toEqual([
+    tokens.spacing.rowPaddingX,
+  ]);
+  expect(callsTo(header, "border_b")[0].args).toEqual([
+    tokens.spacing.hairline,
+  ]);
+  expect(callsTo(header, "border_color")[0].args).toEqual(["#777777ff"]);
+});
+
+test("workspace and surface classes preserve resolved layout and styling", () => {
+  const tokens = style();
+  const workspace = new CenteredWorkspace("workspace").content({}).build(cx);
+  expect(callsTo(workspace, "items_start")).toHaveLength(1);
+  expect(callsTo(workspace, "size_full")).toHaveLength(1);
+  expect(callsTo(workspace, "min_w_0")).toHaveLength(1);
+  expect(callsTo(workspace, "min_h_0")).toHaveLength(1);
+  expect(callsTo(workspace, "justify_center")).toHaveLength(1);
+  expect(callsTo(workspace, "overflow_y_scroll")).toHaveLength(1);
+
+  const page = new PageColumn("page").build(cx);
+  expect(callsTo(page, "w_full")).toHaveLength(1);
+  expect(callsTo(page, "max_w")[0].args).toEqual([tokens.space(560)]);
+  expect(callsTo(new PageColumn("wide").maxWidth(720).build(cx), "max_w")[0].args).toEqual([
+    720,
+  ]);
+  expect(callsTo(page, "gap")[0].args).toEqual([
+    tokens.spacing.panelGap,
+  ]);
+  expect(callsTo(page, "p")[0].args).toEqual([
+    tokens.spacing.panelPadding,
+  ]);
+
+  const surface = new Surface().build(cx);
+  expect(callsTo(surface, "min_w_0")).toHaveLength(1);
+  expect(callsTo(surface, "min_h_0")).toHaveLength(1);
+  expect(callsTo(surface, "bg")[0].args).toEqual(["#181818ff"]);
+  expect(callsTo(surface, "border")[0].args).toEqual([
+    tokens.spacing.hairline,
+  ]);
+  expect(callsTo(surface, "border_color")[0].args).toEqual(["#777777ff"]);
+  expect(callsTo(surface, "rounded")[0].args).toEqual([tokens.cornerRadius]);
+  expect(callsTo(surface, "overflow_hidden")).toHaveLength(1);
+
+  const popup = new PopupSurface("popup").build(cx);
+  expect(callsTo(popup, "flex_none")).toHaveLength(1);
+  expect(callsTo(popup, "p")[0].args).toEqual([tokens.space(4)]);
+  expect(callsTo(popup, "gap")[0].args).toEqual([tokens.space(2)]);
+  expect(callsTo(popup, "rounded")[0].args).toEqual([tokens.cornerRadius]);
+  expect(callsTo(popup, "bg")[0].args).toEqual([
+    resolveSurfaceColor(
+      tokens,
+      tokens.surfaces.popupBackground,
+      theme.colors.background,
+      tokens.surfaces.popupBackgroundAlpha,
+    ),
+  ]);
+  expect(callsTo(popup, "border")[0].args).toEqual([
+    tokens.state.normalBorderWidth,
+  ]);
+  expect(callsTo(popup, "border_color")[0].args).toEqual([
+    resolveSurfaceColor(
+      tokens,
+      tokens.surfaces.popupBorder,
+      theme.colors.ring,
+      tokens.surfaces.popupBorderAlpha,
+    ),
+  ]);
+  expect(callsTo(popup, "text_color")[0].args).toEqual([
+    resolveSurfaceColor(
+      tokens,
+      tokens.surfaces.popupText,
+      theme.colors.foreground,
+    ),
+  ]);
+});
