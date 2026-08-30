@@ -1,11 +1,13 @@
 // @ts-check
 
-import { svg } from "gpui";
-import { Button, Input, h_flex, v_flex } from "gpui-base";
-import { label, muted } from "./layout.js";
+import { div, svg } from "gpui";
+import { Button as BaseButton, h_flex, v_flex } from "gpui-base";
 import { alpha, style } from "./style.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
+const SIZES = /** @type {const} */ (["small", "medium", "large"]);
+
+/** @typedef {typeof SIZES[number]} ControlSize */
 
 /** @param {import("gpui").Context} cx @param {import("gpui").Color} [color] */
 function surfaceStates(cx, color) {
@@ -20,227 +22,556 @@ function surfaceStates(cx, color) {
     hoverBorder: alpha(own, state.hoverBorderAlpha),
     focusFill: alpha(own, state.focusFillAlpha),
     focusBorder: alpha(cx.theme().colors.ring, state.focusBorderAlpha),
-    borderWidth: state.normalBorderWidth,
+    borderWidth: Math.max(state.normalBorderWidth, state.focusBorderWidth),
     focusBorderWidth: state.focusBorderWidth,
   };
 }
 
-/**
- * @param {string} id @param {string} caption
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
- * @param {import("gpui").Context} cx
- * @param {{variant?: "secondary" | "danger", disabled?: boolean, selected?: boolean, bordered?: boolean, tooltip?: string, fontSize?: number, asset?: string, color?: import("gpui").Color}} [options]
- */
-export function button(id, caption, onClick, cx, options = {}) {
-  const {
-    variant = "secondary",
-    disabled = false,
-    selected = false,
-    bordered = false,
-    tooltip = "",
-    fontSize,
-    asset = "",
-    color,
-  } = options;
+/** @param {string} component @param {string} field @param {unknown} value */
+function requireValue(component, field, value) {
+  if (value == null || (typeof value === "string" && value.trim() === "")) {
+    throw new Error(`${component} requires ${field} before build`);
+  }
+}
+
+/** @param {string} component @param {string} value @returns {ControlSize} */
+function controlSize(component, value) {
+  if (!SIZES.includes(/** @type {ControlSize} */ (value))) {
+    throw new Error(
+      `${component} size must be one of ${SIZES.join(", ")}; received ${JSON.stringify(value)}`,
+    );
+  }
+  return /** @type {ControlSize} */ (value);
+}
+
+/** @param {ControlSize} size */
+function sizeStyle(size) {
   const tokens = style();
-  const foreground = color ?? (variant === "danger" ? cx.theme().colors.destructive : cx.theme().colors.foreground);
-  const states = surfaceStates(cx, foreground);
-  return Button.new(id)
-    .disabled(disabled)
-    .selected(selected)
+  if (size === "small") {
+    return {
+      extent: tokens.space(24),
+      fontSize: tokens.font.bodySmall,
+      iconSize: tokens.font.iconSmall,
+      paddingX: tokens.spacing.lg,
+    };
+  }
+  if (size === "large") {
+    return {
+      extent: tokens.space(32),
+      fontSize: tokens.font.title,
+      iconSize: tokens.font.iconLarge,
+      paddingX: tokens.spacing.xxl,
+    };
+  }
+  return {
+    extent: tokens.spacing.controlHeight,
+    fontSize: tokens.font.body,
+    iconSize: tokens.font.icon,
+    paddingX: tokens.spacing.controlPaddingX,
+  };
+}
+
+/** @param {string | number} value @param {import("gpui").Context} cx */
+function labelElement(value, cx) {
+  return div()
+    .text_size(style().font.body)
+    .line_height(1.35)
+    .text_color(cx.theme().colors.foreground)
+    .child(value);
+}
+
+/** @param {string | number} value @param {import("gpui").Context} cx */
+function mutedElement(value, cx) {
+  return div()
+    .text_size(style().font.body)
+    .line_height(1.35)
+    .text_color(cx.theme().colors.muted_foreground)
+    .child(value);
+}
+
+/**
+ * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
+ * selected:boolean, disabled:boolean, loading:boolean, size:ControlSize,
+ * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
+ * @param {import("gpui").Context} cx
+ */
+function buildButton(config, cx) {
+  const tokens = style();
+  const states = surfaceStates(cx);
+  const dimensions = sizeStyle(config.size);
+  const inactive = config.disabled || config.loading;
+  const hasBorder = config.outlined || config.bordered || config.selected;
+
+  return BaseButton.new(config.id)
+    .disabled(inactive)
+    .selected(config.selected)
     .flex()
     .items_center()
     .justify_center()
     .gap(tokens.spacing.md)
-    .px(tokens.spacing.controlPaddingX)
-    .py(tokens.spacing.controlPaddingY)
+    .h(dimensions.extent)
+    .px(dimensions.paddingX)
     .rounded(tokens.cornerRadius)
     .border(states.borderWidth)
-    .border_color(selected ? states.hoverBorder : bordered ? states.normalBorder : NO_FILL)
-    .bg(selected ? states.selectedFill : bordered ? states.normalFill : NO_FILL)
-    .text_size(fontSize ?? tokens.font.body)
-    .text_color(foreground)
-    .when(Boolean(tooltip), (element) => element.tooltip(tooltip))
-    .when(Boolean(asset), (element) => element.child(svg(asset).flex_none().size(tokens.font.iconSmall).text_color(foreground)))
-    .when(!disabled, (element) => element.on_click(onClick))
-    .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill).border_color(states.hoverBorder)))
-    .when(!disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
-    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
-    .when(disabled, (element) => element.opacity(0.4))
-    .child(caption);
+    .border_color(
+      config.selected
+        ? states.hoverBorder
+        : hasBorder
+          ? states.normalBorder
+          : NO_FILL,
+    )
+    .bg(
+      config.selected
+        ? states.selectedFill
+        : config.bordered && !config.outlined
+          ? states.normalFill
+          : NO_FILL,
+    )
+    .text_size(dimensions.fontSize)
+    .text_color(cx.theme().colors.foreground)
+    .when(config.loading, (element) => element.accessibility_label(config.label))
+    .when(Boolean(config.asset) && !config.loading, (element) =>
+      element.child(
+        svg(config.asset)
+          .flex_none()
+          .size(dimensions.iconSize)
+          .text_color(cx.theme().colors.foreground),
+      ),
+    )
+    .when(!inactive && typeof config.onClick === "function", (element) =>
+      element.on_click(config.onClick),
+    )
+    .when(!inactive, (element) =>
+      element.hover((appearance) =>
+        appearance.bg(states.hoverFill).border_color(states.hoverBorder),
+      ),
+    )
+    .when(!inactive, (element) =>
+      element.active((appearance) => appearance.bg(states.pressedFill)),
+    )
+    .focus((appearance) =>
+      appearance
+        .bg(states.focusFill)
+        .border(states.focusBorderWidth)
+        .border_color(states.focusBorder),
+    )
+    .when(inactive, (element) => element.opacity(0.4))
+    .child(config.loading ? `${config.label}…` : config.label);
 }
 
 /**
- * @param {string} id @param {string} asset @param {string} caption
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
+ * @param {{id:string, content:any, description:string, outlined:boolean,
+ * bordered:boolean, selected:boolean, disabled:boolean, loading:boolean,
+ * size:ControlSize, onClick?: (event: import("gpui").ClickEvent,
+ * cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
- * @param {{disabled?: boolean, selected?: boolean, bordered?: boolean, tooltip?: string, variant?: "secondary" | "danger", color?: import("gpui").Color}} [options]
  */
-export function iconTextButton(id, asset, caption, onClick, cx, options = {}) {
-  return button(id, caption, onClick, cx, {
-    ...options,
-    asset,
-    bordered: options.bordered ?? true,
-    fontSize: style().font.bodySmall,
-  }).h(style().spacing.controlHeight);
-}
-
-/**
- * @param {string} id @param {any} content @param {string} description
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
- * @param {import("gpui").Context} cx
- * @param {{disabled?: boolean, selected?: boolean, color?: import("gpui").Color, hoverColor?: import("gpui").Color, size?: import("gpui").Length}} options
- */
-function compactCommand(id, content, description, onClick, cx, options) {
-  const { disabled = false, selected = false, color } = options;
-  const hoverColor = options.hoverColor ?? cx.theme().colors.foreground;
+function buildCompactCommand(config, cx) {
   const tokens = style();
-  const foreground = color || cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground);
-  const extent = options.size ?? Math.max(tokens.space(24), tokens.font.icon + tokens.spacing.sm * 2);
-  return Button.new(id)
-    .disabled(disabled)
-    .selected(selected)
-    .accessibility_label(description)
-    .tooltip(description)
+  const states = surfaceStates(cx);
+  const dimensions = sizeStyle(config.size);
+  const inactive = config.disabled || config.loading;
+  const hasBorder = config.outlined || config.bordered || config.selected;
+
+  return BaseButton.new(config.id)
+    .disabled(inactive)
+    .selected(config.selected)
+    .accessibility_label(config.description)
+    .tooltip(config.description)
     .flex()
     .items_center()
     .justify_center()
     .flex_none()
-    .size(extent)
+    .size(dimensions.extent)
     .p(tokens.space(2))
     .rounded(tokens.cornerRadius)
-    .bg(selected ? states.selectedFill : NO_FILL)
-    .text_color(selected ? hoverColor : foreground)
-    .when(!disabled, (element) => element.on_click(onClick))
-    .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill).text_color(hoverColor)))
-    .when(!disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
-    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
-    .when(disabled, (element) => element.opacity(0.4))
-    .child(content);
-}
-
-/**
- * @param {string} id @param {string} asset @param {string} description
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
- * @param {import("gpui").Context} cx
- * @param {{disabled?: boolean, selected?: boolean, color?: import("gpui").Color, hoverColor?: import("gpui").Color, size?: import("gpui").Length, iconSize?: import("gpui").Length}} [options]
- */
-export function iconButton(id, asset, description, onClick, cx, options = {}) {
-  return compactCommand(id, svg(asset).size(options.iconSize ?? style().font.icon).flex_none(), description, onClick, cx, options);
-}
-
-/**
- * @param {string} id @param {string} glyph @param {string} description
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
- * @param {import("gpui").Context} cx @param {{disabled?: boolean, selected?: boolean}} [options]
- */
-export function glyphButton(id, glyph, description, onClick, cx, options = {}) {
-  return compactCommand(id, glyph, description, onClick, cx, options);
-}
-
-/** @param {import("gpui-base").InputState} state @param {import("gpui").Context} cx */
-export const field = (state, cx) => {
-  const tokens = style();
-  const states = surfaceStates(cx);
-  return Input.new(state)
-    .flex_1()
-    .h(tokens.spacing.controlHeight)
-    .px(tokens.spacing.controlPaddingX)
-    .py(tokens.spacing.inputPaddingY)
-    .rounded(tokens.cornerRadius)
     .border(states.borderWidth)
-    .border_color(states.normalBorder)
-    .bg(states.normalFill)
-    .text_size(tokens.font.body)
+    .border_color(
+      config.selected
+        ? states.hoverBorder
+        : hasBorder
+          ? states.normalBorder
+          : NO_FILL,
+    )
+    .bg(
+      config.selected
+        ? states.selectedFill
+        : config.bordered && !config.outlined
+          ? states.normalFill
+          : NO_FILL,
+    )
+    .text_size(dimensions.fontSize)
     .text_color(cx.theme().colors.foreground)
-    .hover((appearance) => appearance.bg(states.hoverFill).border_color(states.hoverBorder))
-    .focus((appearance) => appearance.bg(states.hoverFill).border_color(states.hoverBorder));
-};
-
-/** @param {string} id @param {string} caption @param {any} control @param {import("gpui").Context} cx */
-export const fieldRow = (id, caption, control, cx) => {
-  const tokens = style();
-  return h_flex()
-    .id(id)
-    .flex_none()
-    .items_center()
-    .gap(tokens.spacing.controlGap)
-    .px(tokens.spacing.panelPadding)
-    .py(tokens.spacing.xs)
-    .border_b(tokens.spacing.hairline)
-    .border_color(cx.theme().colors.border)
-    .child(h_flex().w(tokens.space(52)).flex_none().child(label(caption, cx).text_color(cx.theme().colors.muted_foreground)))
-    .child(control);
-};
-
-/** @param {string} id @param {string} caption @param {any} control @param {import("gpui").Context} cx @param {string} [helper] */
-export const formField = (id, caption, control, cx, helper = "") => {
-  const tokens = style();
-  return v_flex()
-    .id(id)
-    .min_w_0()
-    .gap(tokens.spacing.labelGap)
-    .child(label(caption, cx))
-    .child(control)
-    .when(Boolean(helper), (element) => element.child(muted(helper, cx).text_size(tokens.font.bodySmall)));
-};
-
-/**
- * @param {string} id @param {string} caption
- * @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} onClick
- * @param {import("gpui").Context} cx
- * @param {{detail?: string, danger?: boolean, disabled?: boolean, asset?: string, selected?: boolean, cursor?: boolean, dim?: boolean}} [options]
- */
-export function menuItem(id, caption, onClick, cx, options = {}) {
-  const { detail = "", danger = false, disabled = false, asset = "", selected = false, cursor = false, dim = false } = options;
-  const tokens = style();
-  const foreground = danger ? cx.theme().colors.destructive : dim ? cx.theme().colors.muted_foreground : cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground);
-  return Button.new(id)
-    .role("menu_item")
-    .disabled(disabled)
-    .flex()
-    .items_center()
-    .justify_between()
-    .w_full()
-    .h(tokens.spacing.popupRowHeight)
-    .gap(tokens.spacing.controlGap)
-    .px(tokens.space(9))
-    .rounded(tokens.cornerRadius)
-    .bg(selected ? states.selectedFill : cursor ? states.hoverFill : NO_FILL)
-    .text_size(tokens.font.bodySmall)
-    .text_color(foreground)
-    .when(!disabled, (element) => element.on_click(onClick))
-    .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill)))
-    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
-    .when(disabled, (element) => element.opacity(0.4))
-    .child(h_flex().items_center().gap(tokens.spacing.md).min_w_0().when(Boolean(asset), (element) => element.child(svg(asset).flex_none().size(tokens.font.iconSmall).text_color(foreground))).child(label(caption, cx).text_color(foreground).truncate()))
-    .when(Boolean(detail), (element) => element.child(muted(detail, cx).flex_none().text_size(tokens.font.bodySmall)));
+    .when(!inactive && typeof config.onClick === "function", (element) =>
+      element.on_click(config.onClick),
+    )
+    .when(!inactive, (element) =>
+      element.hover((appearance) =>
+        appearance
+          .bg(states.hoverFill)
+          .border_color(states.hoverBorder)
+          .text_color(cx.theme().colors.foreground),
+      ),
+    )
+    .when(!inactive, (element) =>
+      element.active((appearance) => appearance.bg(states.pressedFill)),
+    )
+    .focus((appearance) =>
+      appearance
+        .bg(states.focusFill)
+        .border(states.focusBorderWidth)
+        .border_color(states.focusBorder),
+    )
+    .when(inactive, (element) => element.opacity(0.4))
+    .child(config.loading ? "…" : config.content);
 }
 
-/** @param {import("gpui").Context} cx */
-export const separator = (cx) =>
-  v_flex().flex_none().h(style().spacing.hairline).w_full().bg(alpha(cx.theme().colors.foreground, 0.12));
+export class Button {
+  #id;
+  #label = "";
+  #asset = "";
+  #outlined = false;
+  #bordered = false;
+  #selected = false;
+  #disabled = false;
+  #loading = false;
+  /** @type {ControlSize} */
+  #size = "medium";
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
 
-/** @param {import("gpui").Context} cx */
-export const menuSeparator = (cx) =>
-  v_flex().flex_none().h(style().space(7)).w_full().justify_center().child(separator(cx));
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+  /** @param {string} asset complete application-root-relative asset path */
+  icon(asset) { this.#asset = asset; return this; }
+  outlined() { this.#outlined = true; return this; }
+  /** @param {boolean} [value] */
+  bordered(value = true) { this.#bordered = value; return this; }
+  /** @param {boolean} [value] */
+  selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+  /** @param {boolean} [value] */
+  loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("Button", value); return this; }
+  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
+  onClick(callback) { this.#onClick = callback; return this; }
 
-/** @param {string} value @param {import("gpui").Context} cx */
-export const kbd = (value, cx) => {
-  const tokens = style();
-  const states = surfaceStates(cx);
-  return h_flex().flex_none().items_center().justify_center().px(tokens.space(3)).py(tokens.space(1)).rounded(tokens.cornerRadius).bg(states.normalFill).text_size(tokens.font.caption).text_color(cx.theme().colors.foreground).child(value);
-};
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("Button", "label", this.#label);
+    return buildButton({
+      id: this.#id,
+      label: this.#label,
+      asset: this.#asset,
+      outlined: this.#outlined,
+      bordered: this.#bordered,
+      selected: this.#selected,
+      disabled: this.#disabled,
+      loading: this.#loading,
+      size: this.#size,
+      onClick: this.#onClick,
+    }, cx);
+  }
+}
 
-/** @param {Array<{key: string, label: string}>} hints @param {import("gpui").Context} cx */
-export const keyHints = (hints, cx) => {
-  const tokens = style();
-  return h_flex()
-    .id("key-hints")
-    .flex_none()
-    .items_center()
-    .gap(tokens.space(7))
-    .children(hints.map((hint) => h_flex().items_center().gap(tokens.space(3)).child(kbd(hint.key, cx)).child(muted(hint.label, cx).text_size(tokens.font.caption).flex_none())));
-};
+export class IconButton {
+  #id;
+  #asset = "";
+  #description = "";
+  #outlined = false;
+  #bordered = false;
+  #selected = false;
+  #disabled = false;
+  #loading = false;
+  /** @type {ControlSize} */
+  #size = "medium";
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} asset complete application-root-relative asset path */
+  icon(asset) { this.#asset = asset; return this; }
+  /** @param {string} text */
+  description(text) { this.#description = text; return this; }
+  outlined() { this.#outlined = true; return this; }
+  /** @param {boolean} [value] */
+  bordered(value = true) { this.#bordered = value; return this; }
+  /** @param {boolean} [value] */
+  selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+  /** @param {boolean} [value] */
+  loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("IconButton", value); return this; }
+  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
+  onClick(callback) { this.#onClick = callback; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("IconButton", "icon", this.#asset);
+    requireValue("IconButton", "description", this.#description);
+    return buildCompactCommand({
+      id: this.#id,
+      content: svg(this.#asset).size(sizeStyle(this.#size).iconSize).flex_none(),
+      description: this.#description,
+      outlined: this.#outlined,
+      bordered: this.#bordered,
+      selected: this.#selected,
+      disabled: this.#disabled,
+      loading: this.#loading,
+      size: this.#size,
+      onClick: this.#onClick,
+    }, cx);
+  }
+}
+
+export class GlyphButton {
+  #id;
+  #glyph = "";
+  #description = "";
+  #outlined = false;
+  #bordered = false;
+  #selected = false;
+  #disabled = false;
+  #loading = false;
+  /** @type {ControlSize} */
+  #size = "medium";
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} text */
+  glyph(text) { this.#glyph = text; return this; }
+  /** @param {string} text */
+  description(text) { this.#description = text; return this; }
+  outlined() { this.#outlined = true; return this; }
+  /** @param {boolean} [value] */
+  bordered(value = true) { this.#bordered = value; return this; }
+  /** @param {boolean} [value] */
+  selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+  /** @param {boolean} [value] */
+  loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("GlyphButton", value); return this; }
+  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
+  onClick(callback) { this.#onClick = callback; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("GlyphButton", "glyph", this.#glyph);
+    requireValue("GlyphButton", "description", this.#description);
+    return buildCompactCommand({
+      id: this.#id,
+      content: this.#glyph,
+      description: this.#description,
+      outlined: this.#outlined,
+      bordered: this.#bordered,
+      selected: this.#selected,
+      disabled: this.#disabled,
+      loading: this.#loading,
+      size: this.#size,
+      onClick: this.#onClick,
+    }, cx);
+  }
+}
+
+export class MenuItem {
+  #id;
+  #label = "";
+  #detail = "";
+  #asset = "";
+  #selected = false;
+  #disabled = false;
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+  /** @param {string} text */
+  detail(text) { this.#detail = text; return this; }
+  /** @param {string} asset complete application-root-relative asset path */
+  icon(asset) { this.#asset = asset; return this; }
+  /** @param {boolean} [value] */
+  selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
+  onClick(callback) { this.#onClick = callback; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("MenuItem", "label", this.#label);
+    const tokens = style();
+    const states = surfaceStates(cx);
+    const foreground = cx.theme().colors.foreground;
+    return BaseButton.new(this.#id)
+      .role("menu_item")
+      .disabled(this.#disabled)
+      .selected(this.#selected)
+      .accessibility_label(this.#detail ? `${this.#label}, ${this.#detail}` : this.#label)
+      .flex()
+      .items_center()
+      .justify_between()
+      .w_full()
+      .h(tokens.spacing.popupRowHeight)
+      .gap(tokens.spacing.controlGap)
+      .px(tokens.space(9))
+      .rounded(tokens.cornerRadius)
+      .border(states.borderWidth)
+      .border_color(NO_FILL)
+      .bg(this.#selected ? states.selectedFill : NO_FILL)
+      .text_size(tokens.font.bodySmall)
+      .text_color(foreground)
+      .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
+      .when(!this.#disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill)))
+      .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
+      .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
+      .when(this.#disabled, (element) => element.opacity(0.4))
+      .child(
+        h_flex()
+          .items_center()
+          .gap(tokens.spacing.md)
+          .min_w_0()
+          .when(Boolean(this.#asset), (element) => element.child(svg(this.#asset).flex_none().size(tokens.font.iconSmall).text_color(foreground)))
+          .child(labelElement(this.#label, cx).text_color(foreground).truncate()),
+      )
+      .when(Boolean(this.#detail), (element) => element.child(mutedElement(this.#detail, cx).flex_none().text_size(tokens.font.bodySmall)));
+  }
+}
+
+export class FieldRow {
+  #id;
+  #label = "";
+  #control;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+  /** @param {any} element */
+  control(element) { this.#control = element; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("FieldRow", "label", this.#label);
+    requireValue("FieldRow", "control", this.#control);
+    const tokens = style();
+    return h_flex()
+      .id(this.#id)
+      .flex_none()
+      .items_center()
+      .gap(tokens.spacing.controlGap)
+      .px(tokens.spacing.panelPadding)
+      .py(tokens.spacing.xs)
+      .border_b(tokens.spacing.hairline)
+      .border_color(cx.theme().colors.border)
+      .child(h_flex().w(tokens.space(52)).flex_none().child(labelElement(this.#label, cx).text_color(cx.theme().colors.muted_foreground)))
+      .child(this.#control);
+  }
+}
+
+export class FormField {
+  #id;
+  #label = "";
+  #control;
+  #helper = "";
+
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+  /** @param {any} element */
+  control(element) { this.#control = element; return this; }
+  /** @param {string} text */
+  helper(text) { this.#helper = text; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("FormField", "label", this.#label);
+    requireValue("FormField", "control", this.#control);
+    const tokens = style();
+    return v_flex()
+      .id(this.#id)
+      .min_w_0()
+      .gap(tokens.spacing.labelGap)
+      .child(labelElement(this.#label, cx))
+      .child(this.#control)
+      .when(Boolean(this.#helper), (element) => element.child(mutedElement(this.#helper, cx).text_size(tokens.font.bodySmall)));
+  }
+}
+
+export class Separator {
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    return v_flex().flex_none().h(style().spacing.hairline).w_full().bg(alpha(cx.theme().colors.foreground, 0.12));
+  }
+}
+
+export class MenuSeparator {
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    return v_flex().flex_none().h(style().space(7)).w_full().justify_center().child(new Separator().build(cx));
+  }
+}
+
+export class Keycap {
+  #value;
+  /** @param {string} value */
+  constructor(value) { this.#value = value; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    requireValue("Keycap", "value", this.#value);
+    const tokens = style();
+    const states = surfaceStates(cx);
+    return h_flex()
+      .flex_none()
+      .items_center()
+      .justify_center()
+      .px(tokens.space(3))
+      .py(tokens.space(1))
+      .rounded(tokens.cornerRadius)
+      .border(states.borderWidth)
+      .border_color(states.normalBorder)
+      .bg(states.normalFill)
+      .text_size(tokens.font.caption)
+      .text_color(cx.theme().colors.foreground)
+      .child(this.#value);
+  }
+}
+
+export class KeyHints {
+  #id;
+  /** @type {Array<{key:string, label:string}>} */
+  #hints = [];
+  /** @param {string} id */
+  constructor(id) { this.#id = id; }
+  /** @param {string} key @param {string} label */
+  hint(key, label) { this.#hints.push({ key, label }); return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const tokens = style();
+    return h_flex()
+      .id(this.#id)
+      .flex_none()
+      .items_center()
+      .gap(tokens.space(7))
+      .children(this.#hints.map((hint) => h_flex()
+        .items_center()
+        .gap(tokens.space(3))
+        .child(new Keycap(hint.key).build(cx))
+        .child(mutedElement(hint.label, cx).text_size(tokens.font.caption).flex_none())));
+  }
+}
