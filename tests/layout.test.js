@@ -30,6 +30,16 @@ const theme = {
 };
 
 const cx = { theme: () => theme };
+const alternateTheme = {
+  ...theme,
+  colors: {
+    ...theme.colors,
+    background: "#202020ff",
+    foreground: "#fafafaff",
+    surface: "#282828ff",
+  },
+};
+const alternateCx = { theme: () => alternateTheme };
 
 /** @param {any} element @param {string} method */
 function callsTo(element, method) {
@@ -111,6 +121,35 @@ test("named slot builders chain and preserve semantic child order", () => {
   expect(idOf(shellChildren[1])).toBe("application-content");
   expect(childrenOf(shellChildren[1])).toEqual([content]);
   expect(shellChildren[2]).toBe(hints);
+});
+
+test("optional named slots omit every falsy value", () => {
+  const content = { slot: "content" };
+  const heading = { slot: "heading" };
+
+  expect(
+    childrenOf(new TopBar().brand(false).center("").actions(0).build(cx)),
+  ).toEqual([]);
+  expect(childrenOf(new BottomBar().status(false).hints("").build(cx))).toEqual(
+    [],
+  );
+
+  const actionChildren = childrenOf(
+    new ActionBar("action").actions(0).status(false).build(cx),
+  );
+  expect(actionChildren).toHaveLength(1);
+  expect(actionChildren[0].name).toBe("div");
+
+  expect(
+    childrenOf(new PanelHeader("panel").heading(heading).actions("").build(cx)),
+  ).toEqual([heading]);
+
+  const shellChildren = childrenOf(
+    new AppShell().top(false).content(content).bottom(0).build(cx),
+  );
+  expect(shellChildren).toHaveLength(1);
+  expect(idOf(shellChildren[0])).toBe("application-content");
+  expect(childrenOf(shellChildren[0])).toEqual([content]);
 });
 
 test("open-ended container builders append children in call order", () => {
@@ -214,6 +253,22 @@ test("build is repeatable and does not consume component configuration", () => {
     expect(second.name).toBe(first.name);
     expect(second.calls).toEqual(first.calls);
   }
+});
+
+test("repeat builds resolve against each supplied context", () => {
+  const child = { child: "stable" };
+  const surface = new Surface().child(child);
+
+  const first = surface.build(cx);
+  const second = surface.build(alternateCx);
+
+  expect(first).not.toBe(second);
+  expect(callsTo(first, "bg")[0].args).toEqual([theme.colors.surface]);
+  expect(callsTo(second, "bg")[0].args).toEqual([
+    alternateTheme.colors.surface,
+  ]);
+  expect(childrenOf(first)).toEqual([child]);
+  expect(childrenOf(second)).toEqual([child]);
 });
 
 test("layout classes preserve stable ids", () => {

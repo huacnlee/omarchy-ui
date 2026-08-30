@@ -13,8 +13,8 @@ function requireContent(component, field, value) {
 }
 
 /** @param {unknown[]} values */
-function present(values) {
-  return values.filter((value) => value !== undefined && value !== null);
+function optionalSlots(values) {
+  return values.filter(Boolean);
 }
 
 export class AppShell {
@@ -60,7 +60,9 @@ export class AppShell {
       .text_size(style().font.body)
       .bg(cx.theme().colors.background)
       .text_color(cx.theme().colors.foreground)
-      .children(present([this.#top, content, this.#bottom]));
+      .children(optionalSlots([this.#top]))
+      .child(content)
+      .children(optionalSlots([this.#bottom]));
   }
 }
 
@@ -100,7 +102,7 @@ export class TopBar {
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(present([this.#brand, this.#center, this.#actions]));
+      .children(optionalSlots([this.#brand, this.#center, this.#actions]));
   }
 }
 
@@ -141,7 +143,7 @@ export class BottomBar {
       .border_t(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(present([this.#status, this.#hints]));
+      .children(optionalSlots([this.#status, this.#hints]));
   }
 }
 
@@ -179,9 +181,9 @@ export class ActionBar {
       .py(style().spacing.sm)
       .border_t(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
-      .children(present([this.#actions]))
+      .children(optionalSlots([this.#actions]))
       .child(div().flex_1())
-      .children(present([this.#status]));
+      .children(optionalSlots([this.#status]));
   }
 }
 
@@ -221,7 +223,8 @@ export class PanelHeader {
       .px(style().spacing.rowPaddingX)
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
-      .children(present([this.#heading, this.#actions]));
+      .child(this.#heading)
+      .children(optionalSlots([this.#actions]));
   }
 }
 
