@@ -1,6 +1,6 @@
 // @ts-check
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import {
   alpha,
   applyOmarchyStyle,
@@ -14,6 +14,7 @@ import {
   resolveSurfaceColor,
   style,
 } from "../src/style.js";
+import { applyOmarchyRoles } from "../src/theme.js";
 
 const shell = `
 # Omarchy shell surfaces.
@@ -35,6 +36,11 @@ base-size = 12
 [popups]
 border = "hyprland.active-border"
 `;
+
+afterEach(() => {
+  applyOmarchyRoles("");
+  applyOmarchyStyle("");
+});
 
 describe("Bun harness", () => {
   test("maps gpui and gpui-base imports to the local recording stub", async () => {

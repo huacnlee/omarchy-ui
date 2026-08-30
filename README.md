@@ -95,12 +95,12 @@ call.
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and `.label(text)` | `.icon(asset)` is optional. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.disabled(false)`, `.loading(false)`, `.size("medium")`, and `.onClick(callback)`. |
+| `Button(id)` | Stable `id` and `.label(text)` | `.icon(asset)` is optional. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.size("medium")`, and `.onClick(callback)`. |
 | `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, size, and callback builders. The description supplies the accessible name and tooltip. |
 | `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, size, and callback builders. Use only when no icon asset exists. |
-| `MenuItem(id)` | Stable `id` and `.label(text)` | `.detail(text)` and `.icon(asset)` are empty; `.selected(false)`, `.disabled(false)`, and `.onClick(callback)`. |
+| `MenuItem(id)` | Stable `id` and `.label(text)` | `.detail(text)` and `.icon(asset)` are empty; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
-| `FormField(id)` | Stable `id`, `.label(text)`, and `.control(element)` | `.helper(text)` is empty by default. |
+| `FormField(id)` | Stable `id`, `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are empty by default. A non-empty error replaces helper text. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | No optional fields. |
@@ -116,25 +116,37 @@ Pass a complete application-root-relative path to `.icon(asset)`, such as
 unchanged. The library does not choose an asset, add a prefix, or resolve a
 short icon name.
 
+`Button.danger(value)` and `MenuItem.danger(value)` use the active destructive
+token for idle, hover, pressed, focus, disabled, label, and icon treatment.
+`FormField.error(message)` renders non-empty validation feedback with an alert
+role and the destructive token; call `.error("")` to reveal helper text again.
+
 ### Data and feedback
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `ListRow(id)` | Stable `id` | `.selected(false)`; `.child(element)` and `.children(elements)` append in order. |
+| `ListRow(id)` | Stable `id` | `.selected(false)`, `.disabled(false)`, and `.onClick(callback)`; `.child(element)` and `.children(elements)` append in order. |
 | `EmptyState` | `.heading(text)` and `.hint(text)` | No optional fields. |
 | `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. |
 
+`ListRow` remains a presentation-only row when no callback is supplied: it has
+no hover, press, or focus affordance. Adding `onClick` uses the semantic button
+boundary and enables token-driven hover, pressed, focus, selected, and disabled
+states. Selection remains visible through hover and focus.
+
 `StatusLine.state(value)` validates its closed vocabulary immediately. An error
-state uses the active destructive token and a status role; ready and loading
-use muted presentation.
+state uses the active destructive token and a status role. Loading uses muted
+presentation, appends `…` to the visible label, and exposes a loading-specific
+accessible label, so it differs from ready without relying on color.
 
 ## State and callback ownership
 
 These classes are presentational configuration values, not retained models.
 The application owns selected, disabled, and loading values and supplies them
-again when rendering changes. An `onClick` callback reports activation; the
-application performs the domain operation, updates its owner, and calls the
-appropriate GPUI notification method.
+again when rendering changes. A Button, MenuItem, or interactive ListRow
+`onClick` callback reports activation; the application performs the domain
+operation, updates its owner, and calls the appropriate GPUI notification
+method.
 
 Stateful gpui-base controls remain application-owned. For example, create and
 retain an `InputState` in the view, build its `Input`, and pass that element to

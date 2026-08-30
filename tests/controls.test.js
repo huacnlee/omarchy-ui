@@ -95,6 +95,7 @@ test("fluent builders mutate private configuration and return the same value", (
   expect(button.outlined()).toBe(button);
   expect(button.bordered()).toBe(button);
   expect(button.selected()).toBe(button);
+  expect(button.danger()).toBe(button);
   expect(button.disabled(false)).toBe(button);
   expect(button.loading(false)).toBe(button);
   expect(button.size("large")).toBe(button);
@@ -120,6 +121,7 @@ test("fluent builders mutate private configuration and return the same value", (
   expect(menuItem.detail("Return")).toBe(menuItem);
   expect(menuItem.icon("consumer/icons/rename.svg")).toBe(menuItem);
   expect(menuItem.selected()).toBe(menuItem);
+  expect(menuItem.danger()).toBe(menuItem);
   expect(menuItem.disabled(false)).toBe(menuItem);
   expect(menuItem.onClick(callback)).toBe(menuItem);
 
@@ -131,6 +133,7 @@ test("fluent builders mutate private configuration and return the same value", (
   expect(formField.label("Email")).toBe(formField);
   expect(formField.control(element("Input"))).toBe(formField);
   expect(formField.helper("Used for notifications")).toBe(formField);
+  expect(formField.error("Email is invalid")).toBe(formField);
 
   expect(Object.keys(button)).toEqual([]);
   expect(Object.keys(menuItem)).toEqual([]);
@@ -413,6 +416,90 @@ test("compact commands and menu items expose focus, hover, press, selection, and
   expect(callsTo(disabledMenuItem, "active")).toHaveLength(0);
 });
 
+test("danger Button uses the destructive token for every visual state", () => {
+  const danger = new controls.Button("delete")
+    .label("Delete")
+    .icon("consumer/icons/delete.svg")
+    .danger()
+    .build(cx);
+  const disabled = new controls.Button("delete-disabled")
+    .label("Delete")
+    .icon("consumer/icons/delete.svg")
+    .danger()
+    .disabled()
+    .build(cx);
+  const cleared = new controls.Button("delete-cleared")
+    .label("Delete")
+    .danger()
+    .danger(false)
+    .build(cx);
+
+  expect(oneCall(danger, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(resolvedStyle(danger, "hover").bg).toBe("#ff334414");
+  expect(resolvedStyle(danger, "active").bg).toBe("#ff334438");
+  expect(resolvedStyle(danger, "focus")).toMatchObject({
+    bg: "#ff334414",
+    border: 1,
+    border_color: "#ff334440",
+  });
+  const dangerIcon = callsTo(danger, "child")[0].args[0];
+  expect(oneCall(dangerIcon, "text_color").args).toEqual(["#ff3344ff"]);
+
+  expect(oneCall(disabled, "disabled").args).toEqual([true]);
+  expect(oneCall(disabled, "text_color").args).toEqual(["#ff3344ff"]);
+  const disabledIcon = callsTo(disabled, "child")[0].args[0];
+  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(callsTo(disabled, "hover")).toHaveLength(0);
+  expect(callsTo(disabled, "active")).toHaveLength(0);
+  expect(oneCall(cleared, "text_color").args).toEqual(["#eeeeeeff"]);
+});
+
+test("danger MenuItem colors root, nested label, icon, focus, and disabled state", () => {
+  const danger = new controls.MenuItem("delete")
+    .label("Delete")
+    .icon("consumer/icons/delete.svg")
+    .danger()
+    .build(cx);
+  const disabled = new controls.MenuItem("delete-disabled")
+    .label("Delete")
+    .icon("consumer/icons/delete.svg")
+    .danger()
+    .disabled()
+    .build(cx);
+  const cleared = new controls.MenuItem("delete-cleared")
+    .label("Delete")
+    .danger()
+    .danger(false)
+    .build(cx);
+
+  expect(oneCall(danger, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(resolvedStyle(danger, "hover").bg).toBe("#ff334414");
+  expect(resolvedStyle(danger, "active").bg).toBe("#ff334438");
+  expect(resolvedStyle(danger, "focus")).toMatchObject({
+    bg: "#ff334414",
+    border: 1,
+    border_color: "#ff334440",
+  });
+  const leading = oneCall(danger, "child").args[0];
+  const icon = callsTo(leading, "child")[0].args[0];
+  const label = callsTo(leading, "child")[1].args[0];
+  expect(oneCall(icon, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(callsTo(label, "text_color").at(-1).args).toEqual(["#ff3344ff"]);
+
+  expect(oneCall(disabled, "disabled").args).toEqual([true]);
+  expect(oneCall(disabled, "text_color").args).toEqual(["#ff3344ff"]);
+  const disabledLeading = oneCall(disabled, "child").args[0];
+  const disabledIcon = callsTo(disabledLeading, "child")[0].args[0];
+  const disabledLabel = callsTo(disabledLeading, "child")[1].args[0];
+  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(callsTo(disabledLabel, "text_color").at(-1).args).toEqual([
+    "#ff3344ff",
+  ]);
+  expect(callsTo(disabled, "hover")).toHaveLength(0);
+  expect(callsTo(disabled, "active")).toHaveLength(0);
+  expect(oneCall(cleared, "text_color").args).toEqual(["#eeeeeeff"]);
+});
+
 test("semantic sizes change the complete control frame", () => {
   const small = new controls.Button("small").label("Small").size("small").build(cx);
   const medium = new controls.Button("medium").label("Medium").build(cx);
@@ -453,6 +540,36 @@ test("field wrappers retain supplied controls, labels, helper copy, and stable i
   expect(oneCall(form, "id").args).toEqual(["email"]);
   expect(callsTo(form, "child").at(1).args).toEqual([formControl]);
   expect(callsTo(form, "child").at(2).args[0].name).toBe("div");
+});
+
+test("FormField error replaces helper text with semantic danger feedback", () => {
+  const control = element("Input", ["email-state"]);
+  const invalid = new controls.FormField("email")
+    .label("Email")
+    .control(control)
+    .helper("Used for notifications")
+    .error("Enter a valid email address")
+    .build(cx);
+  const cleared = new controls.FormField("email-cleared")
+    .label("Email")
+    .control(control)
+    .helper("Used for notifications")
+    .error("")
+    .build(cx);
+
+  const invalidFeedback = callsTo(invalid, "child").at(2).args[0];
+  expect(oneCall(invalidFeedback, "child").args).toEqual([
+    "Enter a valid email address",
+  ]);
+  expect(callsTo(invalidFeedback, "text_color").at(-1).args).toEqual([
+    "#ff3344ff",
+  ]);
+  expect(oneCall(invalidFeedback, "role").args).toEqual(["alert"]);
+
+  const helper = callsTo(cleared, "child").at(2).args[0];
+  expect(oneCall(helper, "child").args).toEqual(["Used for notifications"]);
+  expect(callsTo(helper, "text_color").at(-1).args).toEqual(["#999999ff"]);
+  expect(callsTo(helper, "role")).toHaveLength(0);
 });
 
 test("separator and keyboard hint values build fresh token-driven descriptions", () => {

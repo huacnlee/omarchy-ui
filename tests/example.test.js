@@ -3,12 +3,18 @@
 import { afterEach, expect, test } from "bun:test";
 import HelloWorld from "../examples/hello-world/main.js";
 import { calls, reset } from "./gpui-stub.js";
-import { applyOmarchyRoles, roles, style } from "../src/index.js";
+import {
+  applyOmarchyRoles,
+  applyOmarchyStyle,
+  roles,
+  style,
+} from "../src/index.js";
 
 const exampleRoot = new URL("../examples/hello-world/", import.meta.url);
 
 afterEach(() => {
   applyOmarchyRoles("");
+  applyOmarchyStyle("");
 });
 
 test("Hello World resolves omarchy-ui from the Git shorthand dependency", async () => {

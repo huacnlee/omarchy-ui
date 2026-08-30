@@ -32,12 +32,12 @@
 - Modify only as needed for recording: `tests/gpui-stub.js`
 
 **Interfaces:**
-- `new Button(id)`: `.label(text)`, `.icon(asset)`, `.outlined()`, `.bordered(value = true)`, `.selected(value = true)`, `.disabled(value = true)`, `.loading(value = true)`, `.size("small"|"medium"|"large")`, `.onClick(callback)`, `.build(cx)`.
+- `new Button(id)`: `.label(text)`, `.icon(asset)`, `.outlined()`, `.bordered(value = true)`, `.selected(value = true)`, `.danger(value = true)`, `.disabled(value = true)`, `.loading(value = true)`, `.size("small"|"medium"|"large")`, `.onClick(callback)`, `.build(cx)`.
 - `new IconButton(id)`: `.icon(asset)`, `.description(text)`, shared state/size/callback builders, `.build(cx)`.
 - `new GlyphButton(id)`: `.glyph(text)`, `.description(text)`, shared state/size/callback builders, `.build(cx)`.
-- `new MenuItem(id)`: `.label(text)`, `.detail(text)`, `.icon(asset)`, `.selected(value = true)`, `.disabled(value = true)`, `.onClick(callback)`, `.build(cx)`.
+- `new MenuItem(id)`: `.label(text)`, `.detail(text)`, `.icon(asset)`, `.selected(value = true)`, `.danger(value = true)`, `.disabled(value = true)`, `.onClick(callback)`, `.build(cx)`.
 - `new FieldRow(id)`: `.label(text)`, `.control(element)`, `.build(cx)`.
-- `new FormField(id)`: `.label(text)`, `.control(element)`, `.helper(text)`, `.build(cx)`.
+- `new FormField(id)`: `.label(text)`, `.control(element)`, `.helper(text)`, `.error(message)`, `.build(cx)`.
 - `Separator`, `MenuSeparator`, `Keycap`, and `KeyHints` are value classes with the minimal semantic constructor/builders described by the spec.
 
 - [ ] Write failing tests for exact class existence, builder chaining identity, required label/icon/description/control validation, size validation, repeated builds, callback wiring, consumer asset paths, and all visible interaction styles.
@@ -80,9 +80,9 @@
 - Create: `tests/data-feedback.test.js`
 
 **Interfaces:**
-- `ListRow(id)`: `.selected(value = true)`, `.child(element)`, `.children(elements)`, `.build(cx)`.
+- `ListRow(id)`: `.selected(value = true)`, `.disabled(value = true)`, `.onClick(callback)`, `.child(element)`, `.children(elements)`, `.build(cx)`; without a callback it remains presentational and has no interactive affordance.
 - `EmptyState`: `.heading(text)`, `.hint(text)`, `.build(cx)`.
-- `StatusLine`: `.label(text)`, `.state("ready"|"loading"|"error")`, `.build(cx)`.
+- `StatusLine`: `.label(text)`, `.state("ready"|"loading"|"error")`, `.build(cx)`; loading has distinct visible and accessible text.
 
 - [ ] Write failing tests for defaults, chaining, content order, selected presentation, status vocabulary validation, and ready/loading/error rendering.
 - [ ] Verify RED with `bun test tests/data-feedback.test.js`.

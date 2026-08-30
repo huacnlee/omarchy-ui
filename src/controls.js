@@ -2,6 +2,7 @@
 
 import { div, svg } from "gpui";
 import { Button as BaseButton, h_flex, v_flex } from "gpui-base";
+import { stableId } from "./internal.js";
 import { alpha, style } from "./style.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
@@ -9,8 +10,12 @@ const SIZES = /** @type {const} */ (["small", "medium", "large"]);
 
 /** @typedef {typeof SIZES[number]} ControlSize */
 
-/** @param {import("gpui").Context} cx @param {import("gpui").Color} [color] */
-function surfaceStates(cx, color) {
+/**
+ * @param {import("gpui").Context} cx
+ * @param {import("gpui").Color} [color]
+ * @param {import("gpui").Color} [focusColor]
+ */
+function surfaceStates(cx, color, focusColor) {
   const state = style().state;
   const own = color || cx.theme().colors.foreground;
   return {
@@ -22,20 +27,15 @@ function surfaceStates(cx, color) {
     hoverBorder: alpha(own, state.hoverBorderAlpha),
     selectedBorder: alpha(own, state.selectedBorderAlpha),
     focusFill: alpha(own, state.focusFillAlpha),
-    focusBorder: alpha(cx.theme().colors.ring, state.focusBorderAlpha),
+    focusBorder: alpha(
+      focusColor || cx.theme().colors.ring,
+      state.focusBorderAlpha,
+    ),
     normalBorderWidth: state.normalBorderWidth,
     hoverBorderWidth: state.hoverBorderWidth,
     selectedBorderWidth: state.selectedBorderWidth,
     focusBorderWidth: state.focusBorderWidth,
   };
-}
-
-/** @param {string} component @param {unknown} id @returns {string} */
-function stableId(component, id) {
-  if (typeof id !== "string" || id.trim() === "") {
-    throw new Error(`${component} id must be a non-blank string`);
-  }
-  return id;
 }
 
 /** @param {string} component @param {string} field @param {unknown} value */
@@ -102,7 +102,7 @@ function mutedElement(value, cx) {
 
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
- * selected:boolean, disabled:boolean, loading:boolean, size:ControlSize,
+ * selected:boolean, danger:boolean, disabled:boolean, loading:boolean, size:ControlSize,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */
@@ -111,10 +111,16 @@ function buildButton(config, cx) {
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
-  const foreground = inactive
-    ? cx.theme().colors.muted_foreground
-    : cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground);
+  const foreground = config.danger
+    ? cx.theme().colors.destructive
+    : inactive
+      ? cx.theme().colors.muted_foreground
+      : cx.theme().colors.foreground;
+  const states = surfaceStates(
+    cx,
+    foreground,
+    config.danger ? cx.theme().colors.destructive : undefined,
+  );
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -280,6 +286,7 @@ export class Button {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #danger = false;
   #disabled = false;
   #loading = false;
   /** @type {ControlSize} */
@@ -299,6 +306,8 @@ export class Button {
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] */
+  danger(value = true) { this.#danger = value; return this; }
+  /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
   loading(value = true) { this.#loading = value; return this; }
@@ -317,6 +326,7 @@ export class Button {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      danger: this.#danger,
       disabled: this.#disabled,
       loading: this.#loading,
       size: this.#size,
@@ -437,6 +447,7 @@ export class MenuItem {
   #detail = "";
   #asset = "";
   #selected = false;
+  #danger = false;
   #disabled = false;
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
   #onClick;
@@ -452,6 +463,8 @@ export class MenuItem {
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] */
+  danger(value = true) { this.#danger = value; return this; }
+  /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
   onClick(callback) { this.#onClick = callback; return this; }
@@ -460,10 +473,16 @@ export class MenuItem {
   build(cx) {
     requireValue("MenuItem", "label", this.#label);
     const tokens = style();
-    const foreground = this.#disabled
-      ? cx.theme().colors.muted_foreground
-      : cx.theme().colors.foreground;
-    const states = surfaceStates(cx, foreground);
+    const foreground = this.#danger
+      ? cx.theme().colors.destructive
+      : this.#disabled
+        ? cx.theme().colors.muted_foreground
+        : cx.theme().colors.foreground;
+    const states = surfaceStates(
+      cx,
+      foreground,
+      this.#danger ? cx.theme().colors.destructive : undefined,
+    );
     const restBorderWidth = this.#selected
       ? states.selectedBorderWidth
       : states.normalBorderWidth;
@@ -513,7 +532,12 @@ export class MenuItem {
           .when(Boolean(this.#asset), (element) => element.child(svg(this.#asset).flex_none().size(tokens.font.iconSmall).text_color(foreground)))
           .child(labelElement(this.#label, cx).text_color(foreground).truncate()),
       )
-      .when(Boolean(this.#detail), (element) => element.child(mutedElement(this.#detail, cx).flex_none().text_size(tokens.font.bodySmall)));
+      .when(Boolean(this.#detail), (element) => element.child(
+        mutedElement(this.#detail, cx)
+          .flex_none()
+          .text_size(tokens.font.bodySmall)
+          .when(this.#danger, (detail) => detail.text_color(foreground)),
+      ));
   }
 }
 
@@ -553,6 +577,7 @@ export class FormField {
   #label = "";
   #control;
   #helper = "";
+  #error = "";
 
   /** @param {string} id */
   constructor(id) { this.#id = stableId("FormField", id); }
@@ -562,19 +587,31 @@ export class FormField {
   control(element) { this.#control = element; return this; }
   /** @param {string} text */
   helper(text) { this.#helper = text; return this; }
+  /** @param {string} message */
+  error(message) { this.#error = message; return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
     requireValue("FormField", "label", this.#label);
     requireValue("FormField", "control", this.#control);
     const tokens = style();
+    const hasError = Boolean(this.#error);
+    const feedback = hasError ? this.#error : this.#helper;
     return v_flex()
       .id(this.#id)
       .min_w_0()
       .gap(tokens.spacing.labelGap)
       .child(labelElement(this.#label, cx))
       .child(this.#control)
-      .when(Boolean(this.#helper), (element) => element.child(mutedElement(this.#helper, cx).text_size(tokens.font.bodySmall)));
+      .when(Boolean(feedback), (element) => element.child(
+        mutedElement(feedback, cx)
+          .text_size(tokens.font.bodySmall)
+          .when(hasError, (message) =>
+            message
+              .role("alert")
+              .text_color(cx.theme().colors.destructive),
+          ),
+      ));
   }
 }
 

@@ -48,9 +48,11 @@ from `src/index.js`:
 description. `GlyphButton` is reserved for a literal text glyph when no asset
 exists. Consumers use gpui-base `Input` directly; `FieldRow` and `FormField`
 only arrange a supplied control and do not duplicate input state ownership.
+`FormField.error(message)` replaces helper text with destructive, semantic
+validation feedback until cleared.
 
 Variants and behavioral states use domain builders: `outlined()`,
-`bordered(bool)`, `selected(bool)`, `disabled(bool)`, `loading(bool)`,
+`bordered(bool)`, `selected(bool)`, `danger(bool)`, `disabled(bool)`, `loading(bool)`,
 `size(value)`, `icon(asset)`, `detail(value)`, and callback builders such as
 `onClick(callback)`. Only builders meaningful to a component are exposed.
 Unknown variants or status states fail at the call that sets them.
@@ -61,6 +63,13 @@ Named slots are preferred over positional arguments. `AppShell` has `top`,
 `content`, and `bottom`; `PanelHeader` has `heading` and `actions`; `ActionBar`
 has `actions` and `status`. Container components use `child`/`children` only
 where content is genuinely open-ended.
+
+`ListRow` is presentational when it has no callback. Supplying `onClick`
+activates its semantic button seam and controlled `disabled` state, including
+hover, pressed, and focus treatment with selected-state precedence. Button and
+MenuItem danger states derive all presentation from the destructive token.
+StatusLine loading appends a visible marker and exposes loading-specific
+accessible text so it is distinct from ready without color alone.
 
 Components are presentation values, not retained application state. Stateful
 gpui-base models such as `InputState` remain owned by the application. Classes
@@ -87,7 +96,8 @@ future evolution ambiguous.
 
 ## Errors and validation
 
-Construction validates stable IDs through the underlying GPUI component.
+Construction validates every application-supplied ID as a non-blank string
+through one internal validator before reaching the underlying GPUI component.
 Builders validate closed vocabularies such as size and status immediately.
 `build(cx)` validates required semantic content, such as a button label or an
 icon button description. Error messages name the component, missing field, and

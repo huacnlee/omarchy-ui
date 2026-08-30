@@ -90,7 +90,15 @@ export class StatusLine {
   /** @param {import("gpui").Context} cx */
   build(cx) {
     const label = requiredText(this.#label, "StatusLine", "label");
-    const element = this.#state === "error" ? headingLabel(label, cx).text_color(cx.theme().colors.destructive) : mutedLabel(label, cx);
-    return element.role("status").text_size(style().font.caption);
+    const visibleLabel = this.#state === "loading" ? `${label}…` : label;
+    const element = this.#state === "error"
+      ? headingLabel(visibleLabel, cx).text_color(cx.theme().colors.destructive)
+      : mutedLabel(visibleLabel, cx);
+    return element
+      .role("status")
+      .text_size(style().font.caption)
+      .when(this.#state === "loading", (status) =>
+        status.accessibility_label(`${label}, loading`),
+      );
   }
 }

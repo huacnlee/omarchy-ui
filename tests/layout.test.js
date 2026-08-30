@@ -60,6 +60,38 @@ function idOf(element) {
   return callsTo(element, "id")[0]?.args[0];
 }
 
+test("every ID-bearing layout class rejects non-string and blank ids", () => {
+  const factories = [
+    ["ActionBar", (id) => new ActionBar(id)],
+    ["PanelHeader", (id) => new PanelHeader(id)],
+    ["CenteredWorkspace", (id) => new CenteredWorkspace(id)],
+    ["PageColumn", (id) => new PageColumn(id)],
+    ["PopupSurface", (id) => new PopupSurface(id)],
+  ];
+  const invalidIds = [
+    undefined,
+    null,
+    "",
+    "   ",
+    0,
+    42,
+    false,
+    {},
+    [],
+    Symbol("id"),
+    () => "id",
+  ];
+
+  for (const [name, create] of factories) {
+    expect(() => create(`${String(name).toLowerCase()}-id`)).not.toThrow();
+    for (const id of invalidIds) {
+      expect(() => create(id)).toThrow(
+        `${name} id must be a non-blank string`,
+      );
+    }
+  }
+});
+
 test("named slot builders chain and preserve semantic child order", () => {
   const brand = { slot: "brand" };
   const center = { slot: "center" };

@@ -56,3 +56,48 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
   expect(ui).not.toHaveProperty("iconAsset");
   expect(ui).not.toHaveProperty("omarchyStyleFrom");
 });
+
+test("interactive and validation classes expose the exact reviewed builders", () => {
+  expect(Object.getOwnPropertyNames(ui.Button.prototype).sort()).toEqual([
+    "bordered",
+    "build",
+    "constructor",
+    "danger",
+    "disabled",
+    "icon",
+    "label",
+    "loading",
+    "onClick",
+    "outlined",
+    "selected",
+    "size",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.MenuItem.prototype).sort()).toEqual([
+    "build",
+    "constructor",
+    "danger",
+    "detail",
+    "disabled",
+    "icon",
+    "label",
+    "onClick",
+    "selected",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.FormField.prototype).sort()).toEqual([
+    "build",
+    "constructor",
+    "control",
+    "error",
+    "helper",
+    "label",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.ListRow.prototype).sort()).toEqual([
+    "build",
+    "child",
+    "children",
+    "constructor",
+    "disabled",
+    "onClick",
+    "selected",
+  ]);
+});

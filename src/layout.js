@@ -2,6 +2,7 @@
 
 import { div } from "gpui";
 import { h_flex, v_flex } from "gpui-base";
+import { stableId } from "./internal.js";
 import { resolveSurfaceColor, style } from "./style.js";
 import { role } from "./theme.js";
 
@@ -154,7 +155,7 @@ export class ActionBar {
 
   /** @param {string} id */
   constructor(id) {
-    this.#id = id;
+    this.#id = stableId("ActionBar", id);
   }
 
   /** @param {any} element */
@@ -194,7 +195,7 @@ export class PanelHeader {
 
   /** @param {string} id */
   constructor(id) {
-    this.#id = id;
+    this.#id = stableId("PanelHeader", id);
   }
 
   /** @param {any} element */
@@ -234,7 +235,7 @@ export class CenteredWorkspace {
 
   /** @param {string} id */
   constructor(id) {
-    this.#id = id;
+    this.#id = stableId("CenteredWorkspace", id);
   }
 
   /** @param {any} element */
@@ -265,7 +266,7 @@ export class PageColumn {
 
   /** @param {string} id */
   constructor(id) {
-    this.#id = id;
+    this.#id = stableId("PageColumn", id);
   }
 
   /** @param {any} element */
@@ -333,7 +334,7 @@ export class PopupSurface {
 
   /** @param {string} id */
   constructor(id) {
-    this.#id = id;
+    this.#id = stableId("PopupSurface", id);
   }
 
   /** @param {any} element */
