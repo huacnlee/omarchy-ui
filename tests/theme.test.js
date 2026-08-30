@@ -14,6 +14,36 @@ import {
 
 const palette = `background = "#101010"\nforeground = "#eeeeee"\naccent = "#3366ff"\nred = "#ff3366"\ngreen = "#22cc88"\nyellow = "#ffcc00"\nblue = "#3366ff"\nmagenta = "#bb55dd"\ncyan = "#22ccdd"\nlighter_background = "#202020"\nmode = "light"`;
 
+const omamailPalette = `
+mode = "light"
+background = "#f8f7f2"
+foreground = "#242424"
+accent = "#3465a4"
+selection = "#d9e4f2"
+lighter_background = "#ffffff"
+dark_foreground = "#666666"
+light_foreground = "#eeeeee"
+bright_foreground = "#ffffff"
+red = "#a40000"
+green = "#4e9a06"
+yellow = "#c4a000"
+blue = "#3465a4"
+magenta = "#75507b"
+cyan = "#06989a"
+`;
+
+const fallback = {
+  appearance: "dark",
+  colors: {
+    unexpected: "#abcdef",
+    background: "fallback-background",
+    foreground: "fallback-foreground",
+    destructive: "fallback-destructive",
+  },
+  spacing: { md: 12 },
+  radius: { md: 8 },
+};
+
 describe("theme", () => {
   test("selects base and status colors from the palette", () => {
     expect(omarchyBaseColors(palette)).toEqual([
@@ -33,6 +63,52 @@ describe("theme", () => {
     expect(omarchyRoles('background = "#000000"')).toBeNull();
   });
 
+  test("matches Omamail's complete semantic theme projection", () => {
+    const theme = omarchyTheme(omamailPalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+
+    expect(theme).toEqual({
+      appearance: "light",
+      tokens: {
+        spacing: { xxs: 2, xs: 3, sm: 4, md: 6, lg: 8, xl: 10, xxl: 12 },
+        radius: { none: 0, sm: 6, md: 6, lg: 6, xl: 6, full: 9999 },
+        colors: {
+          unexpected: "#abcdef",
+          background: "#f8f7f2",
+          foreground: "#242424",
+          surface: "#f8f7f2",
+          surface_foreground: "#242424",
+          primary: "#3465a4",
+          primary_foreground: "#ffffff",
+          secondary: "#ffffff",
+          secondary_foreground: "#eeeeee",
+          muted: "#e7e6e2ff",
+          muted_foreground: "#686866ff",
+          accent: "#d5dde4ff",
+          accent_foreground: "#242424",
+          destructive: "#a40000",
+          destructive_foreground: "#ffffff",
+          border: "#a3a3a0ff",
+          input: "#a3a3a0ff",
+          ring: "#3465a4",
+        },
+      },
+    });
+  });
+
+  test("preserves fallback roles and gives every projected color an opaque alpha", () => {
+    const theme = omarchyTheme(omamailPalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+
+    expect(theme.tokens.colors.unexpected).toBe("#abcdef");
+    expect(theme.tokens.colors.link).toBeUndefined();
+    expect(theme.tokens.colors.popover).toBeUndefined();
+    expect(theme.tokens.colors.selection).toBeUndefined();
+    for (const value of Object.values(theme.tokens.colors)) {
+      if (typeof value === "string" && value.startsWith("#")) {
+        expect(value.length === 9 ? value.slice(-2) : "ff").toBe("ff");
+      }
+    }
+  });
+
   test("projects complete semantic theme tokens", () => {
     const fallback = { colors: { unexpected: "#abcdef" } };
     const theme = omarchyTheme(palette, fallback, omarchyStyle("", { cornerRadius: 2 }));
@@ -50,5 +126,38 @@ describe("theme", () => {
     expect(role("link", "#000000ff")).toBe("#617dd1ff");
     applyOmarchyRoles("");
     expect(role("link", "#000000ff")).toBe("#000000ff");
+  });
+
+  test("keeps derived roles beside the semantic theme and honors radius variants", () => {
+    const derived = omarchyRoles(omamailPalette);
+    const theme = omarchyTheme(omamailPalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+
+    expect(omarchyBaseColors(omamailPalette)).toEqual([
+      "#a40000",
+      "#4e9a06",
+      "#c4a000",
+      "#3465a4",
+      "#75507b",
+      "#06989a",
+    ]);
+    expect(omarchyStatusColors(omamailPalette)).toEqual({
+      danger: "#a40000",
+      success: "#4e9a06",
+      warning: "#c4a000",
+      info: "#06989a",
+    });
+    expect(derived.link).not.toBe(derived.accent);
+    expect(derived.dim).toBe("#686866ff");
+    expect(derived.separator).toBe("#dfded9ff");
+    expect(derived.separator).not.toBe(theme.tokens.colors.border);
+    expect(theme.tokens.radius).toEqual({ none: 0, sm: 6, md: 6, lg: 6, xl: 6, full: 9999 });
+    expect(omarchyTheme(omamailPalette, fallback, omarchyStyle("")).tokens.radius.sm).toBe(0);
+    expect(role("link", "#000000")).toBe("#000000");
+    applyOmarchyRoles(omamailPalette);
+    expect(role("link", "#000000")).toBe(derived.link);
+    expect(role("dim", "#000000")).toBe(derived.dim);
+    expect(role("separator", "#000000")).toBe(derived.separator);
+    expect(omarchyTheme("red = '#a40000'", fallback, omarchyStyle(""))).toBeNull();
+    applyOmarchyRoles("");
   });
 });
