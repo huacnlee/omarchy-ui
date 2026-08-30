@@ -32,7 +32,7 @@ Declare the library as a Git dependency in `gpui-shell.json`:
   "entry": "main.js",
   "dependencies": {
     "omarchy-ui": {
-      "git": "git@github.com:huacnlee/omarchy-ui.git",
+      "git": "https://github.com/huacnlee/omarchy-ui",
       "branch": "main",
       "entry": "src/index.js"
     }
@@ -44,7 +44,7 @@ For a release pin, replace `branch` with a tag:
 
 ```json
 {
-  "git": "git@github.com:huacnlee/omarchy-ui.git",
+  "git": "https://github.com/huacnlee/omarchy-ui",
   "tag": "v0.1.0",
   "entry": "src/index.js"
 }

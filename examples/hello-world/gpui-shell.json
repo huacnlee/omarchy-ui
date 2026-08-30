@@ -4,7 +4,7 @@
   "entry": "main.js",
   "dependencies": {
     "omarchy-ui": {
-      "git": "git@github.com:huacnlee/omarchy-ui.git",
+      "git": "https://github.com/huacnlee/omarchy-ui",
       "branch": "main",
       "entry": "src/index.js"
     }

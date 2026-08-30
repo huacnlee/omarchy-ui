@@ -17,13 +17,10 @@ import {
 
 const shell = `
 # Omarchy shell surfaces.
-[bar]
-size-horizontal = 26
 [hyprland]
 active-border = "#355f01"
 active-border-foreground = "#141414"
 [controls]
-normal-color = "#feffff"
 normal-fill-alpha = 0.04
 normal-border-width = 1
 selected-fill-alpha = 0.18
@@ -36,7 +33,6 @@ scale-with-font = true
 base-size = 12
 # heading = 16
 [popups]
-background = "#040404"
 border = "hyprland.active-border"
 `;
 
@@ -51,7 +47,7 @@ describe("Bun harness", () => {
 });
 
 describe("style", () => {
-  test("matches Omamail's default structural tokens and control state", () => {
+  test("matches Omarchy's default structural tokens and control state", () => {
     const tokens = omarchyStyle(shell, {
       cornerRadius: 0,
       fontFamily: "JetBrainsMono Nerd Font",
@@ -87,9 +83,15 @@ describe("style", () => {
     expect(tokens.space(14)).toBe(14);
     expect(tokens.space(0)).toBe(0);
     expect(tokens.state).toMatchObject({
+      normalBorderWidth: 1,
       normalFillAlpha: 0.04,
       selectedFillAlpha: 0.18,
       selectedBorderWidth: 0,
+    });
+    expect(tokens.surfaces).toMatchObject({
+      popupBorder: "hyprland.active-border",
+      hyprlandActiveBorder: "#355f01",
+      hyprlandActiveBorderForeground: "#141414",
     });
   });
 

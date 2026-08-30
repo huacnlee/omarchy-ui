@@ -185,7 +185,7 @@ function fromHsl(hsl) {
 /**
  * The same hue and lightness at a capped saturation. Omarchy's palette has no
  * separate "primary": `accent` is it, and an accent near full saturation is
- * right for a 5px unread dot and wrong for a link inside a paragraph.
+ * right for a compact status indicator and wrong for a link inside a paragraph.
  * @param {import("gpui").Color|string} color @param {number} maximum
  * @returns {import("gpui").Color}
  */

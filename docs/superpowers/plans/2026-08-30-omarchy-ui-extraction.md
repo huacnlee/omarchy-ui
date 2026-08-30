@@ -93,7 +93,7 @@
 - Create: `tests/example.test.js`, `README.md`
 
 **Interfaces:**
-- The manifest dependency is named `omarchy-ui`, uses `git@github.com:huacnlee/omarchy-ui.git`, branch `main`, and entry `src/index.js`.
+- The manifest dependency is named `omarchy-ui`, uses `https://github.com/huacnlee/omarchy-ui`, branch `main`, and entry `src/index.js`.
 - `main.js` uses `import { ... } from "omarchy-ui"` and requests no capabilities.
 
 - [ ] Write a failing static test that checks the manifest selector/entry and rejects imports containing `node_modules` or a relative library path.

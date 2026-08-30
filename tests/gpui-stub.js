@@ -12,7 +12,7 @@ export function reset() {
   calls.length = 0;
 }
 
-/** @typedef {{method: string, args: unknown[]}} ElementCall */
+/** @typedef {{method: string, args: unknown[], style?: any}} ElementCall */
 
 /**
  * A chainable element recording only the gpui operations our component tests
@@ -30,11 +30,20 @@ export function element(name, args = []) {
     get(value, property) {
       if (property in value) return value[/** @type {keyof typeof value} */ (property)];
       return (...methodArgs) => {
-        elementCalls.push({ method: String(property), args: methodArgs });
+        /** @type {ElementCall} */
+        const call = { method: String(property), args: methodArgs };
+        elementCalls.push(call);
         if (property === "when") {
           const [condition, callback] = methodArgs;
           if (condition && typeof callback === "function") {
             return callback(proxy);
+          }
+        }
+        if (["hover", "active", "focus"].includes(String(property))) {
+          const [callback] = methodArgs;
+          if (typeof callback === "function") {
+            call.style = element(`${String(property)}_style`);
+            callback(call.style);
           }
         }
         return proxy;
@@ -51,3 +60,5 @@ export const h_flex = () => element("h_flex");
 export const v_flex = () => element("v_flex");
 export const Button = { new: (id) => element("Button", [id]) };
 export const Input = { new: (state) => element("Input", [state]) };
+export class View {}
+export const set_theme = (theme) => record("set_theme", theme);

@@ -18,7 +18,10 @@ function surfaceStates(cx, color) {
     pressedFill: alpha(own, state.pressedFillAlpha),
     normalBorder: alpha(own, state.normalBorderAlpha),
     hoverBorder: alpha(own, state.hoverBorderAlpha),
+    focusFill: alpha(own, state.focusFillAlpha),
+    focusBorder: alpha(cx.theme().colors.ring, state.focusBorderAlpha),
     borderWidth: state.normalBorderWidth,
+    focusBorderWidth: state.focusBorderWidth,
   };
 }
 
@@ -62,6 +65,7 @@ export function button(id, caption, onClick, cx, options = {}) {
     .when(!disabled, (element) => element.on_click(onClick))
     .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill).border_color(states.hoverBorder)))
     .when(!disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
+    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
     .when(disabled, (element) => element.opacity(0.4))
     .child(caption);
 }
@@ -111,6 +115,7 @@ function compactCommand(id, content, description, onClick, cx, options) {
     .when(!disabled, (element) => element.on_click(onClick))
     .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill).text_color(hoverColor)))
     .when(!disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
+    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
     .when(disabled, (element) => element.opacity(0.4))
     .child(content);
 }
@@ -208,6 +213,7 @@ export function menuItem(id, caption, onClick, cx, options = {}) {
     .text_color(foreground)
     .when(!disabled, (element) => element.on_click(onClick))
     .when(!disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill)))
+    .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
     .when(disabled, (element) => element.opacity(0.4))
     .child(h_flex().items_center().gap(tokens.spacing.md).min_w_0().when(Boolean(asset), (element) => element.child(svg(asset).flex_none().size(tokens.font.iconSmall).text_color(foreground))).child(label(caption, cx).text_color(foreground).truncate()))
     .when(Boolean(detail), (element) => element.child(muted(detail, cx).flex_none().text_size(tokens.font.bodySmall)));

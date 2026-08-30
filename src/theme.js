@@ -92,7 +92,7 @@ export function omarchyRoles(source) {
     // has to stay legible "without competing with text or borders", which the
     // control border's 0.4 does. gpui's seventeen tokens have one `border` and
     // no room for the second weight, so the window drew every rule — the rail
-    // edge, the list/reader split, the header and status strips, every section
+    // edge, adjacent panel splits, the header and status strips, every section
     // rule — at the heavier one. Blended against the ground rather than left
     // translucent, because a theme token drops its alpha.
     separator: mix(background, foreground, 0.12),
@@ -116,7 +116,7 @@ export function omarchyRoles(source) {
  *
  * Spacing and radius come from the shell's structural tokens rather than from
  * gpui's own scale: Omarchy is a 12px monospace desktop whose corners follow
- * Hyprland's `decoration:rounding`, and a mail window that rounds its own
+ * Hyprland's `decoration:rounding`, and an application window that rounds its own
  * corners or pads at gpui's default rhythm reads as a foreign application on
  * that desktop. `fallback` still supplies any color role Omarchy has no
  * opinion about.
@@ -161,7 +161,7 @@ export function omarchyTheme(source, fallback, tokens = activeStyle()) {
         lg: radius,
         xl: radius,
         // `full` is a pill, not a corner treatment, so it stays round even on
-        // a square desktop — it is what draws the unread dot.
+        // a square desktop — it is what draws compact status dots.
         full: 9999,
       },
       colors: {
