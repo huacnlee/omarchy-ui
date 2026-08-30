@@ -1,42 +1,47 @@
 # Omarchy UI Hello World
 
-This is the smallest `gpui-shell` application that consumes `omarchy-ui` as a
-Git dependency. It requests no capabilities.
+This example is the smallest gpui-shell application that installs an Omarchy
+theme and composes its entire visible shell through the public class API.
 
-Run it from this directory with a gpui-shell checkout:
+Its `gpui-shell.json` keeps the Git shorthand:
+
+```json
+"omarchy-ui": "huacnlee/omarchy-ui"
+```
+
+The repository's `package.json` keeps `"main": "src/index.js"`, which is the
+public entry selected for that shorthand. The application requests no
+capabilities.
+
+During `init`, the view calls `applyOmarchyStyle`, `applyOmarchyRoles`, and
+`omarchyTheme`, then installs the result with gpui-shell's `set_theme`. During
+`render`, it composes `Surface`, `Title`, `MutedText`, and `Button`, places the
+surface in `PageColumn`, and supplies that element to `AppShell`:
+
+```js
+const card = new Surface()
+  .children([
+    new Title("Hello, Omarchy UI").build(cx),
+    new MutedText("A minimal gpui-shell application").build(cx),
+    new Button("hello-world-button")
+      .label("Say hello")
+      .bordered()
+      .onClick((_event, context) => context.notify())
+      .build(cx),
+  ])
+  .build(cx);
+
+const content = new PageColumn("hello-world-page").child(card).build(cx);
+return new AppShell().content(content).build(cx);
+```
+
+The stable button and page IDs belong to the application. A control with an
+icon would likewise receive a complete application-root-relative path, for
+example `.icon("assets/icons/wave.svg")`.
+
+From this example's location, validate or run it with:
 
 ```bash
 gpui-shell check .
 gpui-shell .
 ```
-
-`gpui-shell.json` uses the `"omarchy-ui": "huacnlee/omarchy-ui"` shorthand.
-It expands to `https://github.com/huacnlee/omarchy-ui` and, with no ref, uses
-the remote default branch (currently `main`). gpui-shell reads the dependency
-`package.json` `main` field to find its entry (`src/index.js`); if `main` is
-omitted, it uses `index.js`. Its `init` method uses gpui-shell's built-in
-`set_theme` together with `applyOmarchyStyle`, `applyOmarchyRoles`, and
-`omarchyTheme` to install a small embedded Omarchy palette before the first
-render. A host integration can pass the user's current Omarchy color and shell
-sources through the same APIs.
-
-Use `owner/repo#ref` to select another branch, tag, or commit-ish:
-
-```json
-"omarchy-ui": "huacnlee/omarchy-ui#v0.1.0"
-```
-
-The full URL form is also supported, for example
-`"omarchy-ui": "https://github.com/huacnlee/omarchy-ui#main"`.
-The legacy object dependency form remains compatible:
-
-```json
-"omarchy-ui": {
-  "git": "https://github.com/huacnlee/omarchy-ui",
-  "branch": "main",
-  "entry": "src/index.js"
-}
-```
-
-gpui-shell acquires Git dependencies directly and stores them in its Git
-dependency cache.

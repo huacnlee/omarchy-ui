@@ -3,16 +3,16 @@
 import { View } from "gpui";
 import { set_theme } from "gpui-base";
 import {
-  appShell,
+  AppShell,
+  Button,
+  MutedText,
+  PageColumn,
+  Surface,
+  Title,
   applyOmarchyRoles,
   applyOmarchyStyle,
-  button,
-  muted,
   omarchyTheme,
-  pageColumn,
   style,
-  surface,
-  title,
 } from "omarchy-ui";
 
 const OMARCHY_COLORS = `
@@ -49,23 +49,25 @@ export default class HelloWorld extends View {
 
   render(cx) {
     const tokens = style();
-    const content = pageColumn("hello-world-page", cx).child(
-      surface(cx)
-        .p(tokens.spacing.panelPadding)
-        .gap(tokens.spacing.md)
-        .child(title("Hello, Omarchy UI", cx))
-        .child(muted("A minimal gpui-shell application using the shared UI primitives.", cx))
-        .child(
-          button(
-            "hello-world-button",
-            "Say hello",
-            (_event, context) => context.notify(),
-            cx,
-            { bordered: true },
-          ),
-        ),
-    );
+    const card = new Surface()
+      .children([
+        new Title("Hello, Omarchy UI").build(cx),
+        new MutedText(
+          "A minimal gpui-shell application using the shared UI components.",
+        ).build(cx),
+        new Button("hello-world-button")
+          .label("Say hello")
+          .bordered()
+          .onClick((_event, context) => context.notify())
+          .build(cx),
+      ])
+      .build(cx)
+      .p(tokens.spacing.panelPadding)
+      .gap(tokens.spacing.md);
+    const content = new PageColumn("hello-world-page")
+      .child(card)
+      .build(cx);
 
-    return appShell({ content }, cx);
+    return new AppShell().content(content).build(cx);
   }
 }

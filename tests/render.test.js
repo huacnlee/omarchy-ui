@@ -29,53 +29,86 @@ function callsTo(element, method) {
 }
 
 test("composes generic shell, controls, data, and feedback through the public entry", () => {
-  const create = ui.iconTextButton(
-    "create",
-    "assets/create.svg",
-    "Create",
-    onClick,
-    cx,
-  );
-  const list = ui.surface(cx).child(
-    ui.rowShell("project-1", true, cx).child(ui.label("A project", cx)),
-  );
-  const page = ui.pageColumn("settings", cx).children([
-    ui.title("Settings", cx),
-    ui.formField("name", "Name", ui.field({}, cx), cx, "Shown to teammates"),
-    list,
-    ui.emptyState("Nothing selected", "Choose a project to continue", cx),
-    ui.statusLine("Sync failed", "error", cx),
-  ]);
-  const workspace = ui.centeredWorkspace("workspace", page, cx);
-  const shell = ui.appShell(
-    {
-      top: ui.topBar({ center: ui.title("Projects", cx), actions: create }, cx),
-      content: workspace,
-      bottom: ui.bottomBar(
-        { status: ui.statusLine("Ready", "ready", cx), hints: ui.keyHints([{ key: "j", label: "next" }], cx) },
-        cx,
-      ),
-    },
-    cx,
-  );
+  const create = new ui.Button("create")
+    .label("Create")
+    .icon("assets/create.svg")
+    .onClick(onClick)
+    .build(cx);
+  const list = new ui.Surface()
+    .child(
+      new ui.ListRow("project-1")
+        .selected()
+        .child(new ui.Label("A project").build(cx))
+        .build(cx),
+    )
+    .build(cx);
+  const page = new ui.PageColumn("settings")
+    .children([
+      new ui.Title("Settings").build(cx),
+      new ui.FormField("name")
+        .label("Name")
+        .control(new ui.Button("edit-name").label("Edit name").build(cx))
+        .helper("Shown to teammates")
+        .build(cx),
+      list,
+      new ui.EmptyState()
+        .heading("Nothing selected")
+        .hint("Choose a project to continue")
+        .build(cx),
+      new ui.StatusLine().label("Sync failed").state("error").build(cx),
+    ])
+    .build(cx);
+  const workspace = new ui.CenteredWorkspace("workspace")
+    .content(page)
+    .build(cx);
+  const shell = new ui.AppShell()
+    .top(
+      new ui.TopBar()
+        .center(new ui.Title("Projects").build(cx))
+        .actions(create)
+        .build(cx),
+    )
+    .content(workspace)
+    .bottom(
+      new ui.BottomBar()
+        .status(new ui.StatusLine().label("Ready").build(cx))
+        .hints(new ui.KeyHints("navigation-hints").hint("j", "Next").build(cx))
+        .build(cx),
+    )
+    .build(cx);
 
   expect(callsTo(create, "child")[0].args[0].args[0]).toBe("assets/create.svg");
   expect(callsTo(list, "border")[0].args).toEqual([1]);
   expect(callsTo(page, "children")[0].args[0]).toContain(list);
   expect(callsTo(workspace, "overflow_y_scroll")).toHaveLength(1);
   expect(callsTo(shell, "size_full")).toHaveLength(1);
-  expect(callsTo(ui.statusLine("Sync failed", "error", cx), "text_color").at(-1).args).toEqual([
-    "#ff3344ff",
-  ]);
+  expect(
+    callsTo(
+      new ui.StatusLine().label("Sync failed").state("error").build(cx),
+      "text_color",
+    ).at(-1).args,
+  ).toEqual(["#ff3344ff"]);
 });
 
 test("button-derived controls render Omarchy keyboard focus treatment", () => {
   const controls = [
-    ui.button("save", "Save", onClick, cx),
-    ui.iconTextButton("create", "assets/create.svg", "Create", onClick, cx),
-    ui.iconButton("refresh", "assets/refresh.svg", "Refresh", onClick, cx),
-    ui.glyphButton("more", "…", "More actions", onClick, cx),
-    ui.menuItem("rename", "Rename", onClick, cx),
+    new ui.Button("save").label("Save").onClick(onClick).build(cx),
+    new ui.Button("create")
+      .label("Create")
+      .icon("assets/create.svg")
+      .onClick(onClick)
+      .build(cx),
+    new ui.IconButton("refresh")
+      .icon("assets/refresh.svg")
+      .description("Refresh")
+      .onClick(onClick)
+      .build(cx),
+    new ui.GlyphButton("more")
+      .glyph("…")
+      .description("More actions")
+      .onClick(onClick)
+      .build(cx),
+    new ui.MenuItem("rename").label("Rename").onClick(onClick).build(cx),
   ];
 
   for (const control of controls) {

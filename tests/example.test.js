@@ -1,11 +1,15 @@
 // @ts-check
 
-import { expect, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import HelloWorld from "../examples/hello-world/main.js";
 import { calls, reset } from "./gpui-stub.js";
-import { roles, style } from "../src/index.js";
+import { applyOmarchyRoles, roles, style } from "../src/index.js";
 
 const exampleRoot = new URL("../examples/hello-world/", import.meta.url);
+
+afterEach(() => {
+  applyOmarchyRoles("");
+});
 
 test("Hello World resolves omarchy-ui from the Git shorthand dependency", async () => {
   const manifest = JSON.parse(
