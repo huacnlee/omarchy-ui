@@ -30,10 +30,10 @@ function surfaceStates(cx, color) {
   };
 }
 
-/** @param {string} component @param {unknown} id @returns {any} */
+/** @param {string} component @param {unknown} id @returns {string} */
 function stableId(component, id) {
-  if (id == null || (typeof id === "string" && id.trim() === "")) {
-    throw new Error(`${component} requires a non-blank id`);
+  if (typeof id !== "string" || id.trim() === "") {
+    throw new Error(`${component} id must be a non-blank string`);
   }
   return id;
 }

@@ -52,7 +52,7 @@ test("exports exactly the control value classes", () => {
   }
 });
 
-test("every ID-bearing component rejects a missing or blank stable id", () => {
+test("every ID-bearing component accepts only non-blank string ids", () => {
   const factories = [
     ["Button", (id) => new controls.Button(id)],
     ["IconButton", (id) => new controls.IconButton(id)],
@@ -62,10 +62,27 @@ test("every ID-bearing component rejects a missing or blank stable id", () => {
     ["FormField", (id) => new controls.FormField(id)],
     ["KeyHints", (id) => new controls.KeyHints(id)],
   ];
+  const invalidIds = [
+    undefined,
+    null,
+    "",
+    "   ",
+    0,
+    42,
+    false,
+    true,
+    {},
+    [],
+    Symbol("id"),
+    () => "id",
+  ];
 
   for (const [name, create] of factories) {
-    for (const id of [undefined, null, "", "   "]) {
-      expect(() => create(id)).toThrow(`${name} requires a non-blank id`);
+    expect(() => create(`${String(name).toLowerCase()}-id`)).not.toThrow();
+    for (const id of invalidIds) {
+      expect(() => create(id)).toThrow(
+        `${name} id must be a non-blank string`,
+      );
     }
   }
 });
