@@ -20,11 +20,22 @@ function surfaceStates(cx, color) {
     pressedFill: alpha(own, state.pressedFillAlpha),
     normalBorder: alpha(own, state.normalBorderAlpha),
     hoverBorder: alpha(own, state.hoverBorderAlpha),
+    selectedBorder: alpha(own, state.selectedBorderAlpha),
     focusFill: alpha(own, state.focusFillAlpha),
     focusBorder: alpha(cx.theme().colors.ring, state.focusBorderAlpha),
-    borderWidth: Math.max(state.normalBorderWidth, state.focusBorderWidth),
+    normalBorderWidth: state.normalBorderWidth,
+    hoverBorderWidth: state.hoverBorderWidth,
+    selectedBorderWidth: state.selectedBorderWidth,
     focusBorderWidth: state.focusBorderWidth,
   };
+}
+
+/** @param {string} component @param {unknown} id @returns {any} */
+function stableId(component, id) {
+  if (id == null || (typeof id === "string" && id.trim() === "")) {
+    throw new Error(`${component} requires a non-blank id`);
+  }
+  return id;
 }
 
 /** @param {string} component @param {string} field @param {unknown} value */
@@ -97,10 +108,23 @@ function mutedElement(value, cx) {
  */
 function buildButton(config, cx) {
   const tokens = style();
-  const states = surfaceStates(cx);
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
+  const foreground = inactive
+    ? cx.theme().colors.muted_foreground
+    : cx.theme().colors.foreground;
+  const states = surfaceStates(cx, foreground);
+  const restBorderWidth = config.selected
+    ? states.selectedBorderWidth
+    : states.normalBorderWidth;
+  const restBorderColor = config.selected
+    ? states.selectedBorderWidth > 0
+      ? states.selectedBorder
+      : NO_FILL
+    : hasBorder
+      ? states.normalBorder
+      : NO_FILL;
 
   return BaseButton.new(config.id)
     .disabled(inactive)
@@ -112,14 +136,8 @@ function buildButton(config, cx) {
     .h(dimensions.extent)
     .px(dimensions.paddingX)
     .rounded(tokens.cornerRadius)
-    .border(states.borderWidth)
-    .border_color(
-      config.selected
-        ? states.hoverBorder
-        : hasBorder
-          ? states.normalBorder
-          : NO_FILL,
-    )
+    .border(restBorderWidth)
+    .border_color(restBorderColor)
     .bg(
       config.selected
         ? states.selectedFill
@@ -128,14 +146,14 @@ function buildButton(config, cx) {
           : NO_FILL,
     )
     .text_size(dimensions.fontSize)
-    .text_color(cx.theme().colors.foreground)
+    .text_color(foreground)
     .when(config.loading, (element) => element.accessibility_label(config.label))
     .when(Boolean(config.asset) && !config.loading, (element) =>
       element.child(
         svg(config.asset)
           .flex_none()
           .size(dimensions.iconSize)
-          .text_color(cx.theme().colors.foreground),
+          .text_color(foreground),
       ),
     )
     .when(!inactive && typeof config.onClick === "function", (element) =>
@@ -143,7 +161,20 @@ function buildButton(config, cx) {
     )
     .when(!inactive, (element) =>
       element.hover((appearance) =>
-        appearance.bg(states.hoverFill).border_color(states.hoverBorder),
+        appearance
+          .bg(config.selected ? states.selectedFill : states.hoverFill)
+          .border(
+            config.selected
+              ? states.selectedBorderWidth
+              : states.hoverBorderWidth,
+          )
+          .border_color(
+            config.selected
+              ? states.selectedBorderWidth > 0
+                ? states.selectedBorder
+                : NO_FILL
+              : states.hoverBorder,
+          ),
       ),
     )
     .when(!inactive, (element) =>
@@ -151,11 +182,10 @@ function buildButton(config, cx) {
     )
     .focus((appearance) =>
       appearance
-        .bg(states.focusFill)
+        .bg(config.selected ? states.selectedFill : states.focusFill)
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder),
     )
-    .when(inactive, (element) => element.opacity(0.4))
     .child(config.loading ? `${config.label}…` : config.label);
 }
 
@@ -168,10 +198,23 @@ function buildButton(config, cx) {
  */
 function buildCompactCommand(config, cx) {
   const tokens = style();
-  const states = surfaceStates(cx);
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
+  const foreground = inactive
+    ? cx.theme().colors.muted_foreground
+    : cx.theme().colors.foreground;
+  const states = surfaceStates(cx, foreground);
+  const restBorderWidth = config.selected
+    ? states.selectedBorderWidth
+    : states.normalBorderWidth;
+  const restBorderColor = config.selected
+    ? states.selectedBorderWidth > 0
+      ? states.selectedBorder
+      : NO_FILL
+    : hasBorder
+      ? states.normalBorder
+      : NO_FILL;
 
   return BaseButton.new(config.id)
     .disabled(inactive)
@@ -185,14 +228,8 @@ function buildCompactCommand(config, cx) {
     .size(dimensions.extent)
     .p(tokens.space(2))
     .rounded(tokens.cornerRadius)
-    .border(states.borderWidth)
-    .border_color(
-      config.selected
-        ? states.hoverBorder
-        : hasBorder
-          ? states.normalBorder
-          : NO_FILL,
-    )
+    .border(restBorderWidth)
+    .border_color(restBorderColor)
     .bg(
       config.selected
         ? states.selectedFill
@@ -201,16 +238,27 @@ function buildCompactCommand(config, cx) {
           : NO_FILL,
     )
     .text_size(dimensions.fontSize)
-    .text_color(cx.theme().colors.foreground)
+    .text_color(foreground)
     .when(!inactive && typeof config.onClick === "function", (element) =>
       element.on_click(config.onClick),
     )
     .when(!inactive, (element) =>
       element.hover((appearance) =>
         appearance
-          .bg(states.hoverFill)
-          .border_color(states.hoverBorder)
-          .text_color(cx.theme().colors.foreground),
+          .bg(config.selected ? states.selectedFill : states.hoverFill)
+          .border(
+            config.selected
+              ? states.selectedBorderWidth
+              : states.hoverBorderWidth,
+          )
+          .border_color(
+            config.selected
+              ? states.selectedBorderWidth > 0
+                ? states.selectedBorder
+                : NO_FILL
+              : states.hoverBorder,
+          )
+          .text_color(foreground),
       ),
     )
     .when(!inactive, (element) =>
@@ -218,11 +266,10 @@ function buildCompactCommand(config, cx) {
     )
     .focus((appearance) =>
       appearance
-        .bg(states.focusFill)
+        .bg(config.selected ? states.selectedFill : states.focusFill)
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder),
     )
-    .when(inactive, (element) => element.opacity(0.4))
     .child(config.loading ? "…" : config.content);
 }
 
@@ -241,7 +288,7 @@ export class Button {
   #onClick;
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("Button", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
   /** @param {string} asset complete application-root-relative asset path */
@@ -293,7 +340,7 @@ export class IconButton {
   #onClick;
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("IconButton", id); }
   /** @param {string} asset complete application-root-relative asset path */
   icon(asset) { this.#asset = asset; return this; }
   /** @param {string} text */
@@ -346,7 +393,7 @@ export class GlyphButton {
   #onClick;
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("GlyphButton", id); }
   /** @param {string} text */
   glyph(text) { this.#glyph = text; return this; }
   /** @param {string} text */
@@ -395,7 +442,7 @@ export class MenuItem {
   #onClick;
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("MenuItem", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
   /** @param {string} text */
@@ -413,8 +460,17 @@ export class MenuItem {
   build(cx) {
     requireValue("MenuItem", "label", this.#label);
     const tokens = style();
-    const states = surfaceStates(cx);
-    const foreground = cx.theme().colors.foreground;
+    const foreground = this.#disabled
+      ? cx.theme().colors.muted_foreground
+      : cx.theme().colors.foreground;
+    const states = surfaceStates(cx, foreground);
+    const restBorderWidth = this.#selected
+      ? states.selectedBorderWidth
+      : states.normalBorderWidth;
+    const restBorderColor =
+      this.#selected && states.selectedBorderWidth > 0
+        ? states.selectedBorder
+        : NO_FILL;
     return BaseButton.new(this.#id)
       .role("menu_item")
       .disabled(this.#disabled)
@@ -428,16 +484,27 @@ export class MenuItem {
       .gap(tokens.spacing.controlGap)
       .px(tokens.space(9))
       .rounded(tokens.cornerRadius)
-      .border(states.borderWidth)
-      .border_color(NO_FILL)
+      .border(restBorderWidth)
+      .border_color(restBorderColor)
       .bg(this.#selected ? states.selectedFill : NO_FILL)
       .text_size(tokens.font.bodySmall)
       .text_color(foreground)
       .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
-      .when(!this.#disabled, (element) => element.hover((appearance) => appearance.bg(states.hoverFill)))
+      .when(!this.#disabled, (element) => element.hover((appearance) => appearance
+        .bg(this.#selected ? states.selectedFill : states.hoverFill)
+        .border(this.#selected ? states.selectedBorderWidth : states.hoverBorderWidth)
+        .border_color(
+          this.#selected
+            ? states.selectedBorderWidth > 0
+              ? states.selectedBorder
+              : NO_FILL
+            : states.hoverBorder,
+        )))
       .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
-      .focus((appearance) => appearance.bg(states.focusFill).border(states.focusBorderWidth).border_color(states.focusBorder))
-      .when(this.#disabled, (element) => element.opacity(0.4))
+      .focus((appearance) => appearance
+        .bg(this.#selected ? states.selectedFill : states.focusFill)
+        .border(states.focusBorderWidth)
+        .border_color(states.focusBorder))
       .child(
         h_flex()
           .items_center()
@@ -456,7 +523,7 @@ export class FieldRow {
   #control;
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("FieldRow", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
   /** @param {any} element */
@@ -488,7 +555,7 @@ export class FormField {
   #helper = "";
 
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("FormField", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
   /** @param {any} element */
@@ -542,7 +609,7 @@ export class Keycap {
       .px(tokens.space(3))
       .py(tokens.space(1))
       .rounded(tokens.cornerRadius)
-      .border(states.borderWidth)
+      .border(states.normalBorderWidth)
       .border_color(states.normalBorder)
       .bg(states.normalFill)
       .text_size(tokens.font.caption)
@@ -556,7 +623,7 @@ export class KeyHints {
   /** @type {Array<{key:string, label:string}>} */
   #hints = [];
   /** @param {string} id */
-  constructor(id) { this.#id = id; }
+  constructor(id) { this.#id = stableId("KeyHints", id); }
   /** @param {string} key @param {string} label */
   hint(key, label) { this.#hints.push({ key, label }); return this; }
 

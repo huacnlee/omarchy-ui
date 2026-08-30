@@ -1,8 +1,9 @@
 // @ts-check
 
-import { expect, test } from "bun:test";
-import { element } from "./gpui-stub.js";
+import { beforeEach, expect, test } from "bun:test";
+import { element, resolvedStyle } from "./gpui-stub.js";
 import * as controls from "../src/controls.js";
+import { applyOmarchyStyle } from "../src/style.js";
 
 const theme = {
   colors: {
@@ -15,6 +16,10 @@ const theme = {
 };
 
 const cx = { theme: () => theme };
+
+beforeEach(() => {
+  applyOmarchyStyle("");
+});
 
 /** @param {any} value @param {string} method */
 function callsTo(value, method) {
@@ -44,6 +49,24 @@ test("exports exactly the control value classes", () => {
 
   for (const name of Object.keys(controls)) {
     expect(typeof controls[name]).toBe("function");
+  }
+});
+
+test("every ID-bearing component rejects a missing or blank stable id", () => {
+  const factories = [
+    ["Button", (id) => new controls.Button(id)],
+    ["IconButton", (id) => new controls.IconButton(id)],
+    ["GlyphButton", (id) => new controls.GlyphButton(id)],
+    ["MenuItem", (id) => new controls.MenuItem(id)],
+    ["FieldRow", (id) => new controls.FieldRow(id)],
+    ["FormField", (id) => new controls.FormField(id)],
+    ["KeyHints", (id) => new controls.KeyHints(id)],
+  ];
+
+  for (const [name, create] of factories) {
+    for (const id of [undefined, null, "", "   "]) {
+      expect(() => create(id)).toThrow(`${name} requires a non-blank id`);
+    }
   }
 });
 
@@ -184,6 +207,53 @@ test("buttons wire callbacks only while actionable", () => {
   expect(oneCall(loading, "child").args).toEqual(["Save…"]);
 });
 
+test("icon, glyph, and menu callbacks survive repeated builds and stay disabled when inactive", () => {
+  const callback = () => {};
+  const values = [
+    new controls.IconButton("refresh")
+      .icon("consumer/icons/refresh.svg")
+      .description("Refresh")
+      .onClick(callback),
+    new controls.GlyphButton("more")
+      .glyph("…")
+      .description("More actions")
+      .onClick(callback),
+    new controls.MenuItem("rename").label("Rename").onClick(callback),
+  ];
+
+  for (const value of values) {
+    const first = value.build(cx);
+    const second = value.build(cx);
+    expect(first).not.toBe(second);
+    expect(oneCall(first, "on_click").args).toEqual([callback]);
+    expect(oneCall(second, "on_click").args).toEqual([callback]);
+  }
+
+  const inactive = [
+    new controls.IconButton("disabled-icon")
+      .icon("consumer/icons/refresh.svg")
+      .description("Refresh")
+      .disabled()
+      .onClick(callback)
+      .build(cx),
+    new controls.GlyphButton("loading-glyph")
+      .glyph("…")
+      .description("More actions")
+      .loading()
+      .onClick(callback)
+      .build(cx),
+    new controls.MenuItem("disabled-menu")
+      .label("Rename")
+      .disabled()
+      .onClick(callback)
+      .build(cx),
+  ];
+
+  for (const control of inactive) {
+    expect(callsTo(control, "on_click")).toHaveLength(0);
+  }
+});
+
 test("consumer asset paths pass through unchanged", () => {
   const button = new controls.Button("save")
     .label("Save")
@@ -208,28 +278,71 @@ test("consumer asset paths pass through unchanged", () => {
   ]);
 });
 
-test("button interaction states use Omarchy token-derived presentation", () => {
-  const button = new controls.Button("save")
-    .label("Save")
-    .bordered()
-    .selected()
-    .build(cx);
+test("composed selected hover and focus preserve selection while using exact state tokens", () => {
+  applyOmarchyStyle(`
+[controls]
+normal-border-width = 1
+hover-cursor-border-width = 2
+selected-border-width = 3
+focus-border-width = 4
+selected-border-alpha = 0.6
+hover-cursor-border-alpha = 0.25
+focus-fill-alpha = 0.12
+focus-border-alpha = 0.7
+`);
 
-  expect(oneCall(button, "selected").args).toEqual([true]);
-  expect(oneCall(button, "bg").args).toEqual(["#eeeeee2e"]);
-  expect(oneCall(button, "border_color").args).toEqual(["#eeeeee40"]);
+  const selected = new controls.Button("save").label("Save").selected().build(cx);
+  expect(oneCall(selected, "selected").args).toEqual([true]);
+  expect(oneCall(selected, "bg").args).toEqual(["#eeeeee2e"]);
+  expect(oneCall(selected, "border").args).toEqual([3]);
+  expect(oneCall(selected, "border_color").args).toEqual(["#eeeeee99"]);
 
-  const hover = oneCall(button, "hover").style;
-  expect(oneCall(hover, "bg").args).toEqual(["#eeeeee14"]);
-  expect(oneCall(hover, "border_color").args).toEqual(["#eeeeee40"]);
+  expect(resolvedStyle(selected, "hover")).toMatchObject({
+    bg: "#eeeeee2e",
+    border: 3,
+    border_color: "#eeeeee99",
+  });
+  expect(resolvedStyle(selected, "focus")).toMatchObject({
+    bg: "#eeeeee2e",
+    border: 4,
+    border_color: "#2233aab3",
+  });
+  expect(resolvedStyle(selected, "active").bg).toBe("#eeeeee38");
 
-  const active = oneCall(button, "active").style;
-  expect(oneCall(active, "bg").args).toEqual(["#eeeeee38"]);
+  const unselected = new controls.Button("edit").label("Edit").build(cx);
+  expect(resolvedStyle(unselected, "hover")).toMatchObject({
+    bg: "#eeeeee14",
+    border: 2,
+    border_color: "#eeeeee40",
+  });
+  expect(resolvedStyle(unselected, "focus")).toMatchObject({
+    bg: "#eeeeee1f",
+    border: 4,
+    border_color: "#2233aab3",
+  });
 
-  const focus = oneCall(button, "focus").style;
-  expect(oneCall(focus, "bg").args).toEqual(["#eeeeee14"]);
-  expect(oneCall(focus, "border").args).toEqual([1]);
-  expect(oneCall(focus, "border_color").args).toEqual(["#2233aa40"]);
+  const selectedControls = [
+    new controls.IconButton("refresh")
+      .icon("consumer/icons/refresh.svg")
+      .description("Refresh")
+      .selected()
+      .build(cx),
+    new controls.GlyphButton("more")
+      .glyph("…")
+      .description("More actions")
+      .selected()
+      .build(cx),
+    new controls.MenuItem("rename").label("Rename").selected().build(cx),
+  ];
+
+  for (const control of selectedControls) {
+    expect(resolvedStyle(control, "hover").bg).toBe("#eeeeee2e");
+    expect(resolvedStyle(control, "focus")).toMatchObject({
+      bg: "#eeeeee2e",
+      border: 4,
+      border_color: "#2233aab3",
+    });
+  }
 });
 
 test("outlined, disabled, and loading states remain visibly distinct", () => {
@@ -243,10 +356,13 @@ test("outlined, disabled, and loading states remain visibly distinct", () => {
 
   expect(oneCall(outlined, "border_color").args).toEqual(["#eeeeee66"]);
   expect(oneCall(outlined, "bg").args).toEqual(["#00000000"]);
-  expect(oneCall(disabled, "opacity").args).toEqual([0.4]);
+  expect(oneCall(disabled, "text_color").args).toEqual(["#999999ff"]);
+  expect(callsTo(disabled, "opacity")).toHaveLength(0);
   expect(callsTo(disabled, "hover")).toHaveLength(0);
   expect(callsTo(disabled, "active")).toHaveLength(0);
   expect(oneCall(loading, "accessibility_label").args).toEqual(["Sync"]);
+  expect(oneCall(loading, "text_color").args).toEqual(["#999999ff"]);
+  expect(callsTo(loading, "opacity")).toHaveLength(0);
   expect(oneCall(loading, "child").args).toEqual(["…"]);
 });
 
@@ -274,7 +390,8 @@ test("compact commands and menu items expose focus, hover, press, selection, and
   expect(oneCall(menuItem, "active").style).toBeDefined();
   expect(oneCall(menuItem, "focus").style).toBeDefined();
 
-  expect(oneCall(disabledMenuItem, "opacity").args).toEqual([0.4]);
+  expect(oneCall(disabledMenuItem, "text_color").args).toEqual(["#999999ff"]);
+  expect(callsTo(disabledMenuItem, "opacity")).toHaveLength(0);
   expect(callsTo(disabledMenuItem, "hover")).toHaveLength(0);
   expect(callsTo(disabledMenuItem, "active")).toHaveLength(0);
 });

@@ -53,6 +53,31 @@ export function element(name, args = []) {
   return proxy;
 }
 
+/**
+ * Resolve the style visible in one runtime interaction state. Base declarations
+ * are applied first and the requested state declarations override them, which
+ * catches composed-state regressions that inspecting a detached style alone
+ * cannot detect.
+ * @param {any} value
+ * @param {"hover" | "active" | "focus"} state
+ */
+export function resolvedStyle(value, state) {
+  /** @type {Record<string, unknown>} */
+  const resolved = {};
+  const stateCall = value.calls.find((call) => call.method === state);
+  for (const call of value.calls) {
+    if (["bg", "border", "border_color", "text_color", "opacity"].includes(call.method)) {
+      resolved[call.method] = call.args[0];
+    }
+  }
+  for (const call of stateCall?.style?.calls ?? []) {
+    if (["bg", "border", "border_color", "text_color", "opacity"].includes(call.method)) {
+      resolved[call.method] = call.args[0];
+    }
+  }
+  return resolved;
+}
+
 export const div = () => element("div");
 /** @param {string} asset */
 export const svg = (asset) => element("svg", [asset]);
