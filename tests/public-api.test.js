@@ -67,6 +67,35 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "icon",
     "label",
     "loading",
+    "loadingLabel",
+    "onClick",
+    "outlined",
+    "selected",
+    "size",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.IconButton.prototype).sort()).toEqual([
+    "bordered",
+    "build",
+    "constructor",
+    "description",
+    "disabled",
+    "icon",
+    "loading",
+    "loadingLabel",
+    "onClick",
+    "outlined",
+    "selected",
+    "size",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.GlyphButton.prototype).sort()).toEqual([
+    "bordered",
+    "build",
+    "constructor",
+    "description",
+    "disabled",
+    "glyph",
+    "loading",
+    "loadingLabel",
     "onClick",
     "outlined",
     "selected",
@@ -99,5 +128,12 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "disabled",
     "onClick",
     "selected",
+  ]);
+  expect(Object.getOwnPropertyNames(ui.StatusLine.prototype).sort()).toEqual([
+    "build",
+    "constructor",
+    "label",
+    "loadingLabel",
+    "state",
   ]);
 });

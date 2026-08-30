@@ -40,7 +40,8 @@ the `feat/shell-git-dependencies` worktree. All were genuine:
   demonstration palette and shell-style source. `init` passes those sources
   through `applyOmarchyStyle`, `applyOmarchyRoles`, and `omarchyTheme`, then
   installs the complete projection with gpui-base's built-in `set_theme`.
-  There are no Node APIs, registry dependencies, lockfiles, or `node_modules`.
+  There are no host-runtime APIs, registry dependencies, lockfiles, or
+  generated dependency directories.
 - Updated the manifest, root/example READMEs, extraction plan, and exact static
   assertion to use `https://github.com/huacnlee/omarchy-ui` without `.git`.
 - Replaced mail-specific example/test terminology with generic projects and

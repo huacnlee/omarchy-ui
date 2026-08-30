@@ -4,7 +4,7 @@
 
 **Goal:** Extract Omamail's Omarchy UI primitives into a polished standalone JavaScript foundation for gpui-shell, with a minimal Git-dependency Hello World.
 
-**Architecture:** Pure style/theme modules underpin generic GPUI components, all exposed through one explicit `src/index.js`. Bun runs dependency-free tests through local GPUI stubs. gpui-shell owns remote acquisition and stores mirrors, locks, and immutable checkouts below `~/.gpui-shell/cache/dependencies/`; neither the library nor example uses `node_modules`.
+**Architecture:** Pure style/theme modules underpin generic GPUI components, all exposed through one explicit `src/index.js`. Bun runs dependency-free tests through local GPUI stubs. gpui-shell owns remote acquisition and stores mirrors, locks, and immutable checkouts below `~/.gpui-shell/cache/dependencies/`; generated dependency directories stay outside the library and example.
 
 **Tech Stack:** JavaScript ES modules, gpui-shell built-in `gpui` and `gpui-base`, Bun test runner, Git.
 
@@ -15,7 +15,8 @@
 - Start from the current `/home/jason/work/omamail/app/lib/omarchy-ui` snapshot without preserving its Git history.
 - Put all reusable code under `src/`; include no Rust code in omarchy-ui.
 - Keep `package.json` private and use it only for ESM semantics and `bun run` commands.
-- Add no registry dependencies, lockfiles, `node_modules`, npm publishing fields, or Node runtime APIs.
+- Add no registry dependencies, lockfiles, generated dependency directories,
+  registry publishing fields, or host-runtime APIs.
 - Make `src/index.js` the only stable consumer entry, with explicit named exports.
 - Keep consumer domain logic, copy, navigation, IDs, callbacks, and assets outside the library.
 - Use `// @ts-check`, JSDoc, two-space indentation, and semicolons.
@@ -39,7 +40,8 @@
 - [ ] Add a failing unit test that supplies a deterministic home path and expects `.gpui-shell/cache/dependencies`.
 - [ ] Run the focused dependency test and confirm it fails with the old platform data-directory path.
 - [ ] Refactor cache-root construction behind a testable helper and implement the home-relative path without reading `HOME` in tests.
-- [ ] Update English and Chinese docs to name `~/.gpui-shell/cache/dependencies/` exactly and state that no `node_modules` directory participates.
+- [ ] Update English and Chinese docs to name `~/.gpui-shell/cache/dependencies/`
+  exactly and state that dependency storage stays outside the example tree.
 - [ ] Run `cargo fmt --all -- --check`, `cargo clippy -p gpui-shell --all-targets -- -D warnings`, and `cargo test -p gpui-shell --lib --locked`.
 - [ ] Commit with `git commit -m "fix(shell): store Git dependencies in the shell cache"` and push `feat/shell-git-dependencies` to update PR #2879.
 
@@ -96,7 +98,8 @@
 - The manifest dependency is named `omarchy-ui`, uses `https://github.com/huacnlee/omarchy-ui`, branch `main`, and entry `src/index.js`.
 - `main.js` uses `import { ... } from "omarchy-ui"` and requests no capabilities.
 
-- [ ] Write a failing static test that checks the manifest selector/entry and rejects imports containing `node_modules` or a relative library path.
+- [ ] Write a failing static test that checks the manifest selector/entry and
+  rejects generated dependency paths or a relative library path.
 - [ ] Create the minimal app: one title, one sentence, and one bordered button inside `appShell`, using style tokens instead of raw spacing.
 - [ ] Document branch and tag manifest forms, explicit public imports, API layers, consumer-owned assets, Bun commands, and gpui-shell commands.
 - [ ] Run `bun test tests/example.test.js`, `bun run check`, and `git diff --check`.
@@ -116,6 +119,8 @@
 - [ ] Run `bun run check`, `git diff --check`, and confirm the worktree contains only planned commits.
 - [ ] Push omarchy-ui `main` so its self-referencing example can fetch the library.
 - [ ] Run `/home/jason/work/gpui-component/.worktrees/shell-git-dependencies/target/debug/gpui-shell check .` from `examples/hello-world`.
-- [ ] Confirm the dependency cache exists under `~/.gpui-shell/cache/dependencies/` and that the example contains no `node_modules`.
+- [ ] Confirm the dependency cache exists under
+  `~/.gpui-shell/cache/dependencies/` and that the example contains no
+  generated dependency directories.
 - [ ] If integration fails, first add the narrowest Bun regression test, then make the minimal correction and rerun both Bun and gpui-shell checks.
 - [ ] Commit and push any verified correction; finish with a clean `main...origin/main` and report test evidence and commit SHAs.

@@ -12,7 +12,7 @@
 
 - `cargo run -p gpui-shell -- check /home/jason/work/omarchy-ui/examples/hello-world`
   passed, populated `~/.gpui-shell/cache/dependencies/`, and did not create a
-  local `node_modules` directory.
+  local generated dependency directory.
 
 ## Verification
 

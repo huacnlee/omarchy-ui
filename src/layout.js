@@ -480,6 +480,6 @@ export class SectionLabel {
     return div()
       .text_size(style().font.caption)
       .text_color(cx.theme().colors.muted_foreground)
-      .child(String(this.#text).toUpperCase());
+      .child(this.#text);
   }
 }

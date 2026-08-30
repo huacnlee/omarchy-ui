@@ -48,12 +48,13 @@ from `src/index.js`:
 description. `GlyphButton` is reserved for a literal text glyph when no asset
 exists. Consumers use gpui-base `Input` directly; `FieldRow` and `FormField`
 only arrange a supplied control and do not duplicate input state ownership.
-`FormField.error(message)` replaces helper text with destructive, semantic
-validation feedback until cleared.
+`SectionLabel` applies size and muted-color presentation without changing the
+consumer's casing. `FormField.error(message)` replaces helper text with
+destructive, semantic validation feedback until cleared.
 
 Variants and behavioral states use domain builders: `outlined()`,
 `bordered(bool)`, `selected(bool)`, `danger(bool)`, `disabled(bool)`, `loading(bool)`,
-`size(value)`, `icon(asset)`, `detail(value)`, and callback builders such as
+`loadingLabel(text)`, `size(value)`, `icon(asset)`, `detail(value)`, and callback builders such as
 `onClick(callback)`. Only builders meaningful to a component are exposed.
 Unknown variants or status states fail at the call that sets them.
 
@@ -67,9 +68,12 @@ where content is genuinely open-ended.
 `ListRow` is presentational when it has no callback. Supplying `onClick`
 activates its semantic button seam and controlled `disabled` state, including
 hover, pressed, and focus treatment with selected-state precedence. Button and
-MenuItem danger states derive all presentation from the destructive token.
-StatusLine loading appends a visible marker and exposes loading-specific
-accessible text so it is distinct from ready without color alone.
+MenuItem danger states derive all presentation from the destructive token,
+with disabled danger presentation using a reduced alpha of that token.
+Button-family and StatusLine loading states require caller-owned non-blank
+loading copy. Standard controls and StatusLine render that exact copy; compact
+controls replace their idle content with a semantic activity marker, so
+loading remains visibly and accessibly distinct without library-authored text.
 
 Components are presentation values, not retained application state. Stateful
 gpui-base models such as `InputState` remain owned by the application. Classes

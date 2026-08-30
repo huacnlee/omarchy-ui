@@ -98,6 +98,7 @@ test("fluent builders mutate private configuration and return the same value", (
   expect(button.danger()).toBe(button);
   expect(button.disabled(false)).toBe(button);
   expect(button.loading(false)).toBe(button);
+  expect(button.loadingLabel("Saving changes")).toBe(button);
   expect(button.size("large")).toBe(button);
   expect(button.onClick(callback)).toBe(button);
 
@@ -112,6 +113,7 @@ test("fluent builders mutate private configuration and return the same value", (
     expect(compact.selected()).toBe(compact);
     expect(compact.disabled(false)).toBe(compact);
     expect(compact.loading(false)).toBe(compact);
+    expect(compact.loadingLabel("Working")).toBe(compact);
     expect(compact.size("small")).toBe(compact);
     expect(compact.onClick(callback)).toBe(compact);
   }
@@ -176,6 +178,42 @@ test("build reports each missing semantic field", () => {
   );
 });
 
+test("loading controls require caller-owned non-blank loading labels", () => {
+  const factories = [
+    [
+      "Button",
+      (value) => new controls.Button("save")
+        .label("Save")
+        .loadingLabel(value)
+        .loading(),
+    ],
+    [
+      "IconButton",
+      (value) => new controls.IconButton("refresh")
+        .icon("consumer/icons/refresh.svg")
+        .description("Refresh")
+        .loadingLabel(value)
+        .loading(),
+    ],
+    [
+      "GlyphButton",
+      (value) => new controls.GlyphButton("more")
+        .glyph("…")
+        .description("More actions")
+        .loadingLabel(value)
+        .loading(),
+    ],
+  ];
+
+  for (const [name, create] of factories) {
+    for (const value of [undefined, null, "", "   ", 42, false, {}, []]) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} requires a non-blank loading label before build`,
+      );
+    }
+  }
+});
+
 test("size rejects unknown values at the builder call", () => {
   for (const control of [
     new controls.Button("save"),
@@ -214,6 +252,7 @@ test("buttons wire callbacks only while actionable", () => {
     .build(cx);
   const loading = new controls.Button("loading")
     .label("Save")
+    .loadingLabel("Saving changes")
     .loading()
     .onClick(callback)
     .build(cx);
@@ -223,8 +262,10 @@ test("buttons wire callbacks only while actionable", () => {
   expect(callsTo(loading, "on_click")).toHaveLength(0);
   expect(oneCall(disabled, "disabled").args).toEqual([true]);
   expect(oneCall(loading, "disabled").args).toEqual([true]);
-  expect(oneCall(loading, "accessibility_label").args).toEqual(["Save"]);
-  expect(oneCall(loading, "child").args).toEqual(["Save…"]);
+  expect(oneCall(loading, "accessibility_label").args).toEqual([
+    "Saving changes",
+  ]);
+  expect(oneCall(loading, "child").args).toEqual(["Saving changes"]);
 });
 
 test("icon, glyph, and menu callbacks survive repeated builds and stay disabled when inactive", () => {
@@ -259,6 +300,7 @@ test("icon, glyph, and menu callbacks survive repeated builds and stay disabled 
     new controls.GlyphButton("loading-glyph")
       .glyph("…")
       .description("More actions")
+      .loadingLabel("Loading more actions")
       .loading()
       .onClick(callback)
       .build(cx),
@@ -371,6 +413,7 @@ test("outlined, disabled, and loading states remain visibly distinct", () => {
   const loading = new controls.IconButton("loading")
     .icon("consumer/icons/sync.svg")
     .description("Sync")
+    .loadingLabel("Synchronizing calendar")
     .loading()
     .build(cx);
 
@@ -380,10 +423,39 @@ test("outlined, disabled, and loading states remain visibly distinct", () => {
   expect(callsTo(disabled, "opacity")).toHaveLength(0);
   expect(callsTo(disabled, "hover")).toHaveLength(0);
   expect(callsTo(disabled, "active")).toHaveLength(0);
-  expect(oneCall(loading, "accessibility_label").args).toEqual(["Sync"]);
+  expect(oneCall(loading, "accessibility_label").args).toEqual([
+    "Synchronizing calendar",
+  ]);
+  expect(oneCall(loading, "tooltip").args).toEqual([
+    "Synchronizing calendar",
+  ]);
   expect(oneCall(loading, "text_color").args).toEqual(["#999999ff"]);
   expect(callsTo(loading, "opacity")).toHaveLength(0);
-  expect(oneCall(loading, "child").args).toEqual(["…"]);
+  const indicator = oneCall(loading, "child").args[0];
+  expect(indicator.name).toBe("div");
+  expect(oneCall(indicator, "role").args).toEqual(["progressbar"]);
+  expect(oneCall(indicator, "accessibility_label").args).toEqual([
+    "Synchronizing calendar",
+  ]);
+});
+
+test("compact loading replaces an ellipsis glyph with a semantic activity marker", () => {
+  const loading = new controls.GlyphButton("more")
+    .glyph("…")
+    .description("More actions")
+    .loadingLabel("Loading more actions")
+    .loading()
+    .build(cx);
+
+  expect(oneCall(loading, "accessibility_label").args).toEqual([
+    "Loading more actions",
+  ]);
+  const indicator = oneCall(loading, "child").args[0];
+  expect(indicator).not.toBe("…");
+  expect(oneCall(indicator, "role").args).toEqual(["progressbar"]);
+  expect(oneCall(indicator, "accessibility_label").args).toEqual([
+    "Loading more actions",
+  ]);
 });
 
 test("compact commands and menu items expose focus, hover, press, selection, and disabled states", () => {
@@ -416,7 +488,7 @@ test("compact commands and menu items expose focus, hover, press, selection, and
   expect(callsTo(disabledMenuItem, "active")).toHaveLength(0);
 });
 
-test("danger Button uses the destructive token for every visual state", () => {
+test("danger Button reduces disabled emphasis from the destructive token", () => {
   const danger = new controls.Button("delete")
     .label("Delete")
     .icon("consumer/icons/delete.svg")
@@ -446,15 +518,15 @@ test("danger Button uses the destructive token for every visual state", () => {
   expect(oneCall(dangerIcon, "text_color").args).toEqual(["#ff3344ff"]);
 
   expect(oneCall(disabled, "disabled").args).toEqual([true]);
-  expect(oneCall(disabled, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(oneCall(disabled, "text_color").args).toEqual(["#ff334466"]);
   const disabledIcon = callsTo(disabled, "child")[0].args[0];
-  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff334466"]);
   expect(callsTo(disabled, "hover")).toHaveLength(0);
   expect(callsTo(disabled, "active")).toHaveLength(0);
   expect(oneCall(cleared, "text_color").args).toEqual(["#eeeeeeff"]);
 });
 
-test("danger MenuItem colors root, nested label, icon, focus, and disabled state", () => {
+test("danger MenuItem reduces disabled root, label, and icon emphasis", () => {
   const danger = new controls.MenuItem("delete")
     .label("Delete")
     .icon("consumer/icons/delete.svg")
@@ -487,13 +559,13 @@ test("danger MenuItem colors root, nested label, icon, focus, and disabled state
   expect(callsTo(label, "text_color").at(-1).args).toEqual(["#ff3344ff"]);
 
   expect(oneCall(disabled, "disabled").args).toEqual([true]);
-  expect(oneCall(disabled, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(oneCall(disabled, "text_color").args).toEqual(["#ff334466"]);
   const disabledLeading = oneCall(disabled, "child").args[0];
   const disabledIcon = callsTo(disabledLeading, "child")[0].args[0];
   const disabledLabel = callsTo(disabledLeading, "child")[1].args[0];
-  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff3344ff"]);
+  expect(oneCall(disabledIcon, "text_color").args).toEqual(["#ff334466"]);
   expect(callsTo(disabledLabel, "text_color").at(-1).args).toEqual([
-    "#ff3344ff",
+    "#ff334466",
   ]);
   expect(callsTo(disabled, "hover")).toHaveLength(0);
   expect(callsTo(disabled, "active")).toHaveLength(0);

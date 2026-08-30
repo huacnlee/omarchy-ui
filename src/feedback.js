@@ -69,12 +69,21 @@ export class StatusLine {
   /** @type {string | undefined} */
   #label;
 
+  /** @type {string | undefined} */
+  #loadingLabel;
+
   /** @type {"ready" | "loading" | "error"} */
   #state = "ready";
 
   /** @param {string} value */
   label(value) {
     this.#label = value;
+    return this;
+  }
+
+  /** @param {string} value */
+  loadingLabel(value) {
+    this.#loadingLabel = value;
     return this;
   }
 
@@ -90,7 +99,13 @@ export class StatusLine {
   /** @param {import("gpui").Context} cx */
   build(cx) {
     const label = requiredText(this.#label, "StatusLine", "label");
-    const visibleLabel = this.#state === "loading" ? `${label}…` : label;
+    const visibleLabel = this.#state === "loading"
+      ? requiredText(
+          this.#loadingLabel,
+          "StatusLine",
+          "loading label",
+        )
+      : label;
     const element = this.#state === "error"
       ? headingLabel(visibleLabel, cx).text_color(cx.theme().colors.destructive)
       : mutedLabel(visibleLabel, cx);
@@ -98,7 +113,7 @@ export class StatusLine {
       .role("status")
       .text_size(style().font.caption)
       .when(this.#state === "loading", (status) =>
-        status.accessibility_label(`${label}, loading`),
+        status.accessibility_label(visibleLabel),
       );
   }
 }

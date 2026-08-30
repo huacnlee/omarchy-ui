@@ -33,7 +33,8 @@ publishing configuration. `package.json` is private and exists only to provide
 ESM semantics and `bun run` commands. It declares no dependencies or
 development dependencies and produces no lockfile. gpui-shell runtime
 dependencies remain built-in modules or manifest-declared Git dependencies;
-library code must not depend on Node APIs or `node_modules`.
+library code must not depend on host-runtime APIs or generated dependency
+directories.
 
 ## Public API
 

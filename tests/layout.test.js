@@ -232,7 +232,7 @@ test("text builders accept constructor values, chain, and preserve text styling"
     [new Label("old"), "Label", "Label"],
     [new MutedText("old"), "Muted", "Muted"],
     [new Title("old"), "Title", "Title"],
-    [new SectionLabel("old"), "Section", "SECTION"],
+    [new SectionLabel("old"), "Section", "Section"],
   ];
   for (const [component, value, expected] of changedText) {
     expect(component.text(value)).toBe(component);
@@ -257,7 +257,7 @@ test("text builders accept constructor values, chain, and preserve text styling"
   const section = new SectionLabel("General settings").build(cx);
   expect(callsTo(section, "text_size")[0].args).toEqual([tokens.font.caption]);
   expect(callsTo(section, "text_color")[0].args).toEqual(["#999999ff"]);
-  expect(childrenOf(section)).toEqual(["GENERAL SETTINGS"]);
+  expect(childrenOf(section)).toEqual(["General settings"]);
 });
 
 test("build is repeatable and does not consume component configuration", () => {

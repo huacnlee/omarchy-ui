@@ -85,7 +85,7 @@ positions or translated labels.
 | `Surface` | None | `.child(element)` and `.children(elements)` append in order; an empty surface is valid. |
 | `PopupSurface(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order; an empty popup surface is valid. |
 | `Label`, `MutedText` | Constructor text or `.text(value)` | Text may be a string or number. |
-| `Title`, `SectionLabel` | Constructor text or `.text(value)` | `SectionLabel` applies the Omarchy section-label presentation. |
+| `Title`, `SectionLabel` | Constructor text or `.text(value)` | `SectionLabel` applies the Omarchy section-label presentation while preserving caller casing. |
 
 Named slots preserve semantic order. Falsy optional slots are omitted. Open
 containers preserve the order of every `.child(...)` and `.children(...)`
@@ -95,9 +95,9 @@ call.
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and `.label(text)` | `.icon(asset)` is optional. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.size("medium")`, and `.onClick(callback)`. |
-| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, size, and callback builders. The description supplies the accessible name and tooltip. |
-| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, size, and callback builders. Use only when no icon asset exists. |
+| `Button(id)` | Stable `id` and `.label(text)` | `.icon(asset)` is optional. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
+| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. The description supplies the accessible name and tooltip while idle. |
+| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. Use only when no icon asset exists. |
 | `MenuItem(id)` | Stable `id` and `.label(text)` | `.detail(text)` and `.icon(asset)` are empty; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
 | `FormField(id)` | Stable `id`, `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are empty by default. A non-empty error replaces helper text. |
@@ -117,7 +117,12 @@ unchanged. The library does not choose an asset, add a prefix, or resolve a
 short icon name.
 
 `Button.danger(value)` and `MenuItem.danger(value)` use the active destructive
-token for idle, hover, pressed, focus, disabled, label, and icon treatment.
+token for idle, hover, pressed, focus, label, and icon treatment. Disabled
+danger controls reduce emphasis with an alpha derived from that token.
+When a Button, IconButton, or GlyphButton is loading, `.loadingLabel(text)`
+owns the visible and accessible operation copy. Compact controls replace their
+idle icon or glyph with a semantic activity marker, so loading stays distinct
+even when the idle glyph is `…`.
 `FormField.error(message)` renders non-empty validation feedback with an alert
 role and the destructive token; call `.error("")` to reveal helper text again.
 
@@ -127,7 +132,7 @@ role and the destructive token; call `.error("")` to reveal helper text again.
 | --- | --- | --- |
 | `ListRow(id)` | Stable `id` | `.selected(false)`, `.disabled(false)`, and `.onClick(callback)`; `.child(element)` and `.children(elements)` append in order. |
 | `EmptyState` | `.heading(text)` and `.hint(text)` | No optional fields. |
-| `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. |
+| `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. `.loadingLabel(text)` must be non-blank when state is loading. |
 
 `ListRow` remains a presentation-only row when no callback is supplied: it has
 no hover, press, or focus affordance. Adding `onClick` uses the semantic button
@@ -135,9 +140,9 @@ boundary and enables token-driven hover, pressed, focus, selected, and disabled
 states. Selection remains visible through hover and focus.
 
 `StatusLine.state(value)` validates its closed vocabulary immediately. An error
-state uses the active destructive token and a status role. Loading uses muted
-presentation, appends `…` to the visible label, and exposes a loading-specific
-accessible label, so it differs from ready without relying on color.
+state uses the active destructive token and a status role. Loading uses the
+caller's exact `.loadingLabel(text)` as visible and accessible copy, so the
+library does not assemble language or punctuation.
 
 ## State and callback ownership
 

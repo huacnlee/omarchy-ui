@@ -152,6 +152,7 @@ test("StatusLine defaults to ready and validates its closed state vocabulary", (
   const status = new StatusLine();
 
   expect(status.label("Saved")).toBe(status);
+  expect(status.loadingLabel("Saving changes")).toBe(status);
   expect(() => status.state("paused")).toThrow("StatusLine state must be one of: ready, loading, error.");
 
   const element = status.build(cx);
@@ -161,16 +162,22 @@ test("StatusLine defaults to ready and validates its closed state vocabulary", (
 
 test("StatusLine renders ready, loading, and error as distinct semantic states", () => {
   const ready = new StatusLine().label("Ready").state("ready").build(cx);
-  const loading = new StatusLine().label("Syncing").state("loading").build(cx);
+  const loading = new StatusLine()
+    .label("Ready")
+    .loadingLabel("Synchronizing calendar")
+    .state("loading")
+    .build(cx);
   const error = new StatusLine().label("Sync failed").state("error").build(cx);
 
   expect(callsTo(ready, "text_color")[0].args).toEqual(["#999999ff"]);
   expect(callsTo(ready, "child")[0].args).toEqual(["Ready"]);
   expect(callsTo(ready, "accessibility_label")).toHaveLength(0);
   expect(callsTo(loading, "text_color")[0].args).toEqual(["#999999ff"]);
-  expect(callsTo(loading, "child")[0].args).toEqual(["Syncing…"]);
+  expect(callsTo(loading, "child")[0].args).toEqual([
+    "Synchronizing calendar",
+  ]);
   expect(callsTo(loading, "accessibility_label")[0].args).toEqual([
-    "Syncing, loading",
+    "Synchronizing calendar",
   ]);
   expect(callsTo(error, "text_color").at(-1).args).toEqual(["#ff3344ff"]);
   expect(callsTo(error, "child")[0].args).toEqual(["Sync failed"]);
@@ -178,4 +185,16 @@ test("StatusLine renders ready, loading, and error as distinct semantic states",
 
 test("StatusLine requires a label before building", () => {
   expect(() => new StatusLine().build(cx)).toThrow("StatusLine requires a label before build().");
+});
+
+test("StatusLine loading requires caller-owned non-blank copy", () => {
+  for (const value of [undefined, null, "", "   ", 42, false, {}, []]) {
+    expect(() =>
+      new StatusLine()
+        .label("Ready")
+        .loadingLabel(value)
+        .state("loading")
+        .build(cx),
+    ).toThrow("StatusLine requires a loading label before build().");
+  }
 });

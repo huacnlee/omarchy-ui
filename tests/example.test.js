@@ -39,8 +39,19 @@ test("Hello World imports omarchy-ui as a bare module without local package path
   const source = await Bun.file(new URL("main.js", exampleRoot)).text();
 
   expect(source).toMatch(/from\s+["']omarchy-ui["']/);
-  expect(source).not.toMatch(/from\s+["'][^"']*node_modules[^"']*["']/);
   expect(source).not.toMatch(/from\s+["'](?:\.\/|\.\.\/)[^"']*(?:omarchy-ui|src\/index\.js)[^"']*["']/);
+});
+
+test("Hello World contains only approved top-level source directories", () => {
+  const approved = new Set(["assets/"]);
+  const directories = [
+    ...new Bun.Glob("*/").scanSync({
+      cwd: exampleRoot.pathname,
+      onlyFiles: false,
+    }),
+  ].sort();
+
+  expect(directories.filter((path) => !approved.has(path))).toEqual([]);
 });
 
 test("Hello World initializes and installs an Omarchy theme before rendering", () => {

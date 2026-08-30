@@ -45,6 +45,21 @@ function requireValue(component, field, value) {
   }
 }
 
+/**
+ * @param {string} component
+ * @param {string} field
+ * @param {unknown} value
+ * @returns {string}
+ */
+function requireText(component, field, value) {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(
+      `${component} requires a non-blank ${field} before build`,
+    );
+  }
+  return value;
+}
+
 /** @param {string} component @param {string} value @returns {ControlSize} */
 function controlSize(component, value) {
   if (!SIZES.includes(/** @type {ControlSize} */ (value))) {
@@ -102,7 +117,8 @@ function mutedElement(value, cx) {
 
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
- * selected:boolean, danger:boolean, disabled:boolean, loading:boolean, size:ControlSize,
+ * selected:boolean, danger:boolean, disabled:boolean, loading:boolean,
+ * loadingLabel:string, size:ControlSize,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */
@@ -112,7 +128,12 @@ function buildButton(config, cx) {
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
   const foreground = config.danger
-    ? cx.theme().colors.destructive
+    ? inactive
+      ? alpha(
+          cx.theme().colors.destructive,
+          tokens.state.normalBorderAlpha,
+        )
+      : cx.theme().colors.destructive
     : inactive
       ? cx.theme().colors.muted_foreground
       : cx.theme().colors.foreground;
@@ -153,7 +174,9 @@ function buildButton(config, cx) {
     )
     .text_size(dimensions.fontSize)
     .text_color(foreground)
-    .when(config.loading, (element) => element.accessibility_label(config.label))
+    .when(config.loading, (element) =>
+      element.accessibility_label(config.loadingLabel),
+    )
     .when(Boolean(config.asset) && !config.loading, (element) =>
       element.child(
         svg(config.asset)
@@ -192,13 +215,31 @@ function buildButton(config, cx) {
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder),
     )
-    .child(config.loading ? `${config.label}…` : config.label);
+    .child(config.loading ? config.loadingLabel : config.label);
+}
+
+/**
+ * @param {string} label
+ * @param {{iconSize:number}} dimensions
+ * @param {import("gpui").Color} foreground
+ */
+function activityMarker(label, dimensions, foreground) {
+  const tokens = style();
+  return div()
+    .role("progressbar")
+    .accessibility_label(label)
+    .flex_none()
+    .size(dimensions.iconSize)
+    .rounded(dimensions.iconSize)
+    .border(tokens.spacing.hairline)
+    .border_color(foreground)
+    .bg(alpha(foreground, tokens.state.normalFillAlpha));
 }
 
 /**
  * @param {{id:string, content:any, description:string, outlined:boolean,
  * bordered:boolean, selected:boolean, disabled:boolean, loading:boolean,
- * size:ControlSize, onClick?: (event: import("gpui").ClickEvent,
+ * loadingLabel:string, size:ControlSize, onClick?: (event: import("gpui").ClickEvent,
  * cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */
@@ -225,8 +266,10 @@ function buildCompactCommand(config, cx) {
   return BaseButton.new(config.id)
     .disabled(inactive)
     .selected(config.selected)
-    .accessibility_label(config.description)
-    .tooltip(config.description)
+    .accessibility_label(
+      config.loading ? config.loadingLabel : config.description,
+    )
+    .tooltip(config.loading ? config.loadingLabel : config.description)
     .flex()
     .items_center()
     .justify_center()
@@ -276,7 +319,11 @@ function buildCompactCommand(config, cx) {
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder),
     )
-    .child(config.loading ? "…" : config.content);
+    .child(
+      config.loading
+        ? activityMarker(config.loadingLabel, dimensions, foreground)
+        : config.content,
+    );
 }
 
 export class Button {
@@ -289,6 +336,7 @@ export class Button {
   #danger = false;
   #disabled = false;
   #loading = false;
+  #loadingLabel = "";
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -311,6 +359,8 @@ export class Button {
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
   loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} text */
+  loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("Button", value); return this; }
   /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
@@ -319,6 +369,9 @@ export class Button {
   /** @param {import("gpui").Context} cx */
   build(cx) {
     requireValue("Button", "label", this.#label);
+    const loadingLabel = this.#loading
+      ? requireText("Button", "loading label", this.#loadingLabel)
+      : this.#loadingLabel;
     return buildButton({
       id: this.#id,
       label: this.#label,
@@ -329,6 +382,7 @@ export class Button {
       danger: this.#danger,
       disabled: this.#disabled,
       loading: this.#loading,
+      loadingLabel,
       size: this.#size,
       onClick: this.#onClick,
     }, cx);
@@ -344,6 +398,7 @@ export class IconButton {
   #selected = false;
   #disabled = false;
   #loading = false;
+  #loadingLabel = "";
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -364,6 +419,8 @@ export class IconButton {
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
   loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} text */
+  loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("IconButton", value); return this; }
   /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
@@ -373,6 +430,9 @@ export class IconButton {
   build(cx) {
     requireValue("IconButton", "icon", this.#asset);
     requireValue("IconButton", "description", this.#description);
+    const loadingLabel = this.#loading
+      ? requireText("IconButton", "loading label", this.#loadingLabel)
+      : this.#loadingLabel;
     return buildCompactCommand({
       id: this.#id,
       content: svg(this.#asset).size(sizeStyle(this.#size).iconSize).flex_none(),
@@ -382,6 +442,7 @@ export class IconButton {
       selected: this.#selected,
       disabled: this.#disabled,
       loading: this.#loading,
+      loadingLabel,
       size: this.#size,
       onClick: this.#onClick,
     }, cx);
@@ -397,6 +458,7 @@ export class GlyphButton {
   #selected = false;
   #disabled = false;
   #loading = false;
+  #loadingLabel = "";
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -417,6 +479,8 @@ export class GlyphButton {
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
   loading(value = true) { this.#loading = value; return this; }
+  /** @param {string} text */
+  loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("GlyphButton", value); return this; }
   /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
@@ -426,6 +490,9 @@ export class GlyphButton {
   build(cx) {
     requireValue("GlyphButton", "glyph", this.#glyph);
     requireValue("GlyphButton", "description", this.#description);
+    const loadingLabel = this.#loading
+      ? requireText("GlyphButton", "loading label", this.#loadingLabel)
+      : this.#loadingLabel;
     return buildCompactCommand({
       id: this.#id,
       content: this.#glyph,
@@ -435,6 +502,7 @@ export class GlyphButton {
       selected: this.#selected,
       disabled: this.#disabled,
       loading: this.#loading,
+      loadingLabel,
       size: this.#size,
       onClick: this.#onClick,
     }, cx);
@@ -474,7 +542,12 @@ export class MenuItem {
     requireValue("MenuItem", "label", this.#label);
     const tokens = style();
     const foreground = this.#danger
-      ? cx.theme().colors.destructive
+      ? this.#disabled
+        ? alpha(
+            cx.theme().colors.destructive,
+            tokens.state.normalBorderAlpha,
+          )
+        : cx.theme().colors.destructive
       : this.#disabled
         ? cx.theme().colors.muted_foreground
         : cx.theme().colors.foreground;
