@@ -16,6 +16,7 @@ test("Hello World resolves omarchy-ui from its main-branch Git dependency", asyn
       entry: "src/index.js",
     },
   });
+  expect(manifest).not.toHaveProperty("capabilities");
 });
 
 test("Hello World imports omarchy-ui as a bare module without local package paths", async () => {
