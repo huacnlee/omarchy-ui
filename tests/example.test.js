@@ -26,3 +26,14 @@ test("Hello World imports omarchy-ui as a bare module without local package path
   expect(source).not.toMatch(/from\s+["'][^"']*node_modules[^"']*["']/);
   expect(source).not.toMatch(/from\s+["'](?:\.\/|\.\.\/)[^"']*(?:omarchy-ui|src\/index\.js)[^"']*["']/);
 });
+
+test("Hello World's generated gpui.d.ts is ignored by Git", async () => {
+  const result = Bun.spawnSync([
+    "git",
+    "check-ignore",
+    "-q",
+    "examples/hello-world/gpui.d.ts",
+  ]);
+
+  expect(result.exitCode).toBe(0);
+});
