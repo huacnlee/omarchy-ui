@@ -16,6 +16,7 @@ import {
   Title,
   TopBar,
 } from "../src/layout.js";
+import { element } from "./gpui-stub.js";
 import { resolveSurfaceColor, style } from "../src/style.js";
 
 const theme = {
@@ -93,13 +94,13 @@ test("every ID-bearing layout class rejects non-string and blank ids", () => {
 });
 
 test("named slot builders chain and preserve semantic child order", () => {
-  const brand = { slot: "brand" };
-  const center = { slot: "center" };
-  const actions = { slot: "actions" };
-  const status = { slot: "status" };
-  const hints = { slot: "hints" };
-  const heading = { slot: "heading" };
-  const content = { slot: "content" };
+  const brand = element("brand");
+  const center = element("center");
+  const actions = element("actions");
+  const status = element("status");
+  const hints = element("hints");
+  const heading = element("heading");
+  const content = element("content");
   const top = new TopBar();
   const bottom = new BottomBar();
   const action = new ActionBar("action");
@@ -156,8 +157,12 @@ test("named slot builders chain and preserve semantic child order", () => {
 });
 
 test("optional named slots omit every falsy value", () => {
-  const content = { slot: "content" };
-  const heading = { slot: "heading" };
+  const content = element("content");
+  const heading = element("heading");
+
+  for (const value of [undefined, null, false, "", 0, Number.NaN]) {
+    expect(childrenOf(new TopBar().brand(value).build(cx))).toEqual([]);
+  }
 
   expect(
     childrenOf(new TopBar().brand(false).center("").actions(0).build(cx)),
@@ -185,10 +190,10 @@ test("optional named slots omit every falsy value", () => {
 });
 
 test("open-ended container builders append children in call order", () => {
-  const one = { child: 1 };
-  const two = { child: 2 };
-  const three = { child: 3 };
-  const four = { child: 4 };
+  const one = element("one");
+  const two = element("two");
+  const three = element("three");
+  const four = element("four");
 
   const containers = [
     new PageColumn("page"),
@@ -209,20 +214,148 @@ test("open-ended container builders append children in call order", () => {
 
 test("build validates required semantic content", () => {
   const cases = [
-    [new AppShell(), "AppShell requires content before build()"],
+    [new AppShell(), "AppShell content must be a GPUI element or entity"],
     [
       new CenteredWorkspace("workspace"),
-      "CenteredWorkspace requires content before build()",
+      "CenteredWorkspace content must be a GPUI element or entity",
     ],
-    [new PanelHeader("panel"), "PanelHeader requires heading before build()"],
-    [new Label(), "Label requires text before build()"],
-    [new MutedText(), "MutedText requires text before build()"],
-    [new Title(), "Title requires text before build()"],
-    [new SectionLabel(), "SectionLabel requires text before build()"],
+    [new PanelHeader("panel"), "PanelHeader heading must be a GPUI element or entity"],
+    [new Label(), "Label text must be a non-blank string"],
+    [new MutedText(), "MutedText text must be a non-blank string"],
+    [new Title(), "Title text must be a non-blank string"],
+    [new SectionLabel(), "SectionLabel text must be a non-blank string"],
   ];
 
   for (const [component, message] of cases) {
     expect(() => component.build(cx)).toThrow(message);
+  }
+});
+
+test("every required layout text accepts only non-blank strings", () => {
+  const invalidText = [
+    undefined,
+    null,
+    "",
+    "   ",
+    0,
+    42,
+    false,
+    true,
+    {},
+    [],
+    Symbol("text"),
+    () => "text",
+  ];
+  const factories = [
+    ["Label", (value) => new Label(value)],
+    ["MutedText", (value) => new MutedText(value)],
+    ["Title", (value) => new Title(value)],
+    ["SectionLabel", (value) => new SectionLabel(value)],
+  ];
+
+  for (const [name, create] of factories) {
+    for (const value of invalidText) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} text must be a non-blank string`,
+      );
+    }
+  }
+});
+
+test("required layout slots accept only GPUI elements or entities", () => {
+  const invalidContent = [
+    undefined,
+    null,
+    false,
+    "copy",
+    0,
+    42,
+    true,
+    {},
+    [],
+    Symbol("content"),
+    () => {},
+  ];
+  const factories = [
+    ["AppShell", "content", (value) => new AppShell().content(value)],
+    [
+      "PanelHeader",
+      "heading",
+      (value) => new PanelHeader("panel").heading(value),
+    ],
+    [
+      "CenteredWorkspace",
+      "content",
+      (value) => new CenteredWorkspace("workspace").content(value),
+    ],
+  ];
+
+  for (const [name, field, create] of factories) {
+    for (const value of invalidContent) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} ${field} must be a GPUI element or entity`,
+      );
+    }
+  }
+
+  const entity = { set_props() {}, release() {} };
+  expect(() => new AppShell().content(entity).build(cx)).not.toThrow();
+});
+
+test("truthy optional layout slots reject non-renderables", () => {
+  const factories = [
+    ["AppShell", "top", (value) => new AppShell().top(value).content(element("content"))],
+    ["AppShell", "bottom", (value) => new AppShell().content(element("content")).bottom(value)],
+    ["TopBar", "brand", (value) => new TopBar().brand(value)],
+    ["TopBar", "center", (value) => new TopBar().center(value)],
+    ["TopBar", "actions", (value) => new TopBar().actions(value)],
+    ["BottomBar", "status", (value) => new BottomBar().status(value)],
+    ["BottomBar", "hints", (value) => new BottomBar().hints(value)],
+    ["ActionBar", "actions", (value) => new ActionBar("action").actions(value)],
+    ["ActionBar", "status", (value) => new ActionBar("action").status(value)],
+    ["PanelHeader", "actions", (value) => new PanelHeader("panel").heading(element("heading")).actions(value)],
+  ];
+
+  for (const [name, field, create] of factories) {
+    for (const value of ["copy", 1, true, {}, [], () => {}]) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} ${field} must be a GPUI element or entity`,
+      );
+    }
+  }
+});
+
+test("open layout containers reject invalid child input at the builder boundary", () => {
+  const factories = [
+    ["PageColumn", () => new PageColumn("page")],
+    ["Surface", () => new Surface()],
+    ["PopupSurface", () => new PopupSurface("popup")],
+  ];
+
+  for (const [name, create] of factories) {
+    for (const value of [
+      undefined,
+      null,
+      false,
+      "copy",
+      0,
+      42,
+      true,
+      {},
+      [],
+      Symbol("child"),
+      () => {},
+    ]) {
+      expect(() => create().child(value)).toThrow(
+        `${name} child must be a GPUI element or entity`,
+      );
+    }
+    expect(() => create().children("copy")).toThrow(
+      `${name} children must be an array of GPUI elements or entities`,
+    );
+    expect(() => create().children([element("valid"), {}])).toThrow(
+      `${name} children[1] must be a GPUI element or entity`,
+    );
   }
 });
 
@@ -239,11 +372,11 @@ test("text builders accept constructor values, chain, and preserve text styling"
     expect(childrenOf(component.build(cx))).toEqual([expected]);
   }
 
-  const label = new Label(42).build(cx);
+  const label = new Label("42").build(cx);
   expect(callsTo(label, "text_size")[0].args).toEqual([tokens.font.body]);
   expect(callsTo(label, "line_height")[0].args).toEqual([1.35]);
   expect(callsTo(label, "text_color")[0].args).toEqual(["#eeeeeeff"]);
-  expect(childrenOf(label)).toEqual([42]);
+  expect(childrenOf(label)).toEqual(["42"]);
 
   const muted = new MutedText("Secondary").build(cx);
   expect(callsTo(muted, "text_size")[0].args).toEqual([tokens.font.body]);
@@ -261,7 +394,7 @@ test("text builders accept constructor values, chain, and preserve text styling"
 });
 
 test("build is repeatable and does not consume component configuration", () => {
-  const child = { child: "stable" };
+  const child = element("stable");
   const components = [
     new AppShell().content(child),
     new TopBar().center(child),
@@ -288,7 +421,7 @@ test("build is repeatable and does not consume component configuration", () => {
 });
 
 test("repeat builds resolve against each supplied context", () => {
-  const child = { child: "stable" };
+  const child = element("stable");
   const surface = new Surface().child(child);
 
   const first = surface.build(cx);
@@ -304,15 +437,16 @@ test("repeat builds resolve against each supplied context", () => {
 });
 
 test("layout classes preserve stable ids", () => {
-  const shell = new AppShell().content({}).build(cx);
+  const child = element("child");
+  const shell = new AppShell().content(child).build(cx);
   expect(idOf(shell)).toBe("application-frame");
   expect(idOf(childrenOf(shell)[0])).toBe("application-content");
   expect(idOf(new TopBar().build(cx))).toBe("application-top-bar");
   expect(idOf(new BottomBar().build(cx))).toBe("application-bottom-bar");
   expect(idOf(new ActionBar("actions-id").build(cx))).toBe("actions-id");
-  expect(idOf(new PanelHeader("panel-id").heading({}).build(cx))).toBe("panel-id");
+  expect(idOf(new PanelHeader("panel-id").heading(child).build(cx))).toBe("panel-id");
   expect(
-    idOf(new CenteredWorkspace("workspace-id").content({}).build(cx)),
+    idOf(new CenteredWorkspace("workspace-id").content(child).build(cx)),
   ).toBe("workspace-id");
   expect(idOf(new PageColumn("page-id").build(cx))).toBe("page-id");
   expect(idOf(new PopupSurface("popup-id").build(cx))).toBe("popup-id");
@@ -320,7 +454,7 @@ test("layout classes preserve stable ids", () => {
 
 test("shell and bar classes preserve resolved layout and surface styling", () => {
   const tokens = style();
-  const shell = new AppShell().content({}).build(cx);
+  const shell = new AppShell().content(element("content")).build(cx);
   expect(callsTo(shell, "size_full")).toHaveLength(1);
   expect(callsTo(shell, "min_w_0")).toHaveLength(1);
   expect(callsTo(shell, "min_h_0")).toHaveLength(1);
@@ -383,7 +517,7 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
   ]);
   expect(callsTo(action, "border_color")[0].args).toEqual(["#777777ff"]);
 
-  const header = new PanelHeader("panel").heading({}).build(cx);
+  const header = new PanelHeader("panel").heading(element("heading")).build(cx);
   expect(callsTo(header, "role")[0].args).toEqual(["section_header"]);
   expect(callsTo(header, "flex_none")).toHaveLength(1);
   expect(callsTo(header, "items_center")).toHaveLength(1);
@@ -403,7 +537,7 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
 
 test("workspace and surface classes preserve resolved layout and styling", () => {
   const tokens = style();
-  const workspace = new CenteredWorkspace("workspace").content({}).build(cx);
+  const workspace = new CenteredWorkspace("workspace").content(element("content")).build(cx);
   expect(callsTo(workspace, "items_start")).toHaveLength(1);
   expect(callsTo(workspace, "size_full")).toHaveLength(1);
   expect(callsTo(workspace, "min_w_0")).toHaveLength(1);

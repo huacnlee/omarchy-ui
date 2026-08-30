@@ -69,7 +69,9 @@ perform application side effects.
 
 Constructors marked with `id` require a stable, non-blank application ID. Use
 domain identity for repeated controls and rows; do not derive IDs from mutable
-positions or translated labels.
+positions or translated labels. Required copy accepts only non-blank strings;
+numbers, booleans, objects, and whitespace-only strings are not coerced into
+interface text.
 
 ### Layout and text
 
@@ -84,23 +86,26 @@ positions or translated labels.
 | `PageColumn(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order. `.maxWidth(value)` defaults to `style().space(560)`. |
 | `Surface` | None | `.child(element)` and `.children(elements)` append in order; an empty surface is valid. |
 | `PopupSurface(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order; an empty popup surface is valid. |
-| `Label`, `MutedText` | Constructor text or `.text(value)` | Text may be a string or number. |
-| `Title`, `SectionLabel` | Constructor text or `.text(value)` | `SectionLabel` applies the Omarchy section-label presentation while preserving caller casing. |
+| `Label`, `MutedText` | Non-blank constructor text or `.text(value)` | No optional fields. |
+| `Title`, `SectionLabel` | Non-blank constructor text or `.text(value)` | `SectionLabel` applies the Omarchy section-label presentation while preserving caller casing. |
 
 Named slots preserve semantic order. Falsy optional slots are omitted. Open
 containers preserve the order of every `.child(...)` and `.children(...)`
-call.
+call. Required slots and open-container children accept GPUI elements or
+entities, not text primitives or plain objects; use the text classes for copy.
+Truthy optional slots follow the same rule while falsy optional slots remain
+intentional omissions.
 
 ### Controls
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and `.label(text)` | `.icon(asset)` is optional. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
+| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
 | `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. The description supplies the accessible name and tooltip while idle. |
 | `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. Use only when no icon asset exists. |
-| `MenuItem(id)` | Stable `id` and `.label(text)` | `.detail(text)` and `.icon(asset)` are empty; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
+| `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
-| `FormField(id)` | Stable `id`, `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are empty by default. A non-empty error replaces helper text. |
+| `FormField(id)` | Stable `id`, non-blank `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are omitted by default. A non-empty error replaces helper text; `.error("")` clears it. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | No optional fields. |
@@ -109,7 +114,10 @@ call.
 Control sizes are the closed vocabulary `"small"`, `"medium"`, and
 `"large"`; `.size(value)` rejects any other value immediately. Required
 labels, icons, descriptions, glyphs, and controls are checked at `build(cx)`
-with an error that names the component and missing field.
+with an error that names the component and field. Optional copy must also be
+non-blank when configured, except the documented `.error("")` clearing seam.
+Every `onClick` builder accepts a function or `undefined` and rejects other
+values immediately.
 
 Pass a complete application-root-relative path to `.icon(asset)`, such as
 `"assets/icons/project-add.svg"`. Omarchy UI passes that string to gpui-shell
@@ -122,7 +130,8 @@ danger controls reduce emphasis with an alpha derived from that token.
 When a Button, IconButton, or GlyphButton is loading, `.loadingLabel(text)`
 owns the visible and accessible operation copy. Compact controls replace their
 idle icon or glyph with a semantic activity marker, so loading stays distinct
-even when the idle glyph is `…`.
+even when the idle glyph is `…`. That marker uses gpui-shell's
+`progress_indicator` accessibility role.
 `FormField.error(message)` renders non-empty validation feedback with an alert
 role and the destructive token; call `.error("")` to reveal helper text again.
 

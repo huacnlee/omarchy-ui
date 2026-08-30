@@ -2,20 +2,21 @@
 
 import { div } from "gpui";
 import { h_flex, v_flex } from "gpui-base";
-import { stableId } from "./internal.js";
+import {
+  optionalRenderable,
+  requiredRenderable,
+  requiredRenderables,
+  requiredText,
+  stableId,
+} from "./internal.js";
 import { resolveSurfaceColor, style } from "./style.js";
 import { role } from "./theme.js";
 
-/** @param {string} component @param {string} field @param {unknown} value */
-function requireContent(component, field, value) {
-  if (value === undefined || value === null) {
-    throw new Error(`${component} requires ${field} before build()`);
-  }
-}
-
-/** @param {unknown[]} values */
-function optionalSlots(values) {
-  return values.filter(Boolean);
+/** @param {string} component @param {Array<[string, unknown]>} entries */
+function optionalSlots(component, entries) {
+  return entries
+    .filter(([, value]) => Boolean(value))
+    .map(([field, value]) => optionalRenderable(component, field, value));
 }
 
 export class AppShell {
@@ -23,19 +24,19 @@ export class AppShell {
   #content;
   #bottom;
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   top(element) {
     this.#top = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   content(element) {
     this.#content = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   bottom(element) {
     this.#bottom = element;
     return this;
@@ -43,14 +44,18 @@ export class AppShell {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("AppShell", "content", this.#content);
+    const contentElement = requiredRenderable(
+      "AppShell",
+      "content",
+      this.#content,
+    );
     const content = v_flex()
       .id("application-content")
       .flex_1()
       .min_w_0()
       .min_h_0()
       .overflow_hidden()
-      .child(this.#content);
+      .child(contentElement);
 
     return v_flex()
       .id("application-frame")
@@ -61,9 +66,9 @@ export class AppShell {
       .text_size(style().font.body)
       .bg(cx.theme().colors.background)
       .text_color(cx.theme().colors.foreground)
-      .children(optionalSlots([this.#top]))
+      .children(optionalSlots("AppShell", [["top", this.#top]]))
       .child(content)
-      .children(optionalSlots([this.#bottom]));
+      .children(optionalSlots("AppShell", [["bottom", this.#bottom]]));
   }
 }
 
@@ -72,19 +77,19 @@ export class TopBar {
   #center;
   #actions;
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   brand(element) {
     this.#brand = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   center(element) {
     this.#center = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
@@ -103,7 +108,11 @@ export class TopBar {
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(optionalSlots([this.#brand, this.#center, this.#actions]));
+      .children(optionalSlots("TopBar", [
+        ["brand", this.#brand],
+        ["center", this.#center],
+        ["actions", this.#actions],
+      ]));
   }
 }
 
@@ -112,13 +121,13 @@ export class BottomBar {
   #hints;
   #leadsWithIcon = false;
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   status(element) {
     this.#status = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   hints(element) {
     this.#hints = element;
     return this;
@@ -144,7 +153,10 @@ export class BottomBar {
       .border_t(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(optionalSlots([this.#status, this.#hints]));
+      .children(optionalSlots("BottomBar", [
+        ["status", this.#status],
+        ["hints", this.#hints],
+      ]));
   }
 }
 
@@ -158,13 +170,13 @@ export class ActionBar {
     this.#id = stableId("ActionBar", id);
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   status(element) {
     this.#status = element;
     return this;
@@ -182,9 +194,9 @@ export class ActionBar {
       .py(style().spacing.sm)
       .border_t(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
-      .children(optionalSlots([this.#actions]))
+      .children(optionalSlots("ActionBar", [["actions", this.#actions]]))
       .child(div().flex_1())
-      .children(optionalSlots([this.#status]));
+      .children(optionalSlots("ActionBar", [["status", this.#status]]));
   }
 }
 
@@ -198,13 +210,13 @@ export class PanelHeader {
     this.#id = stableId("PanelHeader", id);
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   heading(element) {
     this.#heading = element;
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
@@ -212,7 +224,11 @@ export class PanelHeader {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("PanelHeader", "heading", this.#heading);
+    const heading = requiredRenderable(
+      "PanelHeader",
+      "heading",
+      this.#heading,
+    );
     return h_flex()
       .id(this.#id)
       .role("section_header")
@@ -224,8 +240,8 @@ export class PanelHeader {
       .px(style().spacing.rowPaddingX)
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
-      .child(this.#heading)
-      .children(optionalSlots([this.#actions]));
+      .child(heading)
+      .children(optionalSlots("PanelHeader", [["actions", this.#actions]]));
   }
 }
 
@@ -238,7 +254,7 @@ export class CenteredWorkspace {
     this.#id = stableId("CenteredWorkspace", id);
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   content(element) {
     this.#content = element;
     return this;
@@ -246,7 +262,11 @@ export class CenteredWorkspace {
 
   /** @param {import("gpui").Context} _cx */
   build(_cx) {
-    requireContent("CenteredWorkspace", "content", this.#content);
+    const content = requiredRenderable(
+      "CenteredWorkspace",
+      "content",
+      this.#content,
+    );
     return h_flex()
       .id(this.#id)
       .items_start()
@@ -255,7 +275,7 @@ export class CenteredWorkspace {
       .min_h_0()
       .justify_center()
       .overflow_y_scroll()
-      .child(this.#content);
+      .child(content);
   }
 }
 
@@ -269,15 +289,15 @@ export class PageColumn {
     this.#id = stableId("PageColumn", id);
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   child(element) {
-    this.#children.push(element);
+    this.#children.push(requiredRenderable("PageColumn", "child", element));
     return this;
   }
 
-  /** @param {any[]} elements */
+  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
   children(elements) {
-    this.#children.push(...elements);
+    this.#children.push(...requiredRenderables("PageColumn", "children", elements));
     return this;
   }
 
@@ -302,15 +322,15 @@ export class PageColumn {
 export class Surface {
   #children = [];
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   child(element) {
-    this.#children.push(element);
+    this.#children.push(requiredRenderable("Surface", "child", element));
     return this;
   }
 
-  /** @param {any[]} elements */
+  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
   children(elements) {
-    this.#children.push(...elements);
+    this.#children.push(...requiredRenderables("Surface", "children", elements));
     return this;
   }
 
@@ -337,15 +357,15 @@ export class PopupSurface {
     this.#id = stableId("PopupSurface", id);
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   child(element) {
-    this.#children.push(element);
+    this.#children.push(requiredRenderable("PopupSurface", "child", element));
     return this;
   }
 
-  /** @param {any[]} elements */
+  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
   children(elements) {
-    this.#children.push(...elements);
+    this.#children.push(...requiredRenderables("PopupSurface", "children", elements));
     return this;
   }
 
@@ -389,12 +409,12 @@ export class PopupSurface {
 export class Label {
   #text;
 
-  /** @param {string | number} [value] */
+  /** @param {string} [value] */
   constructor(value) {
     this.#text = value;
   }
 
-  /** @param {string | number} value */
+  /** @param {string} value */
   text(value) {
     this.#text = value;
     return this;
@@ -402,24 +422,24 @@ export class Label {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("Label", "text", this.#text);
+    const text = requiredText("Label", "text", this.#text);
     return div()
       .text_size(style().font.body)
       .line_height(1.35)
       .text_color(cx.theme().colors.foreground)
-      .child(this.#text);
+      .child(text);
   }
 }
 
 export class MutedText {
   #text;
 
-  /** @param {string | number} [value] */
+  /** @param {string} [value] */
   constructor(value) {
     this.#text = value;
   }
 
-  /** @param {string | number} value */
+  /** @param {string} value */
   text(value) {
     this.#text = value;
     return this;
@@ -427,12 +447,12 @@ export class MutedText {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("MutedText", "text", this.#text);
+    const text = requiredText("MutedText", "text", this.#text);
     return div()
       .text_size(style().font.body)
       .line_height(1.35)
       .text_color(cx.theme().colors.muted_foreground)
-      .child(this.#text);
+      .child(text);
   }
 }
 
@@ -452,11 +472,11 @@ export class Title {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("Title", "text", this.#text);
+    const text = requiredText("Title", "text", this.#text);
     return div()
       .text_size(style().font.title)
       .text_color(cx.theme().colors.foreground)
-      .child(this.#text);
+      .child(text);
   }
 }
 
@@ -476,10 +496,10 @@ export class SectionLabel {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireContent("SectionLabel", "text", this.#text);
+    const text = requiredText("SectionLabel", "text", this.#text);
     return div()
       .text_size(style().font.caption)
       .text_color(cx.theme().colors.muted_foreground)
-      .child(this.#text);
+      .child(text);
   }
 }

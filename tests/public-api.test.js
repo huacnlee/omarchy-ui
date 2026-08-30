@@ -137,3 +137,33 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "state",
   ]);
 });
+
+test("layout, text, and value classes expose only the reviewed builders", () => {
+  const methods = {
+    ActionBar: ["actions", "build", "constructor", "status"],
+    AppShell: ["bottom", "build", "constructor", "content", "top"],
+    BottomBar: ["build", "constructor", "hints", "leadsWithIcon", "status"],
+    CenteredWorkspace: ["build", "constructor", "content"],
+    EmptyState: ["build", "constructor", "heading", "hint"],
+    FieldRow: ["build", "constructor", "control", "label"],
+    KeyHints: ["build", "constructor", "hint"],
+    Keycap: ["build", "constructor"],
+    Label: ["build", "constructor", "text"],
+    MenuSeparator: ["build", "constructor"],
+    MutedText: ["build", "constructor", "text"],
+    PageColumn: ["build", "child", "children", "constructor", "maxWidth"],
+    PanelHeader: ["actions", "build", "constructor", "heading"],
+    PopupSurface: ["build", "child", "children", "constructor"],
+    SectionLabel: ["build", "constructor", "text"],
+    Separator: ["build", "constructor"],
+    Surface: ["build", "child", "children", "constructor"],
+    Title: ["build", "constructor", "text"],
+    TopBar: ["actions", "brand", "build", "center", "constructor"],
+  };
+
+  for (const [name, expected] of Object.entries(methods)) {
+    expect(Object.getOwnPropertyNames(ui[name].prototype).sort()).toEqual(
+      expected,
+    );
+  }
+});

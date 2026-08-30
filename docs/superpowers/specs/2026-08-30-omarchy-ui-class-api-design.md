@@ -63,7 +63,9 @@ Unknown variants or status states fail at the call that sets them.
 Named slots are preferred over positional arguments. `AppShell` has `top`,
 `content`, and `bottom`; `PanelHeader` has `heading` and `actions`; `ActionBar`
 has `actions` and `status`. Container components use `child`/`children` only
-where content is genuinely open-ended.
+where content is genuinely open-ended. Required slots and open-container
+children accept GPUI elements or entities. Truthy optional slots follow the
+same contract, while every falsy optional slot remains an intentional omission.
 
 `ListRow` is presentational when it has no callback. Supplying `onClick`
 activates its semantic button seam and controlled `disabled` state, including
@@ -74,6 +76,7 @@ Button-family and StatusLine loading states require caller-owned non-blank
 loading copy. Standard controls and StatusLine render that exact copy; compact
 controls replace their idle content with a semantic activity marker, so
 loading remains visibly and accessibly distinct without library-authored text.
+The compact marker uses gpui-shell's `progress_indicator` role.
 
 Components are presentation values, not retained application state. Stateful
 gpui-base models such as `InputState` remain owned by the application. Classes
@@ -102,10 +105,14 @@ future evolution ambiguous.
 
 Construction validates every application-supplied ID as a non-blank string
 through one internal validator before reaching the underlying GPUI component.
-Builders validate closed vocabularies such as size and status immediately.
-`build(cx)` validates required semantic content, such as a button label or an
-icon button description. Error messages name the component, missing field, and
-valid alternatives where applicable.
+All required text is a non-blank string; configured optional copy follows the
+same rule except for an explicitly documented clearing value such as
+`FormField.error("")`. Required renderables and open-container children are
+GPUI elements or entities, not primitives or plain objects. Callback builders
+accept only functions when supplied. Builders validate callbacks, child
+collections, and closed vocabularies such as size and status immediately;
+`build(cx)` validates configured semantic copy and named slots. Error messages
+name the component, field, and expected value or valid alternatives.
 
 ## Testing and migration
 

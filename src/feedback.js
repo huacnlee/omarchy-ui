@@ -2,6 +2,7 @@
 
 import { div } from "gpui";
 import { v_flex } from "gpui-base";
+import { optionalText, requiredText } from "./internal.js";
 import { style } from "./style.js";
 
 /** @param {string} value @param {import("gpui").Context} cx */
@@ -20,14 +21,6 @@ function mutedLabel(value, cx) {
     .line_height(1.35)
     .text_color(cx.theme().colors.muted_foreground)
     .child(value);
-}
-
-/** @param {string | undefined} value @param {string} component @param {string} field */
-function requiredText(value, component, field) {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new Error(`${component} requires a ${field} before build().`);
-  }
-  return value;
 }
 
 export class EmptyState {
@@ -52,8 +45,8 @@ export class EmptyState {
   /** @param {import("gpui").Context} cx */
   build(cx) {
     const tokens = style();
-    const heading = requiredText(this.#heading, "EmptyState", "heading");
-    const hint = requiredText(this.#hint, "EmptyState", "hint");
+    const heading = requiredText("EmptyState", "heading", this.#heading);
+    const hint = requiredText("EmptyState", "hint", this.#hint);
     return v_flex()
       .flex_1()
       .items_center()
@@ -98,12 +91,15 @@ export class StatusLine {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    const label = requiredText(this.#label, "StatusLine", "label");
+    const label = requiredText("StatusLine", "label", this.#label);
+    if (this.#state !== "loading") {
+      optionalText("StatusLine", "loading label", this.#loadingLabel);
+    }
     const visibleLabel = this.#state === "loading"
       ? requiredText(
-          this.#loadingLabel,
           "StatusLine",
           "loading label",
+          this.#loadingLabel,
         )
       : label;
     const element = this.#state === "error"

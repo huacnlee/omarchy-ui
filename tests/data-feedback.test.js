@@ -1,7 +1,7 @@
 // @ts-check
 
 import { expect, test } from "bun:test";
-import { resolvedStyle } from "./gpui-stub.js";
+import { element as gpuiElement, resolvedStyle } from "./gpui-stub.js";
 import { ListRow } from "../src/data.js";
 import { EmptyState, StatusLine } from "../src/feedback.js";
 
@@ -51,20 +51,62 @@ test("ListRow rejects non-string and blank ids", () => {
 
 test("ListRow keeps appended children in order without a false interactive affordance", () => {
   const row = new ListRow("project-1");
+  const name = gpuiElement("name");
+  const owner = gpuiElement("owner");
+  const status = gpuiElement("status");
 
-  expect(row.child("name")).toBe(row);
-  expect(row.children(["owner", "status"])).toBe(row);
+  expect(row.child(name)).toBe(row);
+  expect(row.children([owner, status])).toBe(row);
 
   const element = row.build(cx);
 
   expect(callsTo(element, "id")[0].args).toEqual(["project-1"]);
   expect(callsTo(element, "bg")[0].args).toEqual(["#101010ff"]);
-  expect(callsTo(element, "children")[0].args).toEqual([["name", "owner", "status"]]);
+  expect(callsTo(element, "children")[0].args).toEqual([[name, owner, status]]);
   expect(element.name).toBe("h_flex");
   expect(callsTo(element, "on_click")).toHaveLength(0);
   expect(callsTo(element, "hover")).toHaveLength(0);
   expect(callsTo(element, "active")).toHaveLength(0);
   expect(callsTo(element, "focus")).toHaveLength(0);
+});
+
+test("ListRow accepts only GPUI children and function callbacks", () => {
+  const row = new ListRow("project-1");
+  const entity = { set_props() {}, release() {} };
+
+  expect(row.child(gpuiElement("child"))).toBe(row);
+  expect(row.child(entity)).toBe(row);
+  expect(() => row.onClick(undefined)).not.toThrow();
+  expect(() => row.onClick(() => {})).not.toThrow();
+
+  for (const value of [
+    undefined,
+    null,
+    false,
+    "copy",
+    0,
+    42,
+    true,
+    {},
+    [],
+    Symbol("child"),
+    () => {},
+  ]) {
+    expect(() => new ListRow("row").child(value)).toThrow(
+      "ListRow child must be a GPUI element or entity",
+    );
+  }
+  expect(() => new ListRow("row").children("copy")).toThrow(
+    "ListRow children must be an array of GPUI elements or entities",
+  );
+  expect(() =>
+    new ListRow("row").children([gpuiElement("valid"), {}]),
+  ).toThrow("ListRow children[1] must be a GPUI element or entity");
+  for (const value of [null, false, 0, "callback", {}, []]) {
+    expect(() => new ListRow("row").onClick(value)).toThrow(
+      "ListRow onClick must be a function when supplied",
+    );
+  }
 });
 
 test("ListRow applies selected presentation and builds a fresh element each time", () => {
@@ -128,8 +170,42 @@ test("ListRow selection wins over interactive fills and disabled removes activat
 });
 
 test("EmptyState requires both semantic messages before building", () => {
-  expect(() => new EmptyState().build(cx)).toThrow("EmptyState requires a heading before build().");
-  expect(() => new EmptyState().heading("No projects").build(cx)).toThrow("EmptyState requires a hint before build().");
+  expect(() => new EmptyState().build(cx)).toThrow(
+    "EmptyState heading must be a non-blank string",
+  );
+  expect(() => new EmptyState().heading("No projects").build(cx)).toThrow(
+    "EmptyState hint must be a non-blank string",
+  );
+});
+
+test("feedback required copy accepts only non-blank strings", () => {
+  const invalidText = [
+    undefined,
+    null,
+    "",
+    "   ",
+    0,
+    42,
+    false,
+    true,
+    {},
+    [],
+    Symbol("text"),
+    () => "text",
+  ];
+  const factories = [
+    ["EmptyState", "heading", (value) => new EmptyState().heading(value).hint("Create one")],
+    ["EmptyState", "hint", (value) => new EmptyState().heading("No projects").hint(value)],
+    ["StatusLine", "label", (value) => new StatusLine().label(value)],
+  ];
+
+  for (const [name, field, create] of factories) {
+    for (const value of invalidText) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} ${field} must be a non-blank string`,
+      );
+    }
+  }
 });
 
 test("EmptyState chains its messages and renders heading before hint", () => {
@@ -184,7 +260,9 @@ test("StatusLine renders ready, loading, and error as distinct semantic states",
 });
 
 test("StatusLine requires a label before building", () => {
-  expect(() => new StatusLine().build(cx)).toThrow("StatusLine requires a label before build().");
+  expect(() => new StatusLine().build(cx)).toThrow(
+    "StatusLine label must be a non-blank string",
+  );
 });
 
 test("StatusLine loading requires caller-owned non-blank copy", () => {
@@ -195,6 +273,26 @@ test("StatusLine loading requires caller-owned non-blank copy", () => {
         .loadingLabel(value)
         .state("loading")
         .build(cx),
-    ).toThrow("StatusLine requires a loading label before build().");
+    ).toThrow("StatusLine loading label must be a non-blank string");
+  }
+});
+
+test("StatusLine rejects invalid configured loading copy before it is active", () => {
+  for (const value of [
+    null,
+    "",
+    "   ",
+    42,
+    false,
+    {},
+    [],
+    Symbol("text"),
+    () => "text",
+  ]) {
+    expect(() =>
+      new StatusLine().label("Ready").loadingLabel(value).build(cx),
+    ).toThrow(
+      "StatusLine loading label must be a non-blank string when supplied",
+    );
   }
 });

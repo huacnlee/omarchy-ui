@@ -1,7 +1,12 @@
 // @ts-check
 
 import { Button as BaseButton, h_flex } from "gpui-base";
-import { stableId } from "./internal.js";
+import {
+  optionalCallback,
+  requiredRenderable,
+  requiredRenderables,
+  stableId,
+} from "./internal.js";
 import { alpha, style } from "./style.js";
 
 export class ListRow {
@@ -15,7 +20,7 @@ export class ListRow {
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
   #onClick;
 
-  /** @type {any[]} */
+  /** @type {Array<import("gpui").Element | import("gpui").Entity>} */
   #children = [];
 
   /** @param {string} id */
@@ -35,21 +40,21 @@ export class ListRow {
     return this;
   }
 
-  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
   onClick(callback) {
-    this.#onClick = callback;
+    this.#onClick = optionalCallback("ListRow", "onClick", callback);
     return this;
   }
 
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   child(element) {
-    this.#children.push(element);
+    this.#children.push(requiredRenderable("ListRow", "child", element));
     return this;
   }
 
-  /** @param {any[]} elements */
+  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
   children(elements) {
-    this.#children.push(...elements);
+    this.#children.push(...requiredRenderables("ListRow", "children", elements));
     return this;
   }
 

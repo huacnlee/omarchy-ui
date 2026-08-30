@@ -2,7 +2,13 @@
 
 import { div, svg } from "gpui";
 import { Button as BaseButton, h_flex, v_flex } from "gpui-base";
-import { stableId } from "./internal.js";
+import {
+  optionalCallback,
+  optionalText,
+  requiredRenderable,
+  requiredText,
+  stableId,
+} from "./internal.js";
 import { alpha, style } from "./style.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
@@ -36,28 +42,6 @@ function surfaceStates(cx, color, focusColor) {
     selectedBorderWidth: state.selectedBorderWidth,
     focusBorderWidth: state.focusBorderWidth,
   };
-}
-
-/** @param {string} component @param {string} field @param {unknown} value */
-function requireValue(component, field, value) {
-  if (value == null || (typeof value === "string" && value.trim() === "")) {
-    throw new Error(`${component} requires ${field} before build`);
-  }
-}
-
-/**
- * @param {string} component
- * @param {string} field
- * @param {unknown} value
- * @returns {string}
- */
-function requireText(component, field, value) {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(
-      `${component} requires a non-blank ${field} before build`,
-    );
-  }
-  return value;
 }
 
 /** @param {string} component @param {string} value @returns {ControlSize} */
@@ -97,7 +81,7 @@ function sizeStyle(size) {
   };
 }
 
-/** @param {string | number} value @param {import("gpui").Context} cx */
+/** @param {string} value @param {import("gpui").Context} cx */
 function labelElement(value, cx) {
   return div()
     .text_size(style().font.body)
@@ -106,7 +90,7 @@ function labelElement(value, cx) {
     .child(value);
 }
 
-/** @param {string | number} value @param {import("gpui").Context} cx */
+/** @param {string} value @param {import("gpui").Context} cx */
 function mutedElement(value, cx) {
   return div()
     .text_size(style().font.body)
@@ -226,7 +210,7 @@ function buildButton(config, cx) {
 function activityMarker(label, dimensions, foreground) {
   const tokens = style();
   return div()
-    .role("progressbar")
+    .role("progress_indicator")
     .accessibility_label(label)
     .flex_none()
     .size(dimensions.iconSize)
@@ -328,15 +312,15 @@ function buildCompactCommand(config, cx) {
 
 export class Button {
   #id;
-  #label = "";
-  #asset = "";
+  #label;
+  #asset;
   #outlined = false;
   #bordered = false;
   #selected = false;
   #danger = false;
   #disabled = false;
   #loading = false;
-  #loadingLabel = "";
+  #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -363,19 +347,23 @@ export class Button {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("Button", value); return this; }
-  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
-  onClick(callback) { this.#onClick = callback; return this; }
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("Button", "onClick", callback);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("Button", "label", this.#label);
+    const label = requiredText("Button", "label", this.#label);
+    const asset = optionalText("Button", "icon", this.#asset) ?? "";
     const loadingLabel = this.#loading
-      ? requireText("Button", "loading label", this.#loadingLabel)
-      : this.#loadingLabel;
+      ? requiredText("Button", "loading label", this.#loadingLabel)
+      : optionalText("Button", "loading label", this.#loadingLabel) ?? "";
     return buildButton({
       id: this.#id,
-      label: this.#label,
-      asset: this.#asset,
+      label,
+      asset,
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
@@ -391,14 +379,14 @@ export class Button {
 
 export class IconButton {
   #id;
-  #asset = "";
-  #description = "";
+  #asset;
+  #description;
   #outlined = false;
   #bordered = false;
   #selected = false;
   #disabled = false;
   #loading = false;
-  #loadingLabel = "";
+  #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -423,20 +411,27 @@ export class IconButton {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("IconButton", value); return this; }
-  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
-  onClick(callback) { this.#onClick = callback; return this; }
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("IconButton", "onClick", callback);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("IconButton", "icon", this.#asset);
-    requireValue("IconButton", "description", this.#description);
+    const asset = requiredText("IconButton", "icon", this.#asset);
+    const description = requiredText(
+      "IconButton",
+      "description",
+      this.#description,
+    );
     const loadingLabel = this.#loading
-      ? requireText("IconButton", "loading label", this.#loadingLabel)
-      : this.#loadingLabel;
+      ? requiredText("IconButton", "loading label", this.#loadingLabel)
+      : optionalText("IconButton", "loading label", this.#loadingLabel) ?? "";
     return buildCompactCommand({
       id: this.#id,
-      content: svg(this.#asset).size(sizeStyle(this.#size).iconSize).flex_none(),
-      description: this.#description,
+      content: svg(asset).size(sizeStyle(this.#size).iconSize).flex_none(),
+      description,
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
@@ -451,14 +446,14 @@ export class IconButton {
 
 export class GlyphButton {
   #id;
-  #glyph = "";
-  #description = "";
+  #glyph;
+  #description;
   #outlined = false;
   #bordered = false;
   #selected = false;
   #disabled = false;
   #loading = false;
-  #loadingLabel = "";
+  #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
@@ -483,20 +478,27 @@ export class GlyphButton {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("GlyphButton", value); return this; }
-  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
-  onClick(callback) { this.#onClick = callback; return this; }
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("GlyphButton", "onClick", callback);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("GlyphButton", "glyph", this.#glyph);
-    requireValue("GlyphButton", "description", this.#description);
+    const glyph = requiredText("GlyphButton", "glyph", this.#glyph);
+    const description = requiredText(
+      "GlyphButton",
+      "description",
+      this.#description,
+    );
     const loadingLabel = this.#loading
-      ? requireText("GlyphButton", "loading label", this.#loadingLabel)
-      : this.#loadingLabel;
+      ? requiredText("GlyphButton", "loading label", this.#loadingLabel)
+      : optionalText("GlyphButton", "loading label", this.#loadingLabel) ?? "";
     return buildCompactCommand({
       id: this.#id,
-      content: this.#glyph,
-      description: this.#description,
+      content: glyph,
+      description,
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
@@ -511,9 +513,9 @@ export class GlyphButton {
 
 export class MenuItem {
   #id;
-  #label = "";
-  #detail = "";
-  #asset = "";
+  #label;
+  #detail;
+  #asset;
   #selected = false;
   #danger = false;
   #disabled = false;
@@ -534,12 +536,17 @@ export class MenuItem {
   danger(value = true) { this.#danger = value; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
-  /** @param {(event: import("gpui").ClickEvent, cx: import("gpui").Context) => void} callback */
-  onClick(callback) { this.#onClick = callback; return this; }
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("MenuItem", "onClick", callback);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("MenuItem", "label", this.#label);
+    const label = requiredText("MenuItem", "label", this.#label);
+    const detail = optionalText("MenuItem", "detail", this.#detail) ?? "";
+    const asset = optionalText("MenuItem", "icon", this.#asset) ?? "";
     const tokens = style();
     const foreground = this.#danger
       ? this.#disabled
@@ -567,7 +574,7 @@ export class MenuItem {
       .role("menu_item")
       .disabled(this.#disabled)
       .selected(this.#selected)
-      .accessibility_label(this.#detail ? `${this.#label}, ${this.#detail}` : this.#label)
+      .accessibility_label(detail ? `${label}, ${detail}` : label)
       .flex()
       .items_center()
       .justify_between()
@@ -602,11 +609,11 @@ export class MenuItem {
           .items_center()
           .gap(tokens.spacing.md)
           .min_w_0()
-          .when(Boolean(this.#asset), (element) => element.child(svg(this.#asset).flex_none().size(tokens.font.iconSmall).text_color(foreground)))
-          .child(labelElement(this.#label, cx).text_color(foreground).truncate()),
+          .when(Boolean(asset), (element) => element.child(svg(asset).flex_none().size(tokens.font.iconSmall).text_color(foreground)))
+          .child(labelElement(label, cx).text_color(foreground).truncate()),
       )
-      .when(Boolean(this.#detail), (element) => element.child(
-        mutedElement(this.#detail, cx)
+      .when(Boolean(detail), (element) => element.child(
+        mutedElement(detail, cx)
           .flex_none()
           .text_size(tokens.font.bodySmall)
           .when(this.#danger, (detail) => detail.text_color(foreground)),
@@ -616,20 +623,20 @@ export class MenuItem {
 
 export class FieldRow {
   #id;
-  #label = "";
+  #label;
   #control;
 
   /** @param {string} id */
   constructor(id) { this.#id = stableId("FieldRow", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   control(element) { this.#control = element; return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("FieldRow", "label", this.#label);
-    requireValue("FieldRow", "control", this.#control);
+    const label = requiredText("FieldRow", "label", this.#label);
+    const control = requiredRenderable("FieldRow", "control", this.#control);
     const tokens = style();
     return h_flex()
       .id(this.#id)
@@ -640,23 +647,23 @@ export class FieldRow {
       .py(tokens.spacing.xs)
       .border_b(tokens.spacing.hairline)
       .border_color(cx.theme().colors.border)
-      .child(h_flex().w(tokens.space(52)).flex_none().child(labelElement(this.#label, cx).text_color(cx.theme().colors.muted_foreground)))
-      .child(this.#control);
+      .child(h_flex().w(tokens.space(52)).flex_none().child(labelElement(label, cx).text_color(cx.theme().colors.muted_foreground)))
+      .child(control);
   }
 }
 
 export class FormField {
   #id;
-  #label = "";
+  #label;
   #control;
-  #helper = "";
-  #error = "";
+  #helper;
+  #error;
 
   /** @param {string} id */
   constructor(id) { this.#id = stableId("FormField", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
-  /** @param {any} element */
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
   control(element) { this.#control = element; return this; }
   /** @param {string} text */
   helper(text) { this.#helper = text; return this; }
@@ -665,17 +672,21 @@ export class FormField {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("FormField", "label", this.#label);
-    requireValue("FormField", "control", this.#control);
+    const label = requiredText("FormField", "label", this.#label);
+    const control = requiredRenderable("FormField", "control", this.#control);
+    const helper = optionalText("FormField", "helper", this.#helper) ?? "";
+    const error = optionalText("FormField", "error", this.#error, {
+      allowEmpty: true,
+    }) ?? "";
     const tokens = style();
-    const hasError = Boolean(this.#error);
-    const feedback = hasError ? this.#error : this.#helper;
+    const hasError = Boolean(error);
+    const feedback = hasError ? error : helper;
     return v_flex()
       .id(this.#id)
       .min_w_0()
       .gap(tokens.spacing.labelGap)
-      .child(labelElement(this.#label, cx))
-      .child(this.#control)
+      .child(labelElement(label, cx))
+      .child(control)
       .when(Boolean(feedback), (element) => element.child(
         mutedElement(feedback, cx)
           .text_size(tokens.font.bodySmall)
@@ -709,7 +720,7 @@ export class Keycap {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    requireValue("Keycap", "value", this.#value);
+    const value = requiredText("Keycap", "value", this.#value);
     const tokens = style();
     const states = surfaceStates(cx);
     return h_flex()
@@ -724,7 +735,7 @@ export class Keycap {
       .bg(states.normalFill)
       .text_size(tokens.font.caption)
       .text_color(cx.theme().colors.foreground)
-      .child(this.#value);
+      .child(value);
   }
 }
 
@@ -745,10 +756,14 @@ export class KeyHints {
       .flex_none()
       .items_center()
       .gap(tokens.space(7))
-      .children(this.#hints.map((hint) => h_flex()
+      .children(this.#hints.map((hint) => {
+        const key = requiredText("KeyHints", "key", hint.key);
+        const label = requiredText("KeyHints", "label", hint.label);
+        return h_flex()
         .items_center()
         .gap(tokens.space(3))
-        .child(new Keycap(hint.key).build(cx))
-        .child(mutedElement(hint.label, cx).text_size(tokens.font.caption).flex_none())));
+        .child(new Keycap(key).build(cx))
+        .child(mutedElement(label, cx).text_size(tokens.font.caption).flex_none());
+      }));
   }
 }

@@ -15,6 +15,9 @@
 - Visual public APIs are classes; lowercase positional visual helpers are not exported.
 - Builders are camelCase, mutate the instance, return `this`, and validate closed vocabularies immediately.
 - `build(cx)` is repeatable, side-effect free, and validates required semantic content.
+- Required text fields accept only non-blank strings. Configured optional copy is also non-blank unless an interface explicitly documents an empty-string clearing value.
+- Required renderables and open-container children accept only GPUI elements or entities. Truthy optional slots use the same contract; falsy optional slots are omitted.
+- Callback builders accept only functions when supplied and reject invalid values immediately.
 - Stable IDs are constructor arguments for interactive/repeated components.
 - Consumers own callbacks, domain state, navigation, copy, and complete asset paths.
 - Stateful gpui-base models remain consumer-owned; do not duplicate `InputState`.
@@ -62,7 +65,7 @@
 - `CenteredWorkspace(id)`: `.content(element)`, `.build(cx)`.
 - `PageColumn(id)`: `.child(element)`, `.children(elements)`, width builders matching existing behavior, `.build(cx)`.
 - `Surface` and `PopupSurface(id)`: `.child(element)`, `.children(elements)`, `.build(cx)`.
-- `Label`, `MutedText`, `Title`, `SectionLabel`: `.text(value)` plus `build(cx)`; constructor may accept initial text and `SectionLabel` preserves caller casing.
+- `Label`, `MutedText`, `Title`, `SectionLabel`: `.text(value)` plus `build(cx)`; constructor may accept initial non-blank string text and `SectionLabel` preserves caller casing.
 
 - [ ] Write failing tests for named slots, child ordering, repeated builds, missing required content, stable IDs, and unchanged resolved layout/style properties.
 - [ ] Verify RED with `bun test tests/layout.test.js`.
@@ -82,7 +85,7 @@
 **Interfaces:**
 - `ListRow(id)`: `.selected(value = true)`, `.disabled(value = true)`, `.onClick(callback)`, `.child(element)`, `.children(elements)`, `.build(cx)`; without a callback it remains presentational and has no interactive affordance.
 - `EmptyState`: `.heading(text)`, `.hint(text)`, `.build(cx)`.
-- `StatusLine`: `.label(text)`, `.loadingLabel(text)`, `.state("ready"|"loading"|"error")`, `.build(cx)`; loading requires and renders caller-owned non-blank visible and accessible copy.
+- `StatusLine`: `.label(text)`, `.loadingLabel(text)`, `.state("ready"|"loading"|"error")`, `.build(cx)`; loading requires and renders caller-owned non-blank visible and accessible copy. Compact control loading markers use gpui-shell's `progress_indicator` role.
 
 - [ ] Write failing tests for defaults, chaining, content order, selected presentation, status vocabulary validation, and ready/loading/error rendering.
 - [ ] Verify RED with `bun test tests/data-feedback.test.js`.

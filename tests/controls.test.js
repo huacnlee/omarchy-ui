@@ -144,37 +144,37 @@ test("fluent builders mutate private configuration and return the same value", (
 
 test("build reports each missing semantic field", () => {
   expect(() => new controls.Button("save").build(cx)).toThrow(
-    "Button requires label before build",
+    "Button label must be a non-blank string",
   );
   expect(() => new controls.IconButton("refresh").description("Refresh").build(cx)).toThrow(
-    "IconButton requires icon before build",
+    "IconButton icon must be a non-blank string",
   );
   expect(() =>
     new controls.IconButton("refresh").icon("consumer/icons/refresh.svg").build(cx),
-  ).toThrow("IconButton requires description before build");
+  ).toThrow("IconButton description must be a non-blank string");
   expect(() => new controls.GlyphButton("more").description("More actions").build(cx)).toThrow(
-    "GlyphButton requires glyph before build",
+    "GlyphButton glyph must be a non-blank string",
   );
   expect(() => new controls.GlyphButton("more").glyph("…").build(cx)).toThrow(
-    "GlyphButton requires description before build",
+    "GlyphButton description must be a non-blank string",
   );
   expect(() => new controls.MenuItem("rename").build(cx)).toThrow(
-    "MenuItem requires label before build",
+    "MenuItem label must be a non-blank string",
   );
   expect(() => new controls.FieldRow("name").control(element("Input")).build(cx)).toThrow(
-    "FieldRow requires label before build",
+    "FieldRow label must be a non-blank string",
   );
   expect(() => new controls.FieldRow("name").label("Name").build(cx)).toThrow(
-    "FieldRow requires control before build",
+    "FieldRow control must be a GPUI element or entity",
   );
   expect(() => new controls.FormField("email").control(element("Input")).build(cx)).toThrow(
-    "FormField requires label before build",
+    "FormField label must be a non-blank string",
   );
   expect(() => new controls.FormField("email").label("Email").build(cx)).toThrow(
-    "FormField requires control before build",
+    "FormField control must be a GPUI element or entity",
   );
   expect(() => new controls.Keycap("").build(cx)).toThrow(
-    "Keycap requires value before build",
+    "Keycap value must be a non-blank string",
   );
 });
 
@@ -208,9 +208,189 @@ test("loading controls require caller-owned non-blank loading labels", () => {
   for (const [name, create] of factories) {
     for (const value of [undefined, null, "", "   ", 42, false, {}, []]) {
       expect(() => create(value).build(cx)).toThrow(
-        `${name} requires a non-blank loading label before build`,
+        `${name} loading label must be a non-blank string`,
       );
     }
+  }
+});
+
+test("every required control text accepts only non-blank strings", () => {
+  const invalidText = [
+    undefined,
+    null,
+    "",
+    "   ",
+    0,
+    42,
+    false,
+    true,
+    {},
+    [],
+    Symbol("text"),
+    () => "text",
+  ];
+  const factories = [
+    ["Button", "label", (value) => new controls.Button("button").label(value)],
+    [
+      "IconButton",
+      "icon",
+      (value) => new controls.IconButton("icon").icon(value).description("Open"),
+    ],
+    [
+      "IconButton",
+      "description",
+      (value) => new controls.IconButton("icon").icon("icons/open.svg").description(value),
+    ],
+    [
+      "GlyphButton",
+      "glyph",
+      (value) => new controls.GlyphButton("glyph").glyph(value).description("More"),
+    ],
+    [
+      "GlyphButton",
+      "description",
+      (value) => new controls.GlyphButton("glyph").glyph("…").description(value),
+    ],
+    ["MenuItem", "label", (value) => new controls.MenuItem("menu").label(value)],
+    [
+      "FieldRow",
+      "label",
+      (value) => new controls.FieldRow("field").label(value).control(element("Input")),
+    ],
+    [
+      "FormField",
+      "label",
+      (value) => new controls.FormField("form").label(value).control(element("Input")),
+    ],
+    ["Keycap", "value", (value) => new controls.Keycap(value)],
+  ];
+
+  for (const [name, field, create] of factories) {
+    for (const value of invalidText) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} ${field} must be a non-blank string`,
+      );
+    }
+  }
+});
+
+test("optional control copy is non-blank when configured", () => {
+  const factories = [
+    ["Button", "icon", (value) => new controls.Button("button").label("Save").icon(value)],
+    ["Button", "loading label", (value) => new controls.Button("button").label("Save").loadingLabel(value)],
+    ["IconButton", "loading label", (value) => new controls.IconButton("icon").icon("icons/open.svg").description("Open").loadingLabel(value)],
+    ["GlyphButton", "loading label", (value) => new controls.GlyphButton("glyph").glyph("…").description("More").loadingLabel(value)],
+    ["MenuItem", "detail", (value) => new controls.MenuItem("menu").label("Open").detail(value)],
+    ["MenuItem", "icon", (value) => new controls.MenuItem("menu").label("Open").icon(value)],
+    ["FormField", "helper", (value) => new controls.FormField("form").label("Name").control(element("Input")).helper(value)],
+  ];
+
+  for (const [name, field, create] of factories) {
+    for (const value of [
+      null,
+      "",
+      "   ",
+      0,
+      42,
+      false,
+      true,
+      {},
+      [],
+      Symbol("text"),
+      () => "text",
+    ]) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} ${field} must be a non-blank string when supplied`,
+      );
+    }
+  }
+
+  expect(() =>
+    new controls.FormField("form")
+      .label("Name")
+      .control(element("Input"))
+      .error("")
+      .build(cx),
+  ).not.toThrow();
+  for (const value of [
+    null,
+    "   ",
+    0,
+    42,
+    false,
+    true,
+    {},
+    [],
+    Symbol("text"),
+    () => "text",
+  ]) {
+    expect(() =>
+      new controls.FormField("form")
+        .label("Name")
+        .control(element("Input"))
+        .error(value)
+        .build(cx),
+    ).toThrow("FormField error must be a non-blank string when supplied");
+  }
+});
+
+test("field controls accept only GPUI elements or entities", () => {
+  const factories = [
+    ["FieldRow", (value) => new controls.FieldRow("field").label("Name").control(value)],
+    ["FormField", (value) => new controls.FormField("form").label("Name").control(value)],
+  ];
+
+  for (const [name, create] of factories) {
+    for (const value of [
+      undefined,
+      null,
+      false,
+      "input",
+      0,
+      42,
+      true,
+      {},
+      [],
+      Symbol("control"),
+      () => {},
+    ]) {
+      expect(() => create(value).build(cx)).toThrow(
+        `${name} control must be a GPUI element or entity`,
+      );
+    }
+  }
+
+  const entity = { set_props() {}, release() {} };
+  expect(() => new controls.FieldRow("field").label("Name").control(entity).build(cx)).not.toThrow();
+});
+
+test("control callback builders accept only functions or undefined", () => {
+  const factories = [
+    ["Button", () => new controls.Button("button")],
+    ["IconButton", () => new controls.IconButton("icon")],
+    ["GlyphButton", () => new controls.GlyphButton("glyph")],
+    ["MenuItem", () => new controls.MenuItem("menu")],
+  ];
+
+  for (const [name, create] of factories) {
+    expect(() => create().onClick(undefined)).not.toThrow();
+    expect(() => create().onClick(() => {})).not.toThrow();
+    for (const value of [null, false, 0, "callback", {}, []]) {
+      expect(() => create().onClick(value)).toThrow(
+        `${name} onClick must be a function when supplied`,
+      );
+    }
+  }
+});
+
+test("KeyHints validates every appended key and label", () => {
+  for (const value of [undefined, null, "", "   ", 0, false, {}, []]) {
+    expect(() => new controls.KeyHints("hints").hint(value, "Open").build(cx)).toThrow(
+      "KeyHints key must be a non-blank string",
+    );
+    expect(() => new controls.KeyHints("hints").hint("Enter", value).build(cx)).toThrow(
+      "KeyHints label must be a non-blank string",
+    );
   }
 });
 
@@ -433,7 +613,7 @@ test("outlined, disabled, and loading states remain visibly distinct", () => {
   expect(callsTo(loading, "opacity")).toHaveLength(0);
   const indicator = oneCall(loading, "child").args[0];
   expect(indicator.name).toBe("div");
-  expect(oneCall(indicator, "role").args).toEqual(["progressbar"]);
+  expect(oneCall(indicator, "role").args).toEqual(["progress_indicator"]);
   expect(oneCall(indicator, "accessibility_label").args).toEqual([
     "Synchronizing calendar",
   ]);
@@ -452,7 +632,7 @@ test("compact loading replaces an ellipsis glyph with a semantic activity marker
   ]);
   const indicator = oneCall(loading, "child").args[0];
   expect(indicator).not.toBe("…");
-  expect(oneCall(indicator, "role").args).toEqual(["progressbar"]);
+  expect(oneCall(indicator, "role").args).toEqual(["progress_indicator"]);
   expect(oneCall(indicator, "accessibility_label").args).toEqual([
     "Loading more actions",
   ]);
