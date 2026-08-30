@@ -1,0 +1,12 @@
+{
+  "id": "com.example.omarchy-ui-hello-world",
+  "name": "Omarchy UI Hello World",
+  "entry": "main.js",
+  "dependencies": {
+    "omarchy-ui": {
+      "git": "git@github.com:huacnlee/omarchy-ui.git",
+      "branch": "main",
+      "entry": "src/index.js"
+    }
+  }
+}
