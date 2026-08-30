@@ -1,24 +1,96 @@
 // @ts-check
 
+import { div } from "gpui";
 import { v_flex } from "gpui-base";
-import { label, muted } from "./layout.js";
 import { style } from "./style.js";
 
-/** @param {string} heading @param {string} hint @param {import("gpui").Context} cx */
-export const emptyState = (heading, hint, cx) => {
-  const tokens = style();
-  return v_flex()
-    .flex_1()
-    .items_center()
-    .justify_center()
-    .gap(tokens.spacing.labelGap)
-    .p(tokens.spacing.panelPadding)
-    .child(label(heading, cx))
-    .child(muted(hint, cx));
-};
+/** @param {string} value @param {import("gpui").Context} cx */
+function headingLabel(value, cx) {
+  return div()
+    .text_size(style().font.body)
+    .line_height(1.35)
+    .text_color(cx.theme().colors.foreground)
+    .child(value);
+}
 
-/** @param {string} caption @param {"ready" | "loading" | "error"} state @param {import("gpui").Context} cx */
-export const statusLine = (caption, state, cx) =>
-  (state === "error" ? label(caption, cx).text_color(cx.theme().colors.destructive) : muted(caption, cx))
-    .role("status")
-    .text_size(style().font.caption);
+/** @param {string} value @param {import("gpui").Context} cx */
+function mutedLabel(value, cx) {
+  return div()
+    .text_size(style().font.body)
+    .line_height(1.35)
+    .text_color(cx.theme().colors.muted_foreground)
+    .child(value);
+}
+
+/** @param {string | undefined} value @param {string} component @param {string} field */
+function requiredText(value, component, field) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${component} requires a ${field} before build().`);
+  }
+  return value;
+}
+
+export class EmptyState {
+  /** @type {string | undefined} */
+  #heading;
+
+  /** @type {string | undefined} */
+  #hint;
+
+  /** @param {string} value */
+  heading(value) {
+    this.#heading = value;
+    return this;
+  }
+
+  /** @param {string} value */
+  hint(value) {
+    this.#hint = value;
+    return this;
+  }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const tokens = style();
+    const heading = requiredText(this.#heading, "EmptyState", "heading");
+    const hint = requiredText(this.#hint, "EmptyState", "hint");
+    return v_flex()
+      .flex_1()
+      .items_center()
+      .justify_center()
+      .gap(tokens.spacing.labelGap)
+      .p(tokens.spacing.panelPadding)
+      .child(headingLabel(heading, cx))
+      .child(mutedLabel(hint, cx));
+  }
+}
+
+export class StatusLine {
+  /** @type {string | undefined} */
+  #label;
+
+  /** @type {"ready" | "loading" | "error"} */
+  #state = "ready";
+
+  /** @param {string} value */
+  label(value) {
+    this.#label = value;
+    return this;
+  }
+
+  /** @param {"ready" | "loading" | "error"} value */
+  state(value) {
+    if (!["ready", "loading", "error"].includes(value)) {
+      throw new Error("StatusLine state must be one of: ready, loading, error.");
+    }
+    this.#state = value;
+    return this;
+  }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const label = requiredText(this.#label, "StatusLine", "label");
+    const element = this.#state === "error" ? headingLabel(label, cx).text_color(cx.theme().colors.destructive) : mutedLabel(label, cx);
+    return element.role("status").text_size(style().font.caption);
+  }
+}
