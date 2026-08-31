@@ -832,6 +832,7 @@ export class Tabs {
   #variant = "underline";
   /** @type {ControlSize} */
   #size = "small";
+  #tabIndex = 0;
   /** @type {((value: string, cx: import("gpui").Context) => void) | undefined} */
   #onChange;
   #label = "";
@@ -874,6 +875,30 @@ export class Tabs {
   /** @param {string} value */
   size(value) { this.#size = controlSize("Tabs", value); return this; }
 
+  /**
+   * Where this run sits in the window's tab order, as the index of its first
+   * choice; the rest follow it.
+   *
+   * A tab index is the *window's* ordering, not a control's own, so a run of
+   * tabs cannot know its place from inside. Left unset it numbers from one,
+   * which is right for a window with a single run and wrong the moment there
+   * is a second: three runs in one dialog would each claim 1 and 2, and the
+   * fields between them would be walked in an order nobody chose.
+   *
+   * Leave room for the choices -- the next control starts at least
+   * `start + items.length`.
+   *
+   * @param {number} start
+   */
+  tabIndex(start) {
+    const index = Number(start);
+    if (!Number.isInteger(index) || index < 1) {
+      throw new Error("Tabs tabIndex must be a whole number of one or more");
+    }
+    this.#tabIndex = index;
+    return this;
+  }
+
   /** @param {string} text what this run of tabs is choosing, for a screen reader */
   accessibilityLabel(text) {
     this.#label = optionalText("Tabs", "accessibilityLabel", text) ?? "";
@@ -900,7 +925,7 @@ export class Tabs {
         .h(dimensions.extent)
         .px(tokens.spacing.sm)
         .text_size(dimensions.fontSize)
-        .tab_index(index + 1)
+        .tab_index(this.#tabIndex > 0 ? this.#tabIndex + index : index + 1)
         .when(typeof onChange === "function", (element) =>
           element.on_click((_event, cx) => onChange(item.value, cx)),
         );
