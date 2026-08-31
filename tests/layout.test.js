@@ -231,10 +231,11 @@ test("build validates required semantic content", () => {
 });
 
 test("every required layout text accepts only non-blank strings", () => {
+  // `""` is absent on purpose: an empty run is a deliberate blank line, which
+  // `tests/text.test.js` covers. Whitespace-only text stays an error.
   const invalidText = [
     undefined,
     null,
-    "",
     "   ",
     0,
     42,

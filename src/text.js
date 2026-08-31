@@ -127,7 +127,15 @@ class TextRun {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    const text = requiredText(this.#component, "text", this.#text);
+    // An empty string is the one blank this accepts, and it is deliberate: a
+    // fixed-height row keeps its second line even when there is nothing to say
+    // on it, and a run that refused would force the caller to rebuild the text
+    // element out of `div()` to draw the gap. Whitespace-only text stays an
+    // error, because that is always an accident.
+    const text =
+      this.#text === ""
+        ? ""
+        : requiredText(this.#component, "text", this.#text);
     return div()
       .text_size(style().font[this.#size])
       .line_height(1.35)

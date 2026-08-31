@@ -87,12 +87,22 @@ test("strong and truncate are applied only when asked for", () => {
 });
 
 test("required copy is checked at build, naming the component", () => {
-  for (const value of [undefined, null, "", "   ", 12, {}, []]) {
+  for (const value of [undefined, null, "   ", 12, {}, []]) {
     expect(() => new MutedText(/** @type {any} */ (value)).build(cx)).toThrow(
       "MutedText text must be a non-blank string",
     );
   }
   expect(new MutedText().text("Apple").build(cx).calls).toBeTruthy();
+});
+
+test("an empty run is a deliberate blank line, not a mistake", () => {
+  // A fixed-height row keeps its second line even when there is nothing to
+  // say on it. Whitespace-only text is still an error.
+  const blank = new MutedText("").build(cx);
+  expect(callsTo(blank, "child")[0].args).toEqual([""]);
+  expect(() => new MutedText(" ").build(cx)).toThrow(
+    "MutedText text must be a non-blank string",
+  );
 });
 
 test("build is repeatable and resolves against each supplied context", () => {
