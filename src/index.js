@@ -57,6 +57,7 @@ export {
   MenuSeparator,
   NumberInput,
   Separator,
+  Tabs,
   TextField,
 } from "./controls.js";
 export {

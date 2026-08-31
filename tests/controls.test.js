@@ -54,6 +54,7 @@ test("exports exactly the control value classes", () => {
     "MenuSeparator",
     "NumberInput",
     "Separator",
+    "Tabs",
     "TextField",
   ]);
 

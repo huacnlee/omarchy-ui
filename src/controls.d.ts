@@ -177,6 +177,61 @@ export declare class MenuItem {
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
+/**
+ * One choice out of a few, laid out flat.
+ *
+ * Two shapes, because a run of tabs answers two different questions and the
+ * answers do not look alike:
+ *
+ * - **`underline`** is navigation. The choices sit on the surface they belong
+ *   to and the current one is marked beneath, the way a set of pages is marked
+ *   in a window that is showing one of them.
+ * - **`segmented`** is a value. The choices are enclosed together, because
+ *   they are one field's worth of answer rather than places to go, and the
+ *   current one is filled.
+ *
+ * ```js
+ * new Tabs("interval").items(intervals).value(mode).onChange(setMode)
+ * new Tabs("validity").segmented().items(options).value(tif).onChange(setTif)
+ * ```
+ *
+ * The selection is the caller's, as it is on the base primitive: `value(...)`
+ * in, `onChange(...)` out. Nothing here remembers which tab was pressed.
+ *
+ * **Every state keeps the same size.** A segment's border is drawn on the
+ * enclosure, never on the segments, and the underline's is reserved on all of
+ * them and coloured on one. A control that grows an edge on hover is a control
+ * that resizes on hover, and its neighbours move with it.
+ */
+export declare class Tabs {
+    #private;
+    /** @param {string} id */
+    constructor(id: string);
+    /**
+     * Encloses the choices and fills the current one: a value, not a place.
+     *
+     * First in the chain, because it is what this run of tabs *is*. What
+     * follows -- the choices, which one is current, what to do when it changes
+     * -- is the same either way, and a shape declared after them reads as an
+     * afterthought rather than as the decision it is.
+     */
+    segmented(value?: boolean): this;
+    /** @param {{ value: string, label: string }[]} items */
+    items(items: {
+        value: string;
+        label: string;
+    }[]): this;
+    /** @param {string} value the item currently chosen */
+    value(value: string): this;
+    /** @param {(value: string, cx: import("gpui").Context) => void} callback */
+    onChange(callback: (value: string, cx: import("gpui").Context) => void): this;
+    /** @param {string} value */
+    size(value: string): this;
+    /** @param {string} text what this run of tabs is choosing, for a screen reader */
+    accessibilityLabel(text: string): this;
+    /** @param {import("gpui").Context} cx */
+    build(cx: import("gpui").Context): import("gpui").Element;
+}
 export declare class FieldRow {
     #private;
     /** @param {string} id */

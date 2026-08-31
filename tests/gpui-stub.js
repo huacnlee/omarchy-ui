@@ -99,6 +99,8 @@ export const Avatar = { new: () => element("Avatar") };
 export const AvatarFallback = { new: () => element("AvatarFallback") };
 export const TableHeader = { new: (id) => element("TableHeader", [id]) };
 export const TableHead = { new: (id, column) => element("TableHead", [id, column]) };
+export const Tab = { new: (id) => element("Tab", [id]) };
+export const Tabs = { new: (id) => element("Tabs", [id]) };
 export const TableRow = { new: (id, index) => element("TableRow", [id, index]) };
 export const TableCell = { new: (id, column) => element("TableCell", [id, column]) };
 export const Accordion = { new: (id) => element("Accordion", [id]) };
