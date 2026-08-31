@@ -3,7 +3,13 @@
 import { expect, test } from "bun:test";
 import { element as gpuiElement } from "./gpui-stub.js";
 import { Panel, Toolbar } from "../src/layout.js";
-import { AvatarButton, ExternalLink, TextField, Keycap } from "../src/controls.js";
+import {
+  AvatarButton,
+  ExternalLink,
+  Keycap,
+  NumberInput,
+  TextField,
+} from "../src/controls.js";
 import { Avatar, CodeBlock, DefinitionList, Metric, MetricGrid } from "../src/data.js";
 import { AccordionGroup, AccordionSection } from "../src/disclosure.js";
 import { Alert, Badge, Step } from "../src/feedback.js";
@@ -325,6 +331,59 @@ test("a filter field styles a control the application owns", () => {
   );
   expect(() => new TextField().size("tiny")).toThrow(
     /TextField size must be one of/,
+  );
+});
+
+test("a number input supplies the look of the step buttons the base layer builds", () => {
+  const state = { id: "quantity-state" };
+  const element = new NumberInput()
+    .state(state)
+    .incrementLabel("Increase quantity")
+    .decrementLabel("Decrease quantity")
+    .suffix("shares")
+    .build(cx);
+
+  expect(element.name).toBe("NumberInput");
+  expect(element.args).toEqual([state]);
+  // Stacked at one edge, and as wide as the shell reserved for a number field.
+  expect(callsTo(element, "controls_right")).toHaveLength(1);
+  expect(callsTo(element, "w")[0].args).toEqual([style().spacing.numberFieldWidth]);
+  expect(callsTo(element, "focus")).toHaveLength(1);
+
+  // The base layer's step buttons carry no size and no content, so an
+  // undecorated one cannot be seen or pressed. Each slot gets an element that
+  // draws a mark and announces what pressing it does.
+  for (const [slot, label] of [
+    ["decrement_button", "Decrease quantity"],
+    ["increment_button", "Increase quantity"],
+  ]) {
+    const [button] = callsTo(element, slot)[0].args;
+    expect(callsTo(button, "accessibility_label")[0].args).toEqual([label]);
+    expect(callsTo(button, "hover")).toHaveLength(1);
+    expect(childArgs(button)).toHaveLength(1);
+  }
+  expect(callsTo(element, "decrement_button")[0].args[0].calls).not.toEqual(
+    callsTo(element, "increment_button")[0].args[0].calls,
+  );
+
+  expect(new NumberInput().state(state).width(96).incrementLabel("Up").decrementLabel("Down"))
+    .toBeDefined();
+});
+
+test("a number input requires the state and the copy it cannot write", () => {
+  const state = { id: "quantity-state" };
+
+  expect(() =>
+    new NumberInput().incrementLabel("Up").decrementLabel("Down").build(cx),
+  ).toThrow("NumberInput state must be an application-owned InputState");
+  expect(() =>
+    new NumberInput().state(state).decrementLabel("Down").build(cx),
+  ).toThrow(/NumberInput increment label/);
+  expect(() =>
+    new NumberInput().state(state).incrementLabel("Up").build(cx),
+  ).toThrow(/NumberInput decrement label/);
+  expect(() => new NumberInput().size("tiny")).toThrow(
+    /NumberInput size must be one of/,
   );
 });
 

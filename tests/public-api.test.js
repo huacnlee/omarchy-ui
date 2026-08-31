@@ -51,6 +51,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Metric",
     "MetricGrid",
     "MutedText",
+    "NumberInput",
     "PageColumn",
     "Panel",
     "PanelHeader",

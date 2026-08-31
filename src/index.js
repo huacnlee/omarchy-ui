@@ -55,6 +55,7 @@ export {
   Keycap,
   MenuItem,
   MenuSeparator,
+  NumberInput,
   Separator,
   TextField,
 } from "./controls.js";

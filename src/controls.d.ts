@@ -319,6 +319,37 @@ export declare class TextField {
  * an account, an organisation — and carries the subject's own initials or
  * tint. A trigger that drew the same glyph for everyone would not need one.
  */
+/**
+ * A number a person steps as well as types.
+ *
+ * gpui-base owns the behaviour — the step, the bounds, the numeric mask, the
+ * Up and Down keys — and owns none of the look. The two step buttons it builds
+ * carry no size and no content, so a number input that supplies nothing has a
+ * decrement control that can be neither seen nor pressed. That half is what
+ * this class is.
+ *
+ * The step and the bounds are fields on the `InputState`, so they belong to the
+ * application the way the value does. What arrives here is that state and the
+ * two labels a screen reader reads out: a step button draws a mark rather than
+ * a word, and the library does not write copy.
+ */
+export declare class NumberInput {
+    #private;
+    /** @param {import("gpui-base").InputState} value */
+    state(value: import("gpui-base").InputState): this;
+    /** @param {string} text what a screen reader announces for the step up */
+    incrementLabel(text: string): this;
+    /** @param {string} text what a screen reader announces for the step down */
+    decrementLabel(text: string): this;
+    /** @param {string} text the unit this value is in */
+    suffix(text: string): this;
+    /** @param {string | number} value defaults to the shell's number-field width */
+    width(value: string | number): this;
+    /** @param {string} value */
+    size(value: string): this;
+    /** @param {import("gpui").Context} cx */
+    build(cx: import("gpui").Context): import("gpui").Element;
+}
 export declare class AvatarButton {
     #private;
     /** @param {string} id */
