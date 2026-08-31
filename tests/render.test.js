@@ -444,31 +444,6 @@ test("a run of tabs reports the choice and remembers nothing", () => {
   expect(callsTo(second, "selected")[0].args).toEqual([false]);
 });
 
-test("a run of tabs takes its place in the window's tab order from the caller", () => {
-  const items = [
-    { value: "day", label: "Day" },
-    { value: "gtc", label: "Till cancelled" },
-  ];
-  const indices = (element) => {
-    const row = callsTo(element, "child")[0].args[0];
-    return callsTo(row, "children")[0]
-      .args[0].map((tab) => callsTo(tab, "tab_index")[0].args[0]);
-  };
-
-  // A tab index is the window's ordering, not a control's own, so the run
-  // cannot know its place from inside. Three runs in one dialog would each
-  // claim 1 and 2, and the fields between them would be walked in an order
-  // nobody chose.
-  expect(indices(new ui.Tabs("validity").items(items).tabIndex(40).build(cx))).toEqual([40, 41]);
-
-  // Unset it numbers from one, which is right for a window with a single run.
-  expect(indices(new ui.Tabs("interval").items(items).build(cx))).toEqual([1, 2]);
-
-  // Zero is not a place in the order, and neither is a fraction.
-  for (const bad of [0, -1, 1.5]) {
-    expect(() => new ui.Tabs("bad").tabIndex(bad)).toThrow();
-  }
-});
 
 test("a run of tabs draws the label of every choice", () => {
   const items = [
@@ -486,5 +461,24 @@ test("a run of tabs draws the label of every choice", () => {
     // decoration -- borders, fills, indices -- is how a run of tabs ships
     // drawing nothing at all.
     expect(drawn).toEqual(["Day", "Till cancelled"]);
+  }
+});
+
+test("a run of tabs writes no tab index of its own", () => {
+  const items = [
+    { value: "day", label: "Day" },
+    { value: "gtc", label: "Till cancelled" },
+  ];
+  for (const tabs of [
+    new ui.Tabs("a").items(items).build(cx),
+    new ui.Tabs("b").segmented().items(items).build(cx),
+  ]) {
+    const row = callsTo(tabs, "child")[0].args[0];
+    for (const tab of callsTo(row, "children")[0].args[0]) {
+      // Base's `Tab` owns this part of its focus and accessibility, and a
+      // `tab_index` written onto one is refused with a warning. A run is
+      // walked in the order it was built, which is the order it is read in.
+      expect(callsTo(tab, "tab_index")).toHaveLength(0);
+    }
   }
 });

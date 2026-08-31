@@ -197,7 +197,6 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "onChange",
     "segmented",
     "size",
-    "tabIndex",
     "value",
   ]);
   expect(builders(ui.TextField)).toEqual([
