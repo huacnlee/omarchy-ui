@@ -123,3 +123,27 @@ test("button-derived controls render Omarchy keyboard focus treatment", () => {
     ]);
   }
 });
+
+test("a menu item's tone reaches its text, and disabled still wins", () => {
+  const tone = "#00dbb6";
+
+  // The row's colour is the one the label, the icon and the detail are all
+  // given, so asserting it here covers the three -- which is the point of
+  // resolving it once rather than styling the row and hoping.
+  const toned = new ui.MenuItem("buy").label("Buy").tone(tone).build(cx);
+  expect(callsTo(toned, "text_color")[0].args).toEqual([tone]);
+
+  // A tone is a reading; danger is a role. When a caller gives both, the
+  // reading is the more specific thing it worked out.
+  const both = new ui.MenuItem("sell").label("Sell").danger().tone(tone).build(cx);
+  expect(callsTo(both, "text_color")[0].args).toEqual([tone]);
+
+  // Disabled outranks either: a row that cannot be pressed has to look like
+  // one, whatever it would otherwise have said.
+  const off = new ui.MenuItem("buy-off").label("Buy").tone(tone).disabled().build(cx);
+  expect(callsTo(off, "text_color")[0].args).toEqual([theme.colors.muted_foreground]);
+
+  // Without a tone nothing changes.
+  const plain = new ui.MenuItem("rename").label("Rename").build(cx);
+  expect(callsTo(plain, "text_color")[0].args).toEqual([theme.colors.foreground]);
+});
