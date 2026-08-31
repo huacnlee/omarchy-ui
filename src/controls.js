@@ -95,7 +95,7 @@ function mutedElement(value, cx) {
 
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
- * selected:boolean, danger:boolean, disabled:boolean, loading:boolean,
+ * selected:boolean, accent:boolean, danger:boolean, disabled:boolean, loading:boolean,
  * loadingLabel:string, size:ControlSize,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
@@ -105,21 +105,23 @@ function buildButton(config, cx) {
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
-  const foreground = config.danger
+  // Emphasis is carried by the label and the border, never by a solid block of
+  // colour: an Omarchy control is an alpha of a role over the window's own
+  // ground, and one filled rectangle in a window of them reads as a different
+  // application. `accent` and `danger` are the two roles a control can take.
+  const emphasis = config.danger
+    ? cx.theme().colors.destructive
+    : config.accent
+      ? role("accent", cx.theme().colors.primary)
+      : undefined;
+  const foreground = emphasis
     ? inactive
-      ? alpha(
-          cx.theme().colors.destructive,
-          tokens.state.normalBorderAlpha,
-        )
-      : cx.theme().colors.destructive
+      ? alpha(emphasis, tokens.state.normalBorderAlpha)
+      : emphasis
     : inactive
       ? cx.theme().colors.muted_foreground
       : cx.theme().colors.foreground;
-  const states = surfaceStates(
-    cx,
-    foreground,
-    config.danger ? cx.theme().colors.destructive : undefined,
-  );
+  const states = surfaceStates(cx, foreground, emphasis);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -311,6 +313,7 @@ export class Button {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #accent = false;
   #danger = false;
   #disabled = false;
   #loading = false;
@@ -331,6 +334,8 @@ export class Button {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] the one control a screen wants pressed */
+  accent(value = true) { this.#accent = value; return this; }
   /** @param {boolean} [value] */
   danger(value = true) { this.#danger = value; return this; }
   /** @param {boolean} [value] */
@@ -361,6 +366,7 @@ export class Button {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      accent: this.#accent,
       danger: this.#danger,
       disabled: this.#disabled,
       loading: this.#loading,

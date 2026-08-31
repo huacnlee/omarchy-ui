@@ -95,6 +95,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
 
 test("interactive and validation classes expose the exact reviewed builders", () => {
   expect(builders(ui.Button)).toEqual([
+    "accent",
     "bordered",
     "build",
     "constructor",
