@@ -110,6 +110,8 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "outlined",
     "selected",
     "size",
+    "tone",
+    "tooltip",
   ]);
   expect(builders(ui.IconButton)).toEqual([
     "bordered",
@@ -125,6 +127,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "quiet",
     "selected",
     "size",
+    "tone",
   ]);
   expect(builders(ui.GlyphButton)).toEqual([
     "bordered",
@@ -140,6 +143,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "quiet",
     "selected",
     "size",
+    "tone",
   ]);
   expect(builders(ui.MenuItem)).toEqual([
     "build",

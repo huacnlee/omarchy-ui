@@ -8,6 +8,27 @@ export declare class Button {
     label(text: string): this;
     /** @param {string} asset complete application-root-relative asset path */
     icon(asset: string): this;
+    /**
+     * What the label alone cannot say -- most often the keyboard route to the
+     * same action. A compact command carries this in its `description`, which is
+     * also its accessible name; a labelled button already has an accessible name
+     * and needs only the hint.
+     * @param {string} text
+     */
+    tooltip(text: string): this;
+    /**
+     * A colour this control is a *reading* in, rather than an interface role.
+     *
+     * `accent` and `danger` are roles and the theme owns their colours. A tone
+     * is a meaning the caller worked out -- a direction, a category, a mark that
+     * is on -- that no token can name. It reaches the label and the icon
+     * together, because a control half in one colour reads as a rendering bug.
+     *
+     * Disabled still wins: a control that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     outlined(): this;
     /** @param {boolean} [value] */
     bordered(value?: boolean): this;
@@ -45,6 +66,19 @@ export declare class IconButton {
     selected(value?: boolean): this;
     /** @param {boolean} [value] supporting chrome: muted until pointed at */
     quiet(value?: boolean): this;
+    /**
+     * A colour this command is a *reading* in, rather than an interface role.
+     *
+     * It is the command's full strength, and `quiet` decides when the command
+     * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+     * rests muted and arrives at its own colour under the pointer. A starred
+     * message keeps its mark lit; the star on every other row does not.
+     *
+     * Disabled still wins: a command that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */
@@ -73,6 +107,19 @@ export declare class GlyphButton {
     selected(value?: boolean): this;
     /** @param {boolean} [value] supporting chrome: muted until pointed at */
     quiet(value?: boolean): this;
+    /**
+     * A colour this command is a *reading* in, rather than an interface role.
+     *
+     * It is the command's full strength, and `quiet` decides when the command
+     * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+     * rests muted and arrives at its own colour under the pointer. A starred
+     * message keeps its mark lit; the star on every other row does not.
+     *
+     * Disabled still wins: a command that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */

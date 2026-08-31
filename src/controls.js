@@ -140,7 +140,8 @@ function mutedElement(value, cx) {
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
  * selected:boolean, accent:boolean, danger:boolean, disabled:boolean, loading:boolean,
- * loadingLabel:string, size:ControlSize,
+ * loadingLabel:string, size:ControlSize, tooltip:string,
+ * tone?: import("gpui").Color,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */
@@ -158,13 +159,15 @@ function buildButton(config, cx) {
     : config.accent
       ? role("accent", cx.theme().colors.primary)
       : undefined;
-  const foreground = emphasis
-    ? inactive
+  // Disabled first: a control that cannot be pressed has to look like one,
+  // whatever it would otherwise have been coloured. Then the caller's tone,
+  // which is a reading no token names, then the role, then the plain
+  // foreground.
+  const foreground = inactive
+    ? emphasis
       ? alpha(emphasis, tokens.state.normalBorderAlpha)
-      : emphasis
-    : inactive
-      ? cx.theme().colors.muted_foreground
-      : cx.theme().colors.foreground;
+      : cx.theme().colors.muted_foreground
+    : (config.tone ?? emphasis ?? cx.theme().colors.foreground);
   const states = surfaceStates(cx, emphasis);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
@@ -198,6 +201,9 @@ function buildButton(config, cx) {
     )
     .text_size(dimensions.fontSize)
     .text_color(foreground)
+    .when(Boolean(config.tooltip), (element) =>
+      element.tooltip(config.tooltip),
+    )
     .when(config.loading, (element) =>
       element.accessibility_label(config.loadingLabel),
     )
@@ -264,6 +270,7 @@ function activityMarker(label, dimensions, foreground) {
  * @param {{id:string, content:any, description:string, outlined:boolean,
  * bordered:boolean, selected:boolean, quiet:boolean, disabled:boolean,
  * loading:boolean, loadingLabel:string, size:ControlSize,
+ * tone?: import("gpui").Color,
  * onClick?: (event: import("gpui").ClickEvent,
  * cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
@@ -279,10 +286,15 @@ function buildCompactCommand(config, cx) {
   // full weight beside a heading read as the point of the panel rather than as
   // the way out of it.
   const emphatic = !config.quiet || config.selected;
+  // Full strength is the caller's tone where there is one, and the foreground
+  // otherwise. `quiet` decides when the command reaches it, not what it is, so
+  // the two compose: a quiet toned command rests muted and arrives at its own
+  // colour under the pointer.
+  const strength = config.tone ?? cx.theme().colors.foreground;
   const foreground = inactive
     ? cx.theme().colors.muted_foreground
     : emphatic
-      ? cx.theme().colors.foreground
+      ? strength
       : cx.theme().colors.muted_foreground;
   const states = surfaceStates(cx);
   const restBorderWidth = config.selected
@@ -340,9 +352,7 @@ function buildCompactCommand(config, cx) {
                 : NO_FILL
               : states.hoverBorder,
           )
-          .text_color(
-            inactive ? foreground : cx.theme().colors.foreground,
-          ),
+          .text_color(inactive ? foreground : strength),
       ),
     )
     .when(!inactive, (element) =>
@@ -365,6 +375,9 @@ export class Button {
   #id;
   #label;
   #asset;
+  #tooltip;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -384,6 +397,27 @@ export class Button {
   label(text) { this.#label = text; return this; }
   /** @param {string} asset complete application-root-relative asset path */
   icon(asset) { this.#asset = asset; return this; }
+  /**
+   * What the label alone cannot say -- most often the keyboard route to the
+   * same action. A compact command carries this in its `description`, which is
+   * also its accessible name; a labelled button already has an accessible name
+   * and needs only the hint.
+   * @param {string} text
+   */
+  tooltip(text) { this.#tooltip = text; return this; }
+  /**
+   * A colour this control is a *reading* in, rather than an interface role.
+   *
+   * `accent` and `danger` are roles and the theme owns their colours. A tone
+   * is a meaning the caller worked out -- a direction, a category, a mark that
+   * is on -- that no token can name. It reaches the label and the icon
+   * together, because a control half in one colour reads as a rendering bug.
+   *
+   * Disabled still wins: a control that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   outlined() { this.#outlined = true; return this; }
   /** @param {boolean} [value] */
   bordered(value = true) { this.#bordered = value; return this; }
@@ -414,10 +448,13 @@ export class Button {
     const loadingLabel = this.#loading
       ? requiredText("Button", "loading label", this.#loadingLabel)
       : optionalText("Button", "loading label", this.#loadingLabel) ?? "";
+    const tooltip = optionalText("Button", "tooltip", this.#tooltip) ?? "";
     return buildButton({
       id: this.#id,
       label,
       asset,
+      tooltip,
+      tone: this.#tone,
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
@@ -436,6 +473,8 @@ export class IconButton {
   #id;
   #asset;
   #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -461,6 +500,19 @@ export class IconButton {
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] supporting chrome: muted until pointed at */
   quiet(value = true) { this.#quiet = value; return this; }
+  /**
+   * A colour this command is a *reading* in, rather than an interface role.
+   *
+   * It is the command's full strength, and `quiet` decides when the command
+   * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+   * rests muted and arrives at its own colour under the pointer. A starred
+   * message keeps its mark lit; the star on every other row does not.
+   *
+   * Disabled still wins: a command that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -494,6 +546,7 @@ export class IconButton {
       bordered: this.#bordered,
       selected: this.#selected,
       quiet: this.#quiet,
+      tone: this.#tone,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -507,6 +560,8 @@ export class GlyphButton {
   #id;
   #glyph;
   #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -532,6 +587,19 @@ export class GlyphButton {
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] supporting chrome: muted until pointed at */
   quiet(value = true) { this.#quiet = value; return this; }
+  /**
+   * A colour this command is a *reading* in, rather than an interface role.
+   *
+   * It is the command's full strength, and `quiet` decides when the command
+   * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+   * rests muted and arrives at its own colour under the pointer. A starred
+   * message keeps its mark lit; the star on every other row does not.
+   *
+   * Disabled still wins: a command that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -565,6 +633,7 @@ export class GlyphButton {
       bordered: this.#bordered,
       selected: this.#selected,
       quiet: this.#quiet,
+      tone: this.#tone,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,

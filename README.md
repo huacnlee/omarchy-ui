@@ -176,10 +176,10 @@ intentional omissions.
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
-| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
-| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
-| `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
+| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` and `.tooltip(text)` are omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.tone(color)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
+| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, tone, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
+| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, tone, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
+| `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.tone(color)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
 | `FormField(id)` | Stable `id`, non-blank `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are omitted by default. A non-empty error replaces helper text; `.error("")` clears it. |
 | `AvatarButton(id)` | Stable `id`, `.description(text)`, and one of `.initials(text)` or `.icon(asset)` | `.tint(color)`, `.selected(false)`, `.quiet(false)`, `.disabled(false)`, `.size("medium")`, and `.onClick(callback)`. Use where the mark is a subject — an account, a person — rather than an action. |
@@ -188,6 +188,26 @@ intentional omissions.
 window's title row or a panel's heading. It rests in the muted foreground and
 comes up to full strength when pointed at, focused or selected, so two icons
 beside a heading do not read as the point of the panel.
+
+`.tone(color)` is what full strength *is*. `accent` and `danger` are roles
+whose colours the theme owns; a tone is a reading the caller worked out that no
+token can name — a direction, a category, a mark that is on. It is resolved
+once and reaches the label and the icon together, which is why it is a builder
+rather than a `.text_color()` on the element you get back: that colours the
+control and leaves every piece of text inside it in the theme's own.
+
+The two are orthogonal, and compose. A tone alone shows at rest and stays there
+under the pointer — a starred message is starred whether or not anyone is
+pointing at it. `quiet` governs the resting state only, so a quiet toned
+command waits in the muted foreground and arrives at its own colour when
+pointed at. Disabled outranks both: a control that cannot be pressed has to
+look like one.
+
+`.tooltip(text)` on `Button` is what the label alone cannot say — most often
+the keyboard route to the same action. A compact command carries this in
+`.description(text)`, which is also its accessible name; a labelled button
+already has an accessible name and needs only the hint, so a button with
+nothing further to say draws no tooltip rather than one repeating its label.
 | `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
 | `FilterField` | `.state(inputState)` | `.width(value)` and `.size("small")`. The `InputState` stays application-owned; this class supplies the chrome only. |
 | `Separator` | None | No configuration. |

@@ -147,3 +147,116 @@ test("a menu item's tone reaches its text, and disabled still wins", () => {
   const plain = new ui.MenuItem("rename").label("Rename").build(cx);
   expect(callsTo(plain, "text_color")[0].args).toEqual([theme.colors.foreground]);
 });
+
+test("a button's tone is the colour it resolves once, and disabled still wins", () => {
+  const tone = "#00dbb6";
+
+  // One `foreground` reaches the label and the icon together, so asserting the
+  // control's own colour covers both -- which is why a tone is a builder here
+  // rather than a `.text_color()` on the element the caller gets back.
+  const toned = new ui.Button("buy").label("Buy").tone(tone).build(cx);
+  expect(callsTo(toned, "text_color")[0].args).toEqual([tone]);
+
+  // `accent` and `danger` are roles the theme owns. A tone is a reading the
+  // caller worked out, and a reading is the more specific of the two.
+  const overAccent = new ui.Button("buy-accent").label("Buy").accent().tone(tone).build(cx);
+  expect(callsTo(overAccent, "text_color")[0].args).toEqual([tone]);
+  const overDanger = new ui.Button("sell").label("Sell").danger().tone(tone).build(cx);
+  expect(callsTo(overDanger, "text_color")[0].args).toEqual([tone]);
+
+  // Disabled outranks either, and so does loading: a control that cannot be
+  // pressed has to look like one, whatever it would otherwise have said.
+  const off = new ui.Button("buy-off").label("Buy").tone(tone).disabled().build(cx);
+  expect(callsTo(off, "text_color")[0].args).toEqual([theme.colors.muted_foreground]);
+  const busy = new ui.Button("buy-busy")
+    .label("Buy")
+    .tone(tone)
+    .loading()
+    .loadingLabel("Buying…")
+    .build(cx);
+  expect(callsTo(busy, "text_color")[0].args).toEqual([theme.colors.muted_foreground]);
+
+  // Without a tone nothing changes.
+  const plain = new ui.Button("save").label("Save").build(cx);
+  expect(callsTo(plain, "text_color")[0].args).toEqual([theme.colors.foreground]);
+});
+
+test("a button carries a tooltip only when one is given", () => {
+  const hinted = new ui.Button("send")
+    .label("Send")
+    .tooltip("Send · Ctrl+Enter")
+    .build(cx);
+  expect(callsTo(hinted, "tooltip")[0].args).toEqual(["Send · Ctrl+Enter"]);
+
+  // The label is already the accessible name, so a button with nothing further
+  // to say draws no tooltip at all rather than one repeating itself.
+  expect(callsTo(new ui.Button("send-plain").label("Send").build(cx), "tooltip")).toHaveLength(0);
+
+  expect(() => new ui.Button("send-blank").label("Send").tooltip("  ").build(cx)).toThrow(
+    /Button tooltip/,
+  );
+});
+
+test("a compact command's tone is its full strength, and quiet decides when it arrives", () => {
+  const tone = "#e8b339";
+
+  /** @param {any} element */
+  const rest = (element) => callsTo(element, "text_color")[0].args;
+  /** @param {any} element */
+  const pointed = (element) => {
+    const hover = callsTo(element, "hover");
+    expect(hover).toHaveLength(1);
+    return callsTo(hover[0].style, "text_color")[0].args;
+  };
+
+  // A tone on its own shows at rest and stays there under the pointer: a
+  // starred message is starred whether or not anyone is pointing at it.
+  const starred = new ui.IconButton("star-on")
+    .icon("assets/star-filled.svg")
+    .description("Starred")
+    .tone(tone)
+    .onClick(onClick)
+    .build(cx);
+  expect(rest(starred)).toEqual([tone]);
+  expect(pointed(starred)).toEqual([tone]);
+
+  // `quiet` governs the resting state only, so the two compose: the mark waits
+  // in the muted foreground and arrives at its own colour when pointed at.
+  const quietTone = new ui.IconButton("star-off")
+    .icon("assets/star.svg")
+    .description("Star this message")
+    .quiet()
+    .tone(tone)
+    .onClick(onClick)
+    .build(cx);
+  expect(rest(quietTone)).toEqual([theme.colors.muted_foreground]);
+  expect(pointed(quietTone)).toEqual([tone]);
+
+  // Neither builder changes what the other two states already did.
+  const quiet = new ui.IconButton("refresh")
+    .icon("assets/refresh.svg")
+    .description("Refresh")
+    .quiet()
+    .onClick(onClick)
+    .build(cx);
+  expect(rest(quiet)).toEqual([theme.colors.muted_foreground]);
+  expect(pointed(quiet)).toEqual([theme.colors.foreground]);
+
+  const plain = new ui.GlyphButton("more")
+    .glyph("…")
+    .description("More actions")
+    .onClick(onClick)
+    .build(cx);
+  expect(rest(plain)).toEqual([theme.colors.foreground]);
+  expect(pointed(plain)).toEqual([theme.colors.foreground]);
+
+  // Disabled outranks a tone here too, and draws no hover state to arrive at.
+  const off = new ui.GlyphButton("more-off")
+    .glyph("…")
+    .description("More actions")
+    .tone(tone)
+    .disabled()
+    .build(cx);
+  expect(rest(off)).toEqual([theme.colors.muted_foreground]);
+  expect(callsTo(off, "hover")).toHaveLength(0);
+});
