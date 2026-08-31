@@ -275,15 +275,15 @@ export class TableRow {
       .when(typeof this.#onClick === "function", (element) =>
         element.on_click(this.#onClick),
       )
+      // The same chrome every other neutral surface takes: the theme names its
+      // hover and its selection, and a row that re-derived them from the
+      // foreground would disagree with the buttons sitting in it.
       .hover((appearance) =>
         appearance
           .bg(
             this.#selected
               ? cx.theme().colors.accent
-              : alpha(
-                  cx.theme().colors.foreground,
-                  tokens.state.hoverFillAlpha,
-                ),
+              : cx.theme().colors.muted,
           )
           .text_color(
             this.#selected ? cx.theme().colors.accent_foreground : foreground,

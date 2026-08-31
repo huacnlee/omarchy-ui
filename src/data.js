@@ -221,7 +221,10 @@ export class Avatar {
       .overflow_hidden()
       .border(tokens.state.normalBorderWidth)
       .border_color(alpha(own, tokens.state.normalBorderAlpha))
-      .bg(alpha(own, tokens.state.normalFillAlpha))
+      // A badge is a filled mark, not a resting control surface, so it takes
+      // the selected fill rather than the four percent a button rests at: a
+      // tint you cannot see is a tint that identifies nothing.
+      .bg(alpha(own, tokens.state.selectedFillAlpha))
       .when(Boolean(description), (element) =>
         element.accessibility_label(String(description)),
       )
