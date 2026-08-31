@@ -287,3 +287,32 @@ test("a key-hint strip takes its hints one at a time or as the list it was hande
     /KeyHints key/,
   );
 });
+
+test("a value field carries its unit inside the field", () => {
+  const state = {};
+
+  const priced = new ui.ValueField().state(state).suffix("USD").width(200).build(cx);
+  // A container, because `Input` is a leaf and takes no children: the field
+  // and the unit are siblings, and the unit is drawn over the field's edge.
+  const children = callsTo(priced, "child");
+  expect(children).toHaveLength(2);
+  expect(callsTo(priced, "relative")).toHaveLength(1);
+
+  // Room for the unit comes out of the field's own right padding, so the
+  // digits stop before the word rather than running under it.
+  const field = children[0].args[0];
+  const [leftPad] = callsTo(field, "pl")[0].args;
+  const [rightPad] = callsTo(field, "pr")[0].args;
+  expect(rightPad).toBeGreaterThan(leftPad);
+
+  // The border and the focus ring stay on the field. It is what takes the
+  // keyboard, and there is no `focus_within` a wrapper could have used.
+  expect(callsTo(field, "focus")).toHaveLength(1);
+  expect(callsTo(priced, "focus")).toHaveLength(0);
+
+  // Without a unit there is nothing to wrap, so there is no wrapper.
+  const plain = new ui.ValueField().state(state).width(200).build(cx);
+  expect(callsTo(plain, "relative")).toHaveLength(0);
+  expect(callsTo(plain, "focus")).toHaveLength(1);
+  expect(callsTo(plain, "pr")[0].args).toEqual(callsTo(plain, "pl")[0].args);
+});
