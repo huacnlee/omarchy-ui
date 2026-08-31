@@ -24,22 +24,65 @@ const SIZES = /** @type {const} */ (["small", "medium", "large"]);
  * @param {import("gpui").Color} [color]
  * @param {import("gpui").Color} [focusColor]
  */
-function surfaceStates(cx, color, focusColor) {
+/**
+ * A control's chrome, in every state it can be in.
+ *
+ * There are two ways to arrive at these colours and the difference matters.
+ *
+ * A **tinted** control -- destructive, accent -- has no token for "destructive
+ * at eight percent", so its chrome is derived: the role's own colour at the
+ * theme's alphas. That derivation is Omarchy's model, and it is what keeps a
+ * light theme from getting a dark "muted" and a dark theme a light one.
+ *
+ * A **neutral** control takes the chrome the semantic theme already names.
+ * `surface` is a resting control's fill, `muted` its hover, `accent` its
+ * selection, `border` its edge, `ring` its focus. `omarchyTheme` builds those
+ * four tokens out of exactly the alphas below, so on an Omarchy desktop the
+ * two routes agree by construction -- and a theme written by hand rather than
+ * derived means its tokens literally, which is the case re-deriving would
+ * override. A window whose palette says its rules are `#cecdc3` should not get
+ * forty percent of its foreground instead.
+ *
+ * @param {import("gpui").Context} cx
+ * @param {import("gpui").Color} [tint] a role colour, for a tinted control
+ */
+function surfaceStates(cx, tint) {
   const state = style().state;
-  const own = color || cx.theme().colors.foreground;
+  const colors = cx.theme().colors;
+  if (tint) {
+    return {
+      normalFill: alpha(tint, state.normalFillAlpha),
+      hoverFill: alpha(tint, state.hoverFillAlpha),
+      selectedFill: alpha(tint, state.selectedFillAlpha),
+      pressedFill: alpha(tint, state.pressedFillAlpha),
+      normalBorder: alpha(tint, state.normalBorderAlpha),
+      hoverBorder: alpha(tint, state.hoverBorderAlpha),
+      selectedBorder: alpha(tint, state.selectedBorderAlpha),
+      focusFill: alpha(tint, state.focusFillAlpha),
+      focusBorder: alpha(tint, state.focusBorderAlpha),
+      ...widths(state),
+    };
+  }
   return {
-    normalFill: alpha(own, state.normalFillAlpha),
-    hoverFill: alpha(own, state.hoverFillAlpha),
-    selectedFill: alpha(own, state.selectedFillAlpha),
-    pressedFill: alpha(own, state.pressedFillAlpha),
-    normalBorder: alpha(own, state.normalBorderAlpha),
-    hoverBorder: alpha(own, state.hoverBorderAlpha),
-    selectedBorder: alpha(own, state.selectedBorderAlpha),
-    focusFill: alpha(own, state.focusFillAlpha),
-    focusBorder: alpha(
-      focusColor || cx.theme().colors.ring,
-      state.focusBorderAlpha,
-    ),
+    normalFill: colors.surface,
+    hoverFill: colors.muted,
+    selectedFill: colors.accent,
+    // No token names a pressed fill, and none should: it is the hover fill
+    // pushed one step, which is a derivation rather than a colour a theme has
+    // an opinion about.
+    pressedFill: alpha(colors.foreground, state.pressedFillAlpha),
+    normalBorder: colors.border,
+    hoverBorder: colors.border,
+    selectedBorder: colors.accent,
+    focusFill: colors.muted,
+    focusBorder: colors.ring,
+    ...widths(state),
+  };
+}
+
+/** @param {ReturnType<typeof style>["state"]} state */
+function widths(state) {
+  return {
     normalBorderWidth: state.normalBorderWidth,
     hoverBorderWidth: state.hoverBorderWidth,
     selectedBorderWidth: state.selectedBorderWidth,
@@ -122,7 +165,7 @@ function buildButton(config, cx) {
     : inactive
       ? cx.theme().colors.muted_foreground
       : cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground, emphasis);
+  const states = surfaceStates(cx, emphasis);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -232,7 +275,7 @@ function buildCompactCommand(config, cx) {
   const foreground = inactive
     ? cx.theme().colors.muted_foreground
     : cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground);
+  const states = surfaceStates(cx);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -561,7 +604,6 @@ export class MenuItem {
         : cx.theme().colors.foreground;
     const states = surfaceStates(
       cx,
-      foreground,
       this.#danger ? cx.theme().colors.destructive : undefined,
     );
     const restBorderWidth = this.#selected
@@ -703,7 +745,14 @@ export class FormField {
 export class Separator {
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    return v_flex().flex_none().h(style().spacing.hairline).w_full().bg(alpha(cx.theme().colors.foreground, 0.12));
+    // A panel rule, which is not a control border: `separator` is the derived
+    // role for it, and a theme that has not been read falls back to its own
+    // border token rather than to a hard-coded fraction of the foreground.
+    return v_flex()
+      .flex_none()
+      .h(style().spacing.hairline)
+      .w_full()
+      .bg(role("separator", cx.theme().colors.border));
   }
 }
 
@@ -754,14 +803,15 @@ export class Keycap {
         this.#pressed ? states.focusBorderWidth : states.normalBorderWidth,
       )
       .border_color(this.#pressed ? states.focusBorder : states.normalBorder)
+      // A cap that is physically down takes the selected fill, which is the
+      // strongest one a control has -- it is reporting the keyboard, and the
+      // keyboard is unambiguous. A quiet cap takes the muted fill, so a hint
+      // strip reads as metadata rather than as a row of buttons.
       .bg(
         this.#pressed
-          ? states.focusFill
+          ? states.selectedFill
           : this.#quiet
-            ? alpha(
-                cx.theme().colors.foreground,
-                tokens.state.normalFillAlpha / 2,
-              )
+            ? cx.theme().colors.muted
             : states.normalFill,
       )
       .text_size(tokens.font.caption)

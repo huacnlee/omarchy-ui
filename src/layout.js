@@ -380,20 +380,30 @@ export class PopupSurface {
       .p(tokens.space(4))
       .gap(tokens.space(2))
       .rounded(tokens.cornerRadius)
+      // A popup is a raised surface, so with nothing named it takes the
+      // surface token rather than the window's ground. Omarchy's own themes
+      // set the two to the same colour on purpose -- the window is one
+      // surface, separated by hairlines -- so this changes nothing there and
+      // stops a menu reading as a hole under any theme that separates them.
       .bg(
         resolveSurfaceColor(
           tokens,
           tokens.surfaces.popupBackground,
-          cx.theme().colors.background,
+          cx.theme().colors.surface,
           tokens.surfaces.popupBackgroundAlpha,
         ),
       )
       .border(tokens.state.normalBorderWidth)
+      // A theme that names `popups.border` usually points it at Hyprland's
+      // active-border, so a menu's edge matches the frame the compositor
+      // draws. With nothing named, the fallback is the border every other
+      // surface uses -- not the focus ring, which would frame a resting menu
+      // in the one colour that is supposed to mean "the keyboard is here".
       .border_color(
         resolveSurfaceColor(
           tokens,
           tokens.surfaces.popupBorder,
-          cx.theme().colors.ring,
+          cx.theme().colors.border,
           tokens.surfaces.popupBorderAlpha,
         ),
       )

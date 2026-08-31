@@ -574,22 +574,25 @@ test("workspace and surface classes preserve resolved layout and styling", () =>
   expect(callsTo(popup, "p")[0].args).toEqual([tokens.space(4)]);
   expect(callsTo(popup, "gap")[0].args).toEqual([tokens.space(2)]);
   expect(callsTo(popup, "rounded")[0].args).toEqual([tokens.cornerRadius]);
+  // A popup is a raised surface, not the window's ground.
   expect(callsTo(popup, "bg")[0].args).toEqual([
     resolveSurfaceColor(
       tokens,
       tokens.surfaces.popupBackground,
-      theme.colors.background,
+      theme.colors.surface,
       tokens.surfaces.popupBackgroundAlpha,
     ),
   ]);
   expect(callsTo(popup, "border")[0].args).toEqual([
     tokens.state.normalBorderWidth,
   ]);
+  // With no `popups.border` named, a resting menu takes the ordinary border
+  // rather than the focus ring.
   expect(callsTo(popup, "border_color")[0].args).toEqual([
     resolveSurfaceColor(
       tokens,
       tokens.surfaces.popupBorder,
-      theme.colors.ring,
+      theme.colors.border,
       tokens.surfaces.popupBorderAlpha,
     ),
   ]);

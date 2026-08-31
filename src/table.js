@@ -21,7 +21,7 @@ import {
   TableHead as BaseTableHead,
   TableHeader as BaseTableHeader,
   TableRow as BaseTableRow,
-  h_flex,
+  v_flex,
 } from "gpui-base";
 import {
   optionalText,
@@ -343,16 +343,18 @@ export class CellStack {
   /** @param {import("gpui").Context} _cx */
   build(_cx) {
     const tokens = style();
-    const column = h_flex()
-      .flex_col()
-      .min_w_0()
-      .gap(tokens.spacing.xxs);
+    // `v_flex`, not `h_flex().flex_col()`: `h_flex` centers on its cross axis,
+    // and turning a centered row on its side centers the *text* — which is how
+    // a column of tickers ends up ragged on both edges. Every alignment is
+    // written out rather than left to a default, because the default is what
+    // went wrong.
+    const column = v_flex().min_w_0().gap(tokens.spacing.xxs);
     const placed =
       this.#align === "end"
         ? column.items_end()
         : this.#align === "center"
           ? column.items_center()
-          : column;
+          : column.items_start();
     return placed.children([...this.#children]);
   }
 }
