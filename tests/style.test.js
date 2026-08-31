@@ -219,8 +219,17 @@ describe("window controls", () => {
   test("a leading inset is reserved only where the host draws its own buttons", () => {
     // macOS puts close, minimise and zoom inside the window, so a title row
     // that started at its own inset would start underneath them.
-    expect(omarchyStyle("", { platform: "darwin" }).spacing.windowControlsInset)
-      .toBeGreaterThan(0);
+    //
+    // Under both its names: `gpui-shell` reports the platform the way Rust
+    // does, so an application on the shell this kit is built for says `macos`,
+    // and `darwin` is Node's name for the same system. Recognising one and not
+    // the other fails silently -- the inset goes to zero and the buttons land
+    // on the title bar's leading content.
+    for (const platform of ["macos", "darwin"]) {
+      expect(
+        omarchyStyle("", { platform }).spacing.windowControlsInset,
+      ).toBeGreaterThan(0);
+    }
 
     // Omarchy's own desktop has no client-side decorations, and a host that
     // did not say is treated as one that draws nothing.

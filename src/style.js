@@ -298,10 +298,18 @@ const FONT_KEYS = {
  * Omarchy's own desktop has no client-side decorations, so a Hyprland window
  * reserves nothing.
  *
+ * Both spellings of macOS are accepted. `gpui-shell` names the platform the
+ * way Rust's `std::env::consts::OS` does, so an application running on the
+ * shell this kit is built for reports `macos`; `darwin` is Node's name for
+ * the same system and is what a caller outside the shell would pass.
+ * Recognising only one of them fails silently -- the inset falls back to
+ * zero and the host draws its window buttons over whatever the title bar put
+ * on its leading edge.
+ *
  * @param {string} platform a `process.platform` value
  */
 function windowControlsInset(platform) {
-  return platform === "darwin" ? 85 : 0;
+  return platform === "macos" || platform === "darwin" ? 85 : 0;
 }
 
 /**
