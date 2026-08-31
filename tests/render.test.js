@@ -401,7 +401,7 @@ test("a run of tabs keeps one size in every state", () => {
   // run cannot change width as the pointer crosses it. This is the bug the
   // variant exists to stop -- two buttons where the selected one had no border
   // and every hover grew one.
-  const segmented = new ui.Tabs("validity").items(items).value("day").segmented().build(cx);
+  const segmented = new ui.Tabs("validity").segmented().items(items).value("day").build(cx);
   const row = callsTo(segmented, "child")[0].args[0];
   expect(callsTo(row, "border")).toHaveLength(1);
   for (const tab of tabsOf(segmented)) {

@@ -809,6 +809,11 @@ export class MenuItem {
  *   they are one field's worth of answer rather than places to go, and the
  *   current one is filled.
  *
+ * ```js
+ * new Tabs("interval").items(intervals).value(mode).onChange(setMode)
+ * new Tabs("validity").segmented().items(options).value(tif).onChange(setTif)
+ * ```
+ *
  * The selection is the caller's, as it is on the base primitive: `value(...)`
  * in, `onChange(...)` out. Nothing here remembers which tab was pressed.
  *
@@ -833,6 +838,16 @@ export class Tabs {
   /** @param {string} id */
   constructor(id) { this.#id = stableId("Tabs", id); }
 
+  /**
+   * Encloses the choices and fills the current one: a value, not a place.
+   *
+   * First in the chain, because it is what this run of tabs *is*. What
+   * follows -- the choices, which one is current, what to do when it changes
+   * -- is the same either way, and a shape declared after them reads as an
+   * afterthought rather than as the decision it is.
+   */
+  segmented(value = true) { this.#variant = value ? "segmented" : "underline"; return this; }
+
   /** @param {{ value: string, label: string }[]} items */
   items(items) {
     if (!Array.isArray(items) || items.length === 0) {
@@ -854,8 +869,6 @@ export class Tabs {
     return this;
   }
 
-  /** Encloses the choices and fills the current one: a value, not a place. */
-  segmented(value = true) { this.#variant = value ? "segmented" : "underline"; return this; }
 
   /** @param {string} value */
   size(value) { this.#size = controlSize("Tabs", value); return this; }

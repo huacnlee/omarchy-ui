@@ -190,6 +190,11 @@ export declare class MenuItem {
  *   they are one field's worth of answer rather than places to go, and the
  *   current one is filled.
  *
+ * ```js
+ * new Tabs("interval").items(intervals).value(mode).onChange(setMode)
+ * new Tabs("validity").segmented().items(options).value(tif).onChange(setTif)
+ * ```
+ *
  * The selection is the caller's, as it is on the base primitive: `value(...)`
  * in, `onChange(...)` out. Nothing here remembers which tab was pressed.
  *
@@ -202,6 +207,15 @@ export declare class Tabs {
     #private;
     /** @param {string} id */
     constructor(id: string);
+    /**
+     * Encloses the choices and fills the current one: a value, not a place.
+     *
+     * First in the chain, because it is what this run of tabs *is*. What
+     * follows -- the choices, which one is current, what to do when it changes
+     * -- is the same either way, and a shape declared after them reads as an
+     * afterthought rather than as the decision it is.
+     */
+    segmented(value?: boolean): this;
     /** @param {{ value: string, label: string }[]} items */
     items(items: {
         value: string;
@@ -211,8 +225,6 @@ export declare class Tabs {
     value(value: string): this;
     /** @param {(value: string, cx: import("gpui").Context) => void} callback */
     onChange(callback: (value: string, cx: import("gpui").Context) => void): this;
-    /** Encloses the choices and fills the current one: a value, not a place. */
-    segmented(value?: boolean): this;
     /** @param {string} value */
     size(value: string): this;
     /** @param {string} text what this run of tabs is choosing, for a screen reader */
