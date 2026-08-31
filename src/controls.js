@@ -664,7 +664,17 @@ export class MenuItem {
   detail(text) { this.#detail = text; return this; }
   /** @param {string} asset complete application-root-relative asset path */
   icon(asset) { this.#asset = asset; return this; }
-  /** @param {boolean} [value] */
+  /**
+   * The active row: where the arrow keys have got to.
+   *
+   * A menu row has one such state and not two. Nothing in a menu is *chosen* --
+   * a row is activated and the menu closes -- so there is no membership for a
+   * heavier treatment to outrank, which is why this is the same fill the
+   * pointer draws and no edge at all. A rule around the active row turns an
+   * open menu into a stack of buttons with one pressed in it.
+   *
+   * @param {boolean} [value]
+   */
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] */
   danger(value = true) { this.#danger = value; return this; }
@@ -708,13 +718,12 @@ export class MenuItem {
       cx,
       this.#danger ? cx.theme().colors.destructive : undefined,
     );
-    const restBorderWidth = this.#selected
-      ? states.selectedBorderWidth
-      : states.normalBorderWidth;
-    const restBorderColor =
-      this.#selected && states.selectedBorderWidth > 0
-        ? states.selectedBorder
-        : NO_FILL;
+    // No edge in any state, active or not: the popup is already a bordered
+    // surface, and a rule around every row inside it turns a list into a stack
+    // of buttons. The width is still declared so the row does not change size
+    // when a theme gives its controls one.
+    const restBorderWidth = states.normalBorderWidth;
+    const restBorderColor = NO_FILL;
     return BaseButton.new(this.#id)
       .role("menu_item")
       .disabled(this.#disabled)
@@ -730,7 +739,7 @@ export class MenuItem {
       .rounded(tokens.cornerRadius)
       .border(restBorderWidth)
       .border_color(restBorderColor)
-      .bg(this.#selected ? states.selectedFill : NO_FILL)
+      .bg(this.#selected ? states.hoverFill : NO_FILL)
       .text_size(tokens.font.bodySmall)
       .text_color(foreground)
       .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
@@ -738,7 +747,7 @@ export class MenuItem {
       // popup is already a bordered surface, and a rule around every row
       // inside it turns a list into a stack of buttons.
       .when(!this.#disabled, (element) => element.hover((appearance) => appearance
-        .bg(this.#selected ? states.selectedFill : states.hoverFill)
+        .bg(states.hoverFill)
         .border(restBorderWidth)
         .border_color(restBorderColor)))
       .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
@@ -746,7 +755,7 @@ export class MenuItem {
       // keyboard is, which a fill alone cannot say when the pointer is
       // hovering a different row.
       .focus((appearance) => appearance
-        .bg(this.#selected ? states.selectedFill : states.focusFill)
+        .bg(this.#selected ? states.hoverFill : states.focusFill)
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder))
       .child(

@@ -203,6 +203,12 @@ command waits in the muted foreground and arrives at its own colour when
 pointed at. Disabled outranks both: a control that cannot be pressed has to
 look like one.
 
+`MenuItem.selected()` is the active row: where the arrow keys have got to. A
+menu row has one such state and not two — nothing in a menu is *chosen*, a row
+is activated and the menu closes — so it draws what the pointer draws and no
+edge at all. A rule around every row turns an open menu into a stack of buttons
+with one pressed in it.
+
 `.tooltip(text)` on `Button` is what the label alone cannot say — most often
 the keyboard route to the same action. A compact command carries this in
 `.description(text)`, which is also its accessible name; a labelled button

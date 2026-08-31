@@ -584,7 +584,6 @@ focus-border-alpha = 0.7
       .description("More actions")
       .selected()
       .build(cx),
-    new controls.MenuItem("rename").label("Rename").selected().build(cx),
   ];
 
   for (const control of selectedControls) {
@@ -595,6 +594,17 @@ focus-border-alpha = 0.7
       border_color: theme.colors.ring,
     });
   }
+
+  // A menu row is not in this group. Its active state *is* the pointer's own
+  // fill, because a row is activated rather than chosen — so hover has nothing
+  // further to say, and focus reports the keyboard without promoting the row.
+  const activeRow = new controls.MenuItem("rename").label("Rename").selected().build(cx);
+  expect(resolvedStyle(activeRow, "hover").bg).toBe(theme.colors.muted);
+  expect(resolvedStyle(activeRow, "focus")).toMatchObject({
+    bg: theme.colors.muted,
+    border: 4,
+    border_color: theme.colors.ring,
+  });
 });
 
 test("outlined, disabled, and loading states remain visibly distinct", () => {
@@ -667,7 +677,7 @@ test("compact commands and menu items expose focus, hover, press, selection, and
   expect(oneCall(compact, "focus").style).toBeDefined();
 
   expect(oneCall(menuItem, "selected").args).toEqual([true]);
-  expect(oneCall(menuItem, "bg").args).toEqual([theme.colors.accent]);
+  expect(oneCall(menuItem, "bg").args).toEqual([theme.colors.muted]);
   expect(oneCall(menuItem, "hover").style).toBeDefined();
   expect(oneCall(menuItem, "active").style).toBeDefined();
   expect(oneCall(menuItem, "focus").style).toBeDefined();

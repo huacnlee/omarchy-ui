@@ -316,3 +316,27 @@ test("a value field carries its unit inside the field", () => {
   expect(callsTo(plain, "focus")).toHaveLength(1);
   expect(callsTo(plain, "pr")[0].args).toEqual(callsTo(plain, "pl")[0].args);
 });
+
+test("a menu row's active state is the pointer's own fill and no edge", () => {
+  /** @param {any} element */
+  const rest = (element) => callsTo(element, "bg")[0].args[0];
+  /** @param {any} element */
+  const pointed = (element) =>
+    callsTo(callsTo(element, "hover")[0].style, "bg")[0].args[0];
+
+  const plain = new ui.MenuItem("rename").label("Rename").onClick(onClick).build(cx);
+  const active = new ui.MenuItem("rename").label("Rename").selected().onClick(onClick).build(cx);
+
+  // A row nothing has reached is unpainted; the row the arrow keys are on
+  // draws what the pointer would draw, because they are the same state
+  // arrived at two ways. Nothing in a menu is *chosen*, so there is no
+  // heavier treatment for a second boolean to carry.
+  expect(rest(plain)).toEqual("#00000000");
+  expect(rest(active)).toEqual(pointed(plain));
+
+  // No edge in either state: a rule around every row turns an open menu into a
+  // stack of buttons with one pressed in it.
+  expect(callsTo(active, "border_color")[0].args).toEqual(
+    callsTo(plain, "border_color")[0].args,
+  );
+});

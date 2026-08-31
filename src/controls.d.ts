@@ -143,7 +143,17 @@ export declare class MenuItem {
     detail(text: string): this;
     /** @param {string} asset complete application-root-relative asset path */
     icon(asset: string): this;
-    /** @param {boolean} [value] */
+    /**
+     * The active row: where the arrow keys have got to.
+     *
+     * A menu row has one such state and not two. Nothing in a menu is *chosen* --
+     * a row is activated and the menu closes -- so there is no membership for a
+     * heavier treatment to outrank, which is why this is the same fill the
+     * pointer draws and no edge at all. A rule around the active row turns an
+     * open menu into a stack of buttons with one pressed in it.
+     *
+     * @param {boolean} [value]
+     */
     selected(value?: boolean): this;
     /** @param {boolean} [value] */
     danger(value?: boolean): this;
