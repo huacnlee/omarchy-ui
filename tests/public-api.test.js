@@ -31,7 +31,6 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Avatar",
     "AvatarButton",
     "Badge",
-    "BottomBar",
     "Button",
     "CellStack",
     "CenteredWorkspace",
@@ -40,7 +39,6 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "EmptyState",
     "ExternalLink",
     "FieldRow",
-    "FilterField",
     "FormField",
     "GlyphButton",
     "IconButton",
@@ -59,15 +57,16 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "PopupSurface",
     "SectionLabel",
     "Separator",
+    "StatusBar",
     "StatusLine",
     "Step",
     "Surface",
     "TableHeaderRow",
     "TableRow",
+    "TextField",
     "Title",
+    "TitleBar",
     "Toolbar",
-    "TopBar",
-    "ValueField",
     "alpha",
     "applyOmarchyRoles",
     "applyOmarchyStyle",
@@ -188,14 +187,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "href",
     "label",
   ]);
-  expect(builders(ui.FilterField)).toEqual([
-    "build",
-    "constructor",
-    "size",
-    "state",
-    "width",
-  ]);
-  expect(builders(ui.ValueField)).toEqual([
+  expect(builders(ui.TextField)).toEqual([
     "build",
     "constructor",
     "size",
@@ -256,7 +248,7 @@ test("layout, text, and value classes expose only the reviewed builders", () => 
       "quiet",
       "tone",
     ],
-    BottomBar: ["build", "constructor", "hints", "leadsWithIcon", "status"],
+    StatusBar: ["build", "constructor", "hints", "leadsWithIcon", "status"],
     CellStack: ["align", "build", "child", "constructor"],
     CenteredWorkspace: ["build", "constructor", "content"],
     CodeBlock: ["build", "constructor", "value"],
@@ -298,7 +290,7 @@ test("layout, text, and value classes expose only the reviewed builders", () => 
     ],
     Title: text,
     Toolbar: ["build", "constructor", "leading", "trailing"],
-    TopBar: ["actions", "brand", "build", "center", "constructor"],
+    TitleBar: ["actions", "brand", "build", "center", "constructor"],
   };
 
   for (const [name, expected] of Object.entries(methods)) {

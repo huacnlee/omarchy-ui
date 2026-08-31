@@ -273,40 +273,32 @@ export declare class ExternalLink {
     build(cx: import("gpui").Context): import("gpui").Element;
 }
 /**
- * The frame around a text field the application owns.
+ * A text field the application owns the state of, wearing the kit's chrome.
  *
  * `InputState` needs a live host call and belongs to the view that retains it,
  * so this class arranges and styles the control rather than creating it — the
  * same division `FormField` follows. What it adds is the chrome: one height
- * shared with every other control in a title row, and a focus ring drawn on
- * the border, so the field does not resize when the keyboard reaches it.
- */
-export declare class FilterField {
-    #private;
-    /** @param {import("gpui-base").InputState} value */
-    state(value: import("gpui-base").InputState): this;
-    /** @param {string | number} value */
-    width(value: string | number): this;
-    /** @param {string} value */
-    size(value: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
-}
-/**
- * A field whose value carries a unit: a price in USD, a size in shares.
+ * shared with every other control in a row, and a focus ring drawn on the
+ * border, so the field does not resize when the keyboard reaches it.
  *
- * The unit belongs to the value, so it sits *inside* the field rather than
- * beside it. Beside it, a reader has to decide whether the word is part of
- * this control or the label of the next one, and the answer changes with how
- * wide the surrounding column happens to be.
+ * `suffix` is the unit the value is in — a currency, `shares`, `ms`. It sits
+ * *inside* the field's own edge, because beside it a reader has to work out
+ * whether the word belongs to this control or labels the next one, and the
+ * answer moves with the width of whatever column they are in:
+ *
+ *     Price                      Price
+ *     [ 141.500        ] USD  →  [ 141.500    USD ]
  *
  * `Input` is a leaf and takes no children, so the unit is drawn over the
- * field's own right edge and the field is given room for it. The border and
- * the focus ring stay on the `Input`, which is what actually takes the
- * keyboard -- a wrapper carrying them would have to know when its child was
- * focused, and there is no `focus_within` to ask.
+ * field's trailing edge and the field is given room for it out of its trailing
+ * padding — the digits stop before the word rather than running under it. The
+ * room a word needs is its length times `font.advance`, because the window is
+ * monospaced. The border and the focus ring stay on the `Input`: it is what
+ * actually takes the keyboard, and a wrapper carrying them would have to know
+ * when its child was focused, which there is no `focus_within` to ask. With no
+ * suffix there is nothing to wrap, so nothing is wrapped.
  */
-export declare class ValueField {
+export declare class TextField {
     #private;
     /** @param {import("gpui-base").InputState} value */
     state(value: import("gpui-base").InputState): this;

@@ -3,7 +3,7 @@
 import { expect, test } from "bun:test";
 import { element as gpuiElement } from "./gpui-stub.js";
 import { Panel, Toolbar } from "../src/layout.js";
-import { AvatarButton, ExternalLink, FilterField, Keycap } from "../src/controls.js";
+import { AvatarButton, ExternalLink, TextField, Keycap } from "../src/controls.js";
 import { Avatar, CodeBlock, DefinitionList, Metric, MetricGrid } from "../src/data.js";
 import { AccordionGroup, AccordionSection } from "../src/disclosure.js";
 import { Alert, Badge, Step } from "../src/feedback.js";
@@ -315,16 +315,16 @@ test("an external link is underlined as well as tinted", () => {
 
 test("a filter field styles a control the application owns", () => {
   const state = { id: "input-state" };
-  const element = new FilterField().state(state).width(180).build(cx);
+  const element = new TextField().state(state).width(180).build(cx);
   expect(element.args).toEqual([state]);
   expect(callsTo(element, "w")[0].args).toEqual([180]);
   expect(callsTo(element, "focus")).toHaveLength(1);
 
-  expect(() => new FilterField().build(cx)).toThrow(
-    "FilterField state must be an application-owned InputState",
+  expect(() => new TextField().build(cx)).toThrow(
+    "TextField state must be an application-owned InputState",
   );
-  expect(() => new FilterField().size("tiny")).toThrow(
-    /FilterField size must be one of/,
+  expect(() => new TextField().size("tiny")).toThrow(
+    /TextField size must be one of/,
   );
 });
 

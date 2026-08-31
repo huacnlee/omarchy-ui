@@ -1028,107 +1028,63 @@ export class ExternalLink {
 }
 
 /**
- * The frame around a text field the application owns.
+ * A text field the application owns the state of, wearing the kit's chrome.
  *
  * `InputState` needs a live host call and belongs to the view that retains it,
  * so this class arranges and styles the control rather than creating it — the
  * same division `FormField` follows. What it adds is the chrome: one height
- * shared with every other control in a title row, and a focus ring drawn on
- * the border, so the field does not resize when the keyboard reaches it.
- */
-export class FilterField {
-  #state;
-  /** @type {string | number | undefined} */
-  #width;
-  /** @type {ControlSize} */
-  #size = "small";
-
-  /** @param {import("gpui-base").InputState} value */
-  state(value) { this.#state = value; return this; }
-
-  /** @param {string | number} value */
-  width(value) { this.#width = value; return this; }
-
-  /** @param {string} value */
-  size(value) { this.#size = controlSize("FilterField", value); return this; }
-
-  /** @param {import("gpui").Context} cx */
-  build(cx) {
-    if (!this.#state || typeof this.#state !== "object") {
-      throw new Error(
-        "FilterField state must be an application-owned InputState",
-      );
-    }
-    const tokens = style();
-    const dimensions = sizeStyle(this.#size);
-    const states = surfaceStates(cx);
-    return Input.new(this.#state)
-      .when(this.#width !== undefined, (element) =>
-        element.w(/** @type {any} */ (this.#width)),
-      )
-      .h(dimensions.extent)
-      .px(tokens.spacing.xs)
-      .rounded(tokens.cornerRadius)
-      .border(states.normalBorderWidth)
-      .border_color(states.normalBorder)
-      .bg(states.normalFill)
-      .text_size(dimensions.fontSize)
-      .text_color(cx.theme().colors.foreground)
-      .focus((appearance) =>
-        appearance
-          .border(states.focusBorderWidth)
-          .border_color(states.focusBorder),
-      );
-  }
-}
-
-/**
- * A field whose value carries a unit: a price in USD, a size in shares.
+ * shared with every other control in a row, and a focus ring drawn on the
+ * border, so the field does not resize when the keyboard reaches it.
  *
- * The unit belongs to the value, so it sits *inside* the field rather than
- * beside it. Beside it, a reader has to decide whether the word is part of
- * this control or the label of the next one, and the answer changes with how
- * wide the surrounding column happens to be.
+ * `suffix` is the unit the value is in — a currency, `shares`, `ms`. It sits
+ * *inside* the field's own edge, because beside it a reader has to work out
+ * whether the word belongs to this control or labels the next one, and the
+ * answer moves with the width of whatever column they are in:
+ *
+ *     Price                      Price
+ *     [ 141.500        ] USD  →  [ 141.500    USD ]
  *
  * `Input` is a leaf and takes no children, so the unit is drawn over the
- * field's own right edge and the field is given room for it. The border and
- * the focus ring stay on the `Input`, which is what actually takes the
- * keyboard -- a wrapper carrying them would have to know when its child was
- * focused, and there is no `focus_within` to ask.
+ * field's trailing edge and the field is given room for it out of its trailing
+ * padding — the digits stop before the word rather than running under it. The
+ * room a word needs is its length times `font.advance`, because the window is
+ * monospaced. The border and the focus ring stay on the `Input`: it is what
+ * actually takes the keyboard, and a wrapper carrying them would have to know
+ * when its child was focused, which there is no `focus_within` to ask. With no
+ * suffix there is nothing to wrap, so nothing is wrapped.
  */
-export class ValueField {
+export class TextField {
   #state;
   #suffix = "";
   /** @type {string | number | undefined} */
   #width;
   /** @type {ControlSize} */
-  #size = "small";
+  #size = "medium";
 
   /** @param {import("gpui-base").InputState} value */
   state(value) { this.#state = value; return this; }
 
   /** @param {string} text the unit this field's value is in */
-  suffix(text) { this.#suffix = optionalText("ValueField", "suffix", text) ?? ""; return this; }
+  suffix(text) { this.#suffix = optionalText("TextField", "suffix", text) ?? ""; return this; }
 
   /** @param {string | number} value */
   width(value) { this.#width = value; return this; }
 
   /** @param {string} value */
-  size(value) { this.#size = controlSize("ValueField", value); return this; }
+  size(value) { this.#size = controlSize("TextField", value); return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
     if (!this.#state || typeof this.#state !== "object") {
-      throw new Error("ValueField state must be an application-owned InputState");
+      throw new Error("TextField state must be an application-owned InputState");
     }
     const tokens = style();
     const dimensions = sizeStyle(this.#size);
     const states = surfaceStates(cx);
     const suffix = this.#suffix;
-    // The window is monospaced, so a unit's width is its length. The gap on
-    // either side is what stops the digits touching the word.
     const room = suffix
-      ? Math.round(dimensions.fontSize * 0.62 * suffix.length) + tokens.spacing.sm * 2
+      ? Math.round(dimensions.fontSize * tokens.font.advance * suffix.length) +
+        tokens.spacing.sm * 2
       : 0;
     const field = Input.new(this.#state)
       .h(dimensions.extent)
@@ -1141,7 +1097,9 @@ export class ValueField {
       .text_size(dimensions.fontSize)
       .text_color(cx.theme().colors.foreground)
       .focus((appearance) =>
-        appearance.border(states.focusBorderWidth).border_color(states.focusBorder),
+        appearance
+          .border(states.focusBorderWidth)
+          .border_color(states.focusBorder),
       );
     if (!suffix) {
       return field.when(this.#width !== undefined, (element) =>

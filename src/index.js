@@ -33,23 +33,21 @@ export { Label, MutedText, SectionLabel, Title } from "./text.js";
 export {
   ActionBar,
   AppShell,
-  BottomBar,
   CenteredWorkspace,
   PageColumn,
   Panel,
   PanelHeader,
   PopupSurface,
+  StatusBar,
   Surface,
+  TitleBar,
   Toolbar,
-  TopBar,
 } from "./layout.js";
 export {
   AvatarButton,
   Button,
   ExternalLink,
   FieldRow,
-  FilterField,
-  ValueField,
   FormField,
   GlyphButton,
   IconButton,
@@ -58,6 +56,7 @@ export {
   MenuItem,
   MenuSeparator,
   Separator,
+  TextField,
 } from "./controls.js";
 export {
   Avatar,

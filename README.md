@@ -136,8 +136,8 @@ interface text.
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
 | `AppShell` | `.content(element)` | `.top(element)` and `.bottom(element)` are omitted by default. |
-| `TopBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. |
-| `BottomBar` | None | `.status(element)` and `.hints(element)` are omitted; `.leadsWithIcon(false)` controls the leading inset. |
+| `TitleBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. |
+| `StatusBar` | None | `.status(element)` and `.hints(element)` are omitted; `.leadsWithIcon(false)` controls the leading inset. |
 | `ActionBar(id)` | Stable `id` | `.actions(element)` and `.status(element)` are omitted by default. |
 | `PanelHeader(id)` | Stable `id` and `.heading(element)` | `.actions(element)` is omitted by default. |
 | `CenteredWorkspace(id)` | Stable `id` and `.content(element)` | No optional fields. |
@@ -209,13 +209,32 @@ is activated and the menu closes — so it draws what the pointer draws and no
 edge at all. A rule around every row turns an open menu into a stack of buttons
 with one pressed in it.
 
+`TextField.suffix(text)` is the unit the value is in — a currency, `shares`,
+`ms`. It sits *inside* the field's own edge, because beside it a reader has to
+work out whether the word belongs to this control or labels the next one, and
+the answer moves with the width of whatever column they are in:
+
+```
+Price                      Price
+[ 141.500        ] USD  →  [ 141.500    USD ]
+```
+
+`Input` is a leaf and takes no children, so the unit is drawn over the field's
+trailing edge and the field is given room for it out of its trailing padding —
+the digits stop before the word rather than running under it. The room a word
+needs is its length times `style().font.advance`, because the window is
+monospaced. The border and the focus ring stay on the `Input`: it is what
+actually takes the keyboard, and a wrapper carrying them would have to know
+when its child was focused, which there is no `focus_within` to ask. With no
+suffix there is nothing to wrap, so nothing is wrapped.
+
 `.tooltip(text)` on `Button` is what the label alone cannot say — most often
 the keyboard route to the same action. A compact command carries this in
 `.description(text)`, which is also its accessible name; a labelled button
 already has an accessible name and needs only the hint, so a button with
 nothing further to say draws no tooltip rather than one repeating its label.
 | `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
-| `FilterField` | `.state(inputState)` | `.width(value)` and `.size("small")`. The `InputState` stays application-owned; this class supplies the chrome only. |
+| `TextField` | `.state(inputState)` | `.suffix(text)` is omitted by default; `.width(value)` and `.size("medium")`. The `InputState` stays application-owned; this class supplies the chrome only. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |

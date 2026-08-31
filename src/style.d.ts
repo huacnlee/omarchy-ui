@@ -107,7 +107,7 @@ export declare function omarchyStyle(shellSource: string, host?: {
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
     };
-    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge", number>;
+    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
         normalBorderWidth: number;
         hoverBorderWidth: number;
@@ -150,7 +150,7 @@ export declare function style(): {
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
     };
-    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge", number>;
+    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
         normalBorderWidth: number;
         hoverBorderWidth: number;
@@ -199,7 +199,7 @@ export declare function applyOmarchyStyle(shellSource: string, host?: {
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
     };
-    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge", number>;
+    font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
         normalBorderWidth: number;
         hoverBorderWidth: number;

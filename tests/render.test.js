@@ -63,14 +63,14 @@ test("composes generic shell, controls, data, and feedback through the public en
     .build(cx);
   const shell = new ui.AppShell()
     .top(
-      new ui.TopBar()
+      new ui.TitleBar()
         .center(new ui.Title("Projects").build(cx))
         .actions(create)
         .build(cx),
     )
     .content(workspace)
     .bottom(
-      new ui.BottomBar()
+      new ui.StatusBar()
         .status(new ui.StatusLine().label("Ready").build(cx))
         .hints(new ui.KeyHints("navigation-hints").hint("j", "Next").build(cx))
         .build(cx),
@@ -291,7 +291,7 @@ test("a key-hint strip takes its hints one at a time or as the list it was hande
 test("a value field carries its unit inside the field", () => {
   const state = {};
 
-  const priced = new ui.ValueField().state(state).suffix("USD").width(200).build(cx);
+  const priced = new ui.TextField().state(state).suffix("USD").width(200).build(cx);
   // A container, because `Input` is a leaf and takes no children: the field
   // and the unit are siblings, and the unit is drawn over the field's edge.
   const children = callsTo(priced, "child");
@@ -311,7 +311,7 @@ test("a value field carries its unit inside the field", () => {
   expect(callsTo(priced, "focus")).toHaveLength(0);
 
   // Without a unit there is nothing to wrap, so there is no wrapper.
-  const plain = new ui.ValueField().state(state).width(200).build(cx);
+  const plain = new ui.TextField().state(state).width(200).build(cx);
   expect(callsTo(plain, "relative")).toHaveLength(0);
   expect(callsTo(plain, "focus")).toHaveLength(1);
   expect(callsTo(plain, "pr")[0].args).toEqual(callsTo(plain, "pl")[0].args);
