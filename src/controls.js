@@ -1,7 +1,14 @@
 // @ts-check
 
 import { div, svg } from "gpui";
-import { Button as BaseButton, Input, Link, h_flex, v_flex } from "gpui-base";
+import {
+  Button as BaseButton,
+  Input,
+  Link,
+  NumberInput as BaseNumberInput,
+  h_flex,
+  v_flex,
+} from "gpui-base";
 import {
   optionalCallback,
   optionalText,
@@ -1145,6 +1152,125 @@ export class TextField {
  * an account, an organisation — and carries the subject's own initials or
  * tint. A trigger that drew the same glyph for everyone would not need one.
  */
+/**
+ * A number a person steps as well as types.
+ *
+ * gpui-base owns the behaviour — the step, the bounds, the numeric mask, the
+ * Up and Down keys — and owns none of the look. The two step buttons it builds
+ * carry no size and no content, so a number input that supplies nothing has a
+ * decrement control that can be neither seen nor pressed. That half is what
+ * this class is.
+ *
+ * The step and the bounds are fields on the `InputState`, so they belong to the
+ * application the way the value does. What arrives here is that state and the
+ * two labels a screen reader reads out: a step button draws a mark rather than
+ * a word, and the library does not write copy.
+ */
+export class NumberInput {
+  #state;
+  #incrementLabel;
+  #decrementLabel;
+  #suffix = "";
+  /** @type {string | number | undefined} */
+  #width;
+  /** @type {ControlSize} */
+  #size = "medium";
+
+  /** @param {import("gpui-base").InputState} value */
+  state(value) { this.#state = value; return this; }
+
+  /** @param {string} text what a screen reader announces for the step up */
+  incrementLabel(text) { this.#incrementLabel = text; return this; }
+
+  /** @param {string} text what a screen reader announces for the step down */
+  decrementLabel(text) { this.#decrementLabel = text; return this; }
+
+  /** @param {string} text the unit this value is in */
+  suffix(text) { this.#suffix = optionalText("NumberInput", "suffix", text) ?? ""; return this; }
+
+  /** @param {string | number} value defaults to the shell's number-field width */
+  width(value) { this.#width = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("NumberInput", value); return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    if (!this.#state || typeof this.#state !== "object") {
+      throw new Error("NumberInput state must be an application-owned InputState");
+    }
+    const incrementLabel = requiredText(
+      "NumberInput",
+      "increment label",
+      this.#incrementLabel,
+    );
+    const decrementLabel = requiredText(
+      "NumberInput",
+      "decrement label",
+      this.#decrementLabel,
+    );
+    const tokens = style();
+    const dimensions = sizeStyle(this.#size);
+    const states = surfaceStates(cx);
+    const colors = cx.theme().colors;
+
+    // Replayed rather than rendered: the base layer moves these styles, state
+    // styles, accessibility label and children onto the button it already
+    // built and identified, which is what receives the press. So this is an
+    // `h_flex` with children rather than a `Button`, and it declares no
+    // `disabled` or `on_click` — the number input owns both.
+    const stepButton = (/** @type {string} */ glyph, /** @type {string} */ label) =>
+      h_flex()
+        .flex_1()
+        .w(tokens.space(16))
+        .items_center()
+        .justify_center()
+        .border_l(tokens.spacing.hairline)
+        .border_color(states.normalBorder)
+        .text_size(tokens.font.caption)
+        .text_color(colors.muted_foreground)
+        .accessibility_label(label)
+        .hover((appearance) =>
+          appearance.bg(states.hoverFill).text_color(colors.foreground),
+        )
+        .active((appearance) => appearance.bg(states.pressedFill))
+        .child(glyph);
+
+    return BaseNumberInput.new(this.#state)
+      // Stacked at one edge rather than one button on each side of the value:
+      // the figure stays where the eye returns to it while stepping, and the
+      // control keeps the width the shell reserved for it.
+      .controls_right()
+      .h(dimensions.extent)
+      .w(this.#width ?? tokens.spacing.numberFieldWidth)
+      .pl(tokens.spacing.xs)
+      .rounded(tokens.cornerRadius)
+      .border(states.normalBorderWidth)
+      .border_color(states.normalBorder)
+      .bg(states.normalFill)
+      .text_size(dimensions.fontSize)
+      .text_color(colors.foreground)
+      .focus((appearance) =>
+        appearance
+          .border(states.focusBorderWidth)
+          .border_color(states.focusBorder),
+      )
+      // An adornment beside the editor, which is what the frame takes a plain
+      // child as. The `input` slot is left empty so the frame draws the bare
+      // editor for the state it was built from.
+      .when(this.#suffix !== "", (element) =>
+        element.child(
+          mutedElement(this.#suffix, cx)
+            .flex_none()
+            .pr(tokens.spacing.sm)
+            .text_size(dimensions.fontSize),
+        ),
+      )
+      .decrement_button(stepButton("▼", decrementLabel))
+      .increment_button(stepButton("▲", incrementLabel));
+  }
+}
+
 export class AvatarButton {
   #id;
   #initials;

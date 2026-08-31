@@ -228,6 +228,20 @@ actually takes the keyboard, and a wrapper carrying them would have to know
 when its child was focused, which there is no `focus_within` to ask. With no
 suffix there is nothing to wrap, so nothing is wrapped.
 
+`NumberInput` is the one control here that must supply a part rather than a
+look. gpui-base builds both step buttons and styles neither — no size, no
+content — so a number input that fills those two slots with nothing has a
+decrement control that can be neither seen nor pressed. Their marks stack at
+the trailing edge rather than sitting one on each side of the value, which
+keeps the figure where the eye returns to it between presses and keeps the
+control inside the width the shell reserved for a number field.
+
+The two labels are required for the same reason a compact command's
+`.description(text)` is: a step button draws a mark and announces nothing on
+its own, and the library does not write the words. Everything numeric about it
+— what one step moves, what it clamps to, what the mask allows — is set on the
+`InputState` by whoever owns it, the way the value is.
+
 `.tooltip(text)` on `Button` is what the label alone cannot say — most often
 the keyboard route to the same action. A compact command carries this in
 `.description(text)`, which is also its accessible name; a labelled button
@@ -235,6 +249,7 @@ already has an accessible name and needs only the hint, so a button with
 nothing further to say draws no tooltip rather than one repeating its label.
 | `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
 | `TextField` | `.state(inputState)` | `.suffix(text)` is omitted by default; `.width(value)` and `.size("medium")`. The `InputState` stays application-owned; this class supplies the chrome only. |
+| `NumberInput` | `.state(inputState)`, `.incrementLabel(text)` and `.decrementLabel(text)` | `.suffix(text)` is omitted by default; `.width(value)` defaults to `style().spacing.numberFieldWidth` and `.size("medium")`. The step, the bounds and the mask are fields on the application's `InputState`. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |

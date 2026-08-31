@@ -91,6 +91,7 @@ export const h_flex = () => element("h_flex");
 export const v_flex = () => element("v_flex");
 export const Button = { new: (id) => element("Button", [id]) };
 export const Input = { new: (state) => element("Input", [state]) };
+export const NumberInput = { new: (state) => element("NumberInput", [state]) };
 export class View {}
 export const set_theme = (theme) => record("set_theme", theme);
 export const Link = { new: (id) => element("Link", [id]) };
