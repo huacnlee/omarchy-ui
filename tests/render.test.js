@@ -469,3 +469,22 @@ test("a run of tabs takes its place in the window's tab order from the caller", 
     expect(() => new ui.Tabs("bad").tabIndex(bad)).toThrow();
   }
 });
+
+test("a run of tabs draws the label of every choice", () => {
+  const items = [
+    { value: "day", label: "Day" },
+    { value: "gtc", label: "Till cancelled" },
+  ];
+  for (const tabs of [
+    new ui.Tabs("a").items(items).value("day").build(cx),
+    new ui.Tabs("b").segmented().items(items).value("day").build(cx),
+  ]) {
+    const row = callsTo(tabs, "child")[0].args[0];
+    const drawn = callsTo(row, "children")[0]
+      .args[0].map((tab) => callsTo(tab, "child")[0].args[0]);
+    // The whole point of a tab is the word on it. Asserting only the
+    // decoration -- borders, fills, indices -- is how a run of tabs ships
+    // drawing nothing at all.
+    expect(drawn).toEqual(["Day", "Till cancelled"]);
+  }
+});

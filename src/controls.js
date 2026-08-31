@@ -928,7 +928,8 @@ export class Tabs {
         .tab_index(this.#tabIndex > 0 ? this.#tabIndex + index : index + 1)
         .when(typeof onChange === "function", (element) =>
           element.on_click((_event, cx) => onChange(item.value, cx)),
-        );
+        )
+        .child(item.label);
       if (segmented) {
         return (
           tab
