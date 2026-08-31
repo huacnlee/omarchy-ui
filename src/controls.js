@@ -9,6 +9,7 @@ import {
   requiredText,
   stableId,
 } from "./internal.js";
+import { Avatar } from "./data.js";
 import { alpha, style } from "./style.js";
 import { Label, MutedText } from "./text.js";
 import { role } from "./theme.js";
@@ -900,5 +901,87 @@ export class FilterField {
           .border(states.focusBorderWidth)
           .border_color(states.focusBorder),
       );
+  }
+}
+
+/**
+ * The trigger an account menu hangs from: a compact command whose content is
+ * an `Avatar` rather than an icon.
+ *
+ * Distinct from `IconButton` because the mark inside is a *subject* — a person,
+ * an account, an organisation — and carries the subject's own initials or
+ * tint. A trigger that drew the same glyph for everyone would not need one.
+ */
+export class AvatarButton {
+  #id;
+  #initials;
+  #asset;
+  #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tint;
+  #selected = false;
+  #disabled = false;
+  /** @type {ControlSize} */
+  #size = "medium";
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = stableId("AvatarButton", id); }
+
+  /** @param {string} text one or two characters */
+  initials(text) { this.#initials = text; return this; }
+
+  /** @param {string} asset complete application-root-relative asset path */
+  icon(asset) { this.#asset = asset; return this; }
+
+  /** @param {string} text the accessible name and the tooltip */
+  description(text) { this.#description = text; return this; }
+
+  /** @param {import("gpui").Color | undefined} color */
+  tint(color) { this.#tint = color; return this; }
+
+  /** @param {boolean} [value] the menu this trigger opens is showing */
+  selected(value = true) { this.#selected = value; return this; }
+
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("AvatarButton", value); return this; }
+
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("AvatarButton", "onClick", callback);
+    return this;
+  }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const description = requiredText(
+      "AvatarButton",
+      "description",
+      this.#description,
+    );
+    const avatar = new Avatar().extent(sizeStyle(this.#size).iconSize * 2);
+    if (this.#initials) avatar.initials(this.#initials);
+    if (this.#asset) avatar.icon(this.#asset);
+    if (this.#tint) avatar.tint(this.#tint);
+    return buildCompactCommand(
+      {
+        id: this.#id,
+        content: avatar.build(cx),
+        description,
+        outlined: false,
+        bordered: true,
+        selected: this.#selected,
+        disabled: this.#disabled,
+        loading: false,
+        loadingLabel: "",
+        size: this.#size,
+        onClick: this.#onClick,
+      },
+      cx,
+    );
   }
 }

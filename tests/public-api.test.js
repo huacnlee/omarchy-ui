@@ -29,6 +29,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Alert",
     "AppShell",
     "Avatar",
+    "AvatarButton",
     "Badge",
     "BottomBar",
     "Button",
@@ -185,6 +186,18 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "size",
     "state",
     "width",
+  ]);
+  expect(builders(ui.AvatarButton)).toEqual([
+    "build",
+    "constructor",
+    "description",
+    "disabled",
+    "icon",
+    "initials",
+    "onClick",
+    "selected",
+    "size",
+    "tint",
   ]);
 });
 

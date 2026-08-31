@@ -37,6 +37,7 @@ export {
   TopBar,
 } from "./layout.js";
 export {
+  AvatarButton,
   Button,
   ExternalLink,
   FieldRow,
