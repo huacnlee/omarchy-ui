@@ -1,4 +1,4 @@
-declare const SIZES: readonly ["small", "medium", "large"];
+declare const SIZES: readonly ["xsmall", "small", "medium", "large"];
 export type ControlSize = typeof SIZES[number];
 export declare class Button {
     #private;

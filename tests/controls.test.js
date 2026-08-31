@@ -410,7 +410,7 @@ test("size rejects unknown values at the builder call", () => {
     new controls.GlyphButton("more"),
   ]) {
     expect(() => control.size("giant")).toThrow(
-      `${control.constructor.name} size must be one of small, medium, large; received "giant"`,
+      `${control.constructor.name} size must be one of xsmall, small, medium, large; received "giant"`,
     );
   }
 });

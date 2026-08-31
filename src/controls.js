@@ -15,7 +15,7 @@ import { Label, MutedText } from "./text.js";
 import { role } from "./theme.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
-const SIZES = /** @type {const} */ (["small", "medium", "large"]);
+const SIZES = /** @type {const} */ (["xsmall", "small", "medium", "large"]);
 
 /** @typedef {typeof SIZES[number]} ControlSize */
 
@@ -103,6 +103,19 @@ function controlSize(component, value) {
 /** @param {ControlSize} size */
 function sizeStyle(size) {
   const tokens = style();
+  // A control inside a run of text rather than in a row of its own: a
+  // segmented reading picker, a chip on an attachment, the toggle at the end
+  // of a caption. `small` is one step of the type scale under the body, which
+  // is the right ramp for a row of controls; a control sitting *in* a caption
+  // has to reach the caption or it stands taller than the words around it.
+  if (size === "xsmall") {
+    return {
+      extent: tokens.space(20),
+      fontSize: tokens.font.caption,
+      iconSize: tokens.font.iconSmall,
+      paddingX: tokens.spacing.md,
+    };
+  }
   if (size === "small") {
     return {
       extent: tokens.space(24),

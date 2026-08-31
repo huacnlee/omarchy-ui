@@ -240,8 +240,13 @@ nothing further to say draws no tooltip rather than one repeating its label.
 | `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |
 | `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint and `.hints(entries)` appends a whole strip, in order — the same pair as an open container's `child`/`children`. |
 
-Control sizes are the closed vocabulary `"small"`, `"medium"`, and
-`"large"`; `.size(value)` rejects any other value immediately. Required
+Control sizes are the closed vocabulary `"xsmall"`, `"small"`, `"medium"`, and
+`"large"`; `.size(value)` rejects any other value immediately. Each step is
+strictly smaller than the next in both type and height. `"small"` is one step
+of the type scale under the body, which is the right ramp for a row of
+controls; `"xsmall"` reaches the caption, for a control that sits *inside* a
+run of text — a segmented picker, a chip on an attachment, the toggle at the
+end of a caption — and would otherwise stand taller than the words around it. Required
 labels, icons, descriptions, glyphs, and controls are checked at `build(cx)`
 with an error that names the component and field. Optional copy must also be
 non-blank when configured, except the documented `.error("")` clearing seam.

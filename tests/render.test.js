@@ -340,3 +340,49 @@ test("a menu row's active state is the pointer's own fill and no edge", () => {
     callsTo(plain, "border_color")[0].args,
   );
 });
+
+test("a button reserves its border in every state and only recolours it", () => {
+  // Adding a border on hover gains a pixel a side and shoves the row along.
+  // The width is declared once at rest and the states change the colour, which
+  // is the trap the Omarchy kit's own button documents and reserves against.
+  const ghost = new ui.Button("discard").label("Discard").onClick(onClick).build(cx);
+  const outlined = new ui.Button("send").label("Send").bordered().onClick(onClick).build(cx);
+
+  for (const control of [ghost, outlined]) {
+    expect(callsTo(control, "border").map((call) => call.args[0])).toEqual([1]);
+  }
+
+  // The ghost's border is transparent rather than absent — that is what makes
+  // the two the same size.
+  expect(callsTo(ghost, "border_color")[0].args).toEqual(["#00000000"]);
+  expect(callsTo(outlined, "border_color")[0].args).not.toEqual(["#00000000"]);
+});
+
+test("the size ramp reaches under the body step for a control inside a caption", () => {
+  const step = (control) => callsTo(control, "text_size")[0].args[0];
+  const extent = (control) => callsTo(control, "h")[0].args[0];
+
+  const sizes = ["xsmall", "small", "medium", "large"].map((size) =>
+    new ui.Button("save").label("Save").size(size).build(cx),
+  );
+
+  // Four steps, each strictly smaller than the next in both type and height:
+  // a ramp with a repeat in it is a vocabulary with a word that means nothing.
+  for (let i = 1; i < sizes.length; i++) {
+    expect(step(sizes[i])).toBeGreaterThan(step(sizes[i - 1]));
+    expect(extent(sizes[i])).toBeGreaterThan(extent(sizes[i - 1]));
+  }
+
+  // A compact command reads the same ramp, so an icon beside an xsmall label
+  // is the same height as the label.
+  const glyph = new ui.GlyphButton("more")
+    .glyph("…")
+    .description("More")
+    .size("xsmall")
+    .build(cx);
+  expect(callsTo(glyph, "text_size")[0].args).toEqual([step(sizes[0])]);
+
+  expect(() => new ui.Button("save").size("tiny")).toThrow(
+    /Button size must be one of xsmall, small, medium, large/,
+  );
+});
