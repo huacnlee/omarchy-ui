@@ -1,7 +1,15 @@
 // @ts-check
 
 import { div, svg } from "gpui";
-import { Button as BaseButton, Input, Link, h_flex, v_flex } from "gpui-base";
+import {
+  Button as BaseButton,
+  Input,
+  Link,
+  Tab as BaseTab,
+  Tabs as BaseTabs,
+  h_flex,
+  v_flex,
+} from "gpui-base";
 import {
   optionalCallback,
   optionalText,
@@ -785,6 +793,151 @@ export class MenuItem {
           .text_size(tokens.font.bodySmall)
           .when(this.#danger, (detail) => detail.text_color(foreground)),
       ));
+  }
+}
+
+/**
+ * One choice out of a few, laid out flat.
+ *
+ * Two shapes, because a run of tabs answers two different questions and the
+ * answers do not look alike:
+ *
+ * - **`underline`** is navigation. The choices sit on the surface they belong
+ *   to and the current one is marked beneath, the way a set of pages is marked
+ *   in a window that is showing one of them.
+ * - **`segmented`** is a value. The choices are enclosed together, because
+ *   they are one field's worth of answer rather than places to go, and the
+ *   current one is filled.
+ *
+ * The selection is the caller's, as it is on the base primitive: `value(...)`
+ * in, `onChange(...)` out. Nothing here remembers which tab was pressed.
+ *
+ * **Every state keeps the same size.** A segment's border is drawn on the
+ * enclosure, never on the segments, and the underline's is reserved on all of
+ * them and coloured on one. A control that grows an edge on hover is a control
+ * that resizes on hover, and its neighbours move with it.
+ */
+export class Tabs {
+  #id;
+  /** @type {{ value: string, label: string }[]} */
+  #items = [];
+  #value = "";
+  /** @type {"underline" | "segmented"} */
+  #variant = "underline";
+  /** @type {ControlSize} */
+  #size = "small";
+  /** @type {((value: string, cx: import("gpui").Context) => void) | undefined} */
+  #onChange;
+  #label = "";
+
+  /** @param {string} id */
+  constructor(id) { this.#id = stableId("Tabs", id); }
+
+  /** @param {{ value: string, label: string }[]} items */
+  items(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error("Tabs items must be a non-empty array of { value, label }");
+    }
+    this.#items = items.map((item) => ({
+      value: requiredText("Tabs", "item value", item?.value),
+      label: requiredText("Tabs", "item label", item?.label),
+    }));
+    return this;
+  }
+
+  /** @param {string} value the item currently chosen */
+  value(value) { this.#value = optionalText("Tabs", "value", value) ?? ""; return this; }
+
+  /** @param {(value: string, cx: import("gpui").Context) => void} callback */
+  onChange(callback) {
+    this.#onChange = optionalCallback("Tabs", "onChange", callback);
+    return this;
+  }
+
+  /** Encloses the choices and fills the current one: a value, not a place. */
+  segmented(value = true) { this.#variant = value ? "segmented" : "underline"; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("Tabs", value); return this; }
+
+  /** @param {string} text what this run of tabs is choosing, for a screen reader */
+  accessibilityLabel(text) {
+    this.#label = optionalText("Tabs", "accessibilityLabel", text) ?? "";
+    return this;
+  }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    if (this.#items.length === 0) {
+      throw new Error("Tabs must be given items before it is built");
+    }
+    const tokens = style();
+    const dimensions = sizeStyle(this.#size);
+    const states = surfaceStates(cx);
+    const segmented = this.#variant === "segmented";
+    const onChange = this.#onChange;
+    const tabs = this.#items.map((item, index) => {
+      const selected = item.value === this.#value;
+      const tab = BaseTab.new(`${this.#id}-${item.value}`)
+        .selected(selected)
+        .flex()
+        .items_center()
+        .justify_center()
+        .h(dimensions.extent)
+        .px(tokens.spacing.sm)
+        .text_size(dimensions.fontSize)
+        .tab_index(index + 1)
+        .when(typeof onChange === "function", (element) =>
+          element.on_click((_event, cx) => onChange(item.value, cx)),
+        );
+      if (segmented) {
+        return (
+          tab
+            .flex_1()
+            .rounded(tokens.cornerRadius)
+            // The fill is the whole of the mark. The enclosure draws the edge,
+            // so a segment has none to grow or lose and the run cannot change
+            // width as the pointer crosses it.
+            .bg(selected ? states.selectedFill : NO_FILL)
+            .text_color(selected ? cx.theme().colors.foreground : cx.theme().colors.muted_foreground)
+            .when(!selected, (element) =>
+              element.hover((appearance) => appearance.bg(states.hoverFill)),
+            )
+            .focus((appearance) =>
+              appearance.bg(selected ? states.selectedFill : states.focusFill),
+            )
+        );
+      }
+      return tab
+        .flex_none()
+        // Reserved on every tab and coloured on one: an underline that appears
+        // would move the row it is in by its own width.
+        .border_b(states.selectedBorderWidth || tokens.spacing.hairline * 2)
+        .border_color(selected ? role("accent", cx.theme().colors.primary) : NO_FILL)
+        .text_color(selected ? cx.theme().colors.foreground : cx.theme().colors.muted_foreground)
+        .when(!selected, (element) =>
+          element.hover((appearance) => appearance.text_color(cx.theme().colors.foreground)),
+        );
+    });
+    return BaseTabs.new(this.#id)
+      .axis("horizontal")
+      .when(Boolean(this.#label), (element) => element.accessibility_label(this.#label))
+      .flex_none()
+      .min_w(0)
+      .child(
+        h_flex()
+          .flex_none()
+          .when(segmented, (element) =>
+            element
+              .w_full()
+              .gap(tokens.spacing.xxs)
+              .p(tokens.spacing.xxs)
+              .rounded(tokens.cornerRadius)
+              .border(states.normalBorderWidth)
+              .border_color(states.normalBorder),
+          )
+          .children(tabs),
+      );
   }
 }
 

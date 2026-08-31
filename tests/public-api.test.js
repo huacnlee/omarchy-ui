@@ -63,6 +63,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Surface",
     "TableHeaderRow",
     "TableRow",
+    "Tabs",
     "TextField",
     "Title",
     "TitleBar",

@@ -177,6 +177,49 @@ export declare class MenuItem {
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
+/**
+ * One choice out of a few, laid out flat.
+ *
+ * Two shapes, because a run of tabs answers two different questions and the
+ * answers do not look alike:
+ *
+ * - **`underline`** is navigation. The choices sit on the surface they belong
+ *   to and the current one is marked beneath, the way a set of pages is marked
+ *   in a window that is showing one of them.
+ * - **`segmented`** is a value. The choices are enclosed together, because
+ *   they are one field's worth of answer rather than places to go, and the
+ *   current one is filled.
+ *
+ * The selection is the caller's, as it is on the base primitive: `value(...)`
+ * in, `onChange(...)` out. Nothing here remembers which tab was pressed.
+ *
+ * **Every state keeps the same size.** A segment's border is drawn on the
+ * enclosure, never on the segments, and the underline's is reserved on all of
+ * them and coloured on one. A control that grows an edge on hover is a control
+ * that resizes on hover, and its neighbours move with it.
+ */
+export declare class Tabs {
+    #private;
+    /** @param {string} id */
+    constructor(id: string);
+    /** @param {{ value: string, label: string }[]} items */
+    items(items: {
+        value: string;
+        label: string;
+    }[]): this;
+    /** @param {string} value the item currently chosen */
+    value(value: string): this;
+    /** @param {(value: string, cx: import("gpui").Context) => void} callback */
+    onChange(callback: (value: string, cx: import("gpui").Context) => void): this;
+    /** Encloses the choices and fills the current one: a value, not a place. */
+    segmented(value?: boolean): this;
+    /** @param {string} value */
+    size(value: string): this;
+    /** @param {string} text what this run of tabs is choosing, for a screen reader */
+    accessibilityLabel(text: string): this;
+    /** @param {import("gpui").Context} cx */
+    build(cx: import("gpui").Context): import("gpui").Element;
+}
 export declare class FieldRow {
     #private;
     /** @param {string} id */

@@ -386,3 +386,60 @@ test("the size ramp reaches under the body step for a control inside a caption",
     /Button size must be one of xsmall, small, medium, large/,
   );
 });
+
+test("a run of tabs keeps one size in every state", () => {
+  const items = [
+    { value: "day", label: "Day" },
+    { value: "gtc", label: "Till cancelled" },
+  ];
+  const tabsOf = (element) => {
+    const row = callsTo(element, "child")[0].args[0];
+    return callsTo(row, "children")[0].args[0];
+  };
+
+  // Segmented: the edge is the enclosure's, so no segment draws one and the
+  // run cannot change width as the pointer crosses it. This is the bug the
+  // variant exists to stop -- two buttons where the selected one had no border
+  // and every hover grew one.
+  const segmented = new ui.Tabs("validity").items(items).value("day").segmented().build(cx);
+  const row = callsTo(segmented, "child")[0].args[0];
+  expect(callsTo(row, "border")).toHaveLength(1);
+  for (const tab of tabsOf(segmented)) {
+    expect(callsTo(tab, "border")).toHaveLength(0);
+    expect(callsTo(tab, "border_b")).toHaveLength(0);
+  }
+  // The current one is marked by fill, not by colour alone.
+  const [chosen, other] = tabsOf(segmented);
+  expect(callsTo(chosen, "bg")[0].args).not.toEqual(callsTo(other, "bg")[0].args);
+
+  // Underline: reserved on every tab and coloured on one, so the row does not
+  // move by the underline's own width when the choice changes.
+  const underlined = new ui.Tabs("interval").items(items).value("day").build(cx);
+  const [first, second] = tabsOf(underlined);
+  expect(callsTo(first, "border_b")[0].args).toEqual(callsTo(second, "border_b")[0].args);
+  expect(callsTo(first, "border_color")[0].args).not.toEqual(
+    callsTo(second, "border_color")[0].args,
+  );
+
+  // The enclosure belongs to the segmented shape alone: navigation sits on the
+  // surface it belongs to.
+  expect(callsTo(callsTo(underlined, "child")[0].args[0], "border")).toHaveLength(0);
+});
+
+test("a run of tabs reports the choice and remembers nothing", () => {
+  const chosen = [];
+  const tabs = new ui.Tabs("validity")
+    .items([
+      { value: "day", label: "Day" },
+      { value: "gtc", label: "Till cancelled" },
+    ])
+    .value("day")
+    .onChange((value) => chosen.push(value))
+    .build(cx);
+  const row = callsTo(tabs, "child")[0].args[0];
+  const [, second] = callsTo(row, "children")[0].args[0];
+  callsTo(second, "on_click")[0].args[0](null, cx);
+  expect(chosen).toEqual(["gtc"]);
+  // Reporting is all it does: the selection is still what the caller passed.
+  expect(callsTo(second, "selected")[0].args).toEqual([false]);
+});

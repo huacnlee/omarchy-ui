@@ -56,6 +56,7 @@ export {
   MenuItem,
   MenuSeparator,
   Separator,
+  Tabs,
   TextField,
 } from "./controls.js";
 export {
