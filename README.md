@@ -5,6 +5,10 @@ utilities for gpui-shell applications. The library owns Omarchy presentation;
 the application owns copy, stable IDs, callbacks, navigation, domain state,
 and asset paths.
 
+## Example
+
+<img width="1232" height="872" alt="image" src="https://github.com/user-attachments/assets/4153505d-fc4b-4179-bd8b-3bd32253e0b4" />
+
 ## Start with the public entry
 
 Declare the Git shorthand in `gpui-shell.json`:
