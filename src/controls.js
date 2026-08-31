@@ -262,8 +262,9 @@ function activityMarker(label, dimensions, foreground) {
 
 /**
  * @param {{id:string, content:any, description:string, outlined:boolean,
- * bordered:boolean, selected:boolean, disabled:boolean, loading:boolean,
- * loadingLabel:string, size:ControlSize, onClick?: (event: import("gpui").ClickEvent,
+ * bordered:boolean, selected:boolean, quiet:boolean, disabled:boolean,
+ * loading:boolean, loadingLabel:string, size:ControlSize,
+ * onClick?: (event: import("gpui").ClickEvent,
  * cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */

@@ -60,8 +60,7 @@ function alignment(component, value) {
 /**
  * `width` is a share of the row (`"31%"`), a fixed extent (`96`), or omitted to
  * take whatever the fixed columns leave.
- * @template {any} E
- * @param {E} element
+ * @param {import("gpui").Element} element
  * @param {string | number | undefined} width
  */
 function sized(element, width) {
@@ -69,7 +68,7 @@ function sized(element, width) {
   return element.w(width);
 }
 
-/** @template {any} E @param {E} element @param {ColumnAlignment} align */
+/** @param {import("gpui").Element} element @param {ColumnAlignment} align */
 function aligned(element, align) {
   if (align === "end") return element.justify_end();
   if (align === "center") return element.justify_center();
