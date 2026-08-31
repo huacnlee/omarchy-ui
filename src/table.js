@@ -160,7 +160,13 @@ export class TableHeaderRow {
                     element.tooltip(String(column.hint)),
                   ),
                 column.align ?? "start",
-              ).child(new SectionLabel(column.title).build(cx)),
+              ).child(
+                // Folded on the way to the screen, the way a terminal writes
+                // small caps. Only the drawn text is folded: `title` stays as
+                // it was written, so a lookup keyed by a column's name — a
+                // hint, a sort order, a saved layout — still finds it.
+                new SectionLabel(column.title.toUpperCase()).build(cx),
+              ),
             ),
           ),
         ),

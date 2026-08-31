@@ -477,8 +477,12 @@ export class Panel {
       .min_w_0()
       .gap(tokens.spacing.labelGap)
       .child(new Label(title).size("subtitle").strong().build(cx))
+      // One step down from the title it qualifies: a note that matched the
+      // heading would read as a second heading.
       .when(Boolean(note), (element) =>
-        element.child(new MutedText(String(note)).truncate().build(cx)),
+        element.child(
+          new MutedText(String(note)).size("bodySmall").truncate().build(cx),
+        ),
       );
 
     const header = new PanelHeader(`${this.#id}-header`).heading(heading);
