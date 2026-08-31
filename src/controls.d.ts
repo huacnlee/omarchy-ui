@@ -227,6 +227,22 @@ export declare class Tabs {
     onChange(callback: (value: string, cx: import("gpui").Context) => void): this;
     /** @param {string} value */
     size(value: string): this;
+    /**
+     * Where this run sits in the window's tab order, as the index of its first
+     * choice; the rest follow it.
+     *
+     * A tab index is the *window's* ordering, not a control's own, so a run of
+     * tabs cannot know its place from inside. Left unset it numbers from one,
+     * which is right for a window with a single run and wrong the moment there
+     * is a second: three runs in one dialog would each claim 1 and 2, and the
+     * fields between them would be walked in an order nobody chose.
+     *
+     * Leave room for the choices -- the next control starts at least
+     * `start + items.length`.
+     *
+     * @param {number} start
+     */
+    tabIndex(start: number): this;
     /** @param {string} text what this run of tabs is choosing, for a screen reader */
     accessibilityLabel(text: string): this;
     /** @param {import("gpui").Context} cx */

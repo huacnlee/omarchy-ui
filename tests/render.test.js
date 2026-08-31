@@ -443,3 +443,29 @@ test("a run of tabs reports the choice and remembers nothing", () => {
   // Reporting is all it does: the selection is still what the caller passed.
   expect(callsTo(second, "selected")[0].args).toEqual([false]);
 });
+
+test("a run of tabs takes its place in the window's tab order from the caller", () => {
+  const items = [
+    { value: "day", label: "Day" },
+    { value: "gtc", label: "Till cancelled" },
+  ];
+  const indices = (element) => {
+    const row = callsTo(element, "child")[0].args[0];
+    return callsTo(row, "children")[0]
+      .args[0].map((tab) => callsTo(tab, "tab_index")[0].args[0]);
+  };
+
+  // A tab index is the window's ordering, not a control's own, so the run
+  // cannot know its place from inside. Three runs in one dialog would each
+  // claim 1 and 2, and the fields between them would be walked in an order
+  // nobody chose.
+  expect(indices(new ui.Tabs("validity").items(items).tabIndex(40).build(cx))).toEqual([40, 41]);
+
+  // Unset it numbers from one, which is right for a window with a single run.
+  expect(indices(new ui.Tabs("interval").items(items).build(cx))).toEqual([1, 2]);
+
+  // Zero is not a place in the order, and neither is a fraction.
+  for (const bad of [0, -1, 1.5]) {
+    expect(() => new ui.Tabs("bad").tabIndex(bad)).toThrow();
+  }
+});

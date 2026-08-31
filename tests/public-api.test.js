@@ -189,6 +189,17 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "href",
     "label",
   ]);
+  expect(builders(ui.Tabs)).toEqual([
+    "accessibilityLabel",
+    "build",
+    "constructor",
+    "items",
+    "onChange",
+    "segmented",
+    "size",
+    "tabIndex",
+    "value",
+  ]);
   expect(builders(ui.TextField)).toEqual([
     "build",
     "constructor",
