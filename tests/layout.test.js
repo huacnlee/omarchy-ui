@@ -6,16 +6,15 @@ import {
   AppShell,
   BottomBar,
   CenteredWorkspace,
-  Label,
-  MutedText,
   PageColumn,
+  Panel,
   PanelHeader,
   PopupSurface,
-  SectionLabel,
   Surface,
-  Title,
+  Toolbar,
   TopBar,
 } from "../src/layout.js";
+import { Label, MutedText, SectionLabel, Title } from "../src/text.js";
 import { element } from "./gpui-stub.js";
 import { resolveSurfaceColor, style } from "../src/style.js";
 

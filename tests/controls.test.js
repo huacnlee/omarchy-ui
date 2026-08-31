@@ -36,7 +36,9 @@ function oneCall(value, method) {
 test("exports exactly the control value classes", () => {
   expect(Object.keys(controls).sort()).toEqual([
     "Button",
+    "ExternalLink",
     "FieldRow",
+    "FilterField",
     "FormField",
     "GlyphButton",
     "IconButton",

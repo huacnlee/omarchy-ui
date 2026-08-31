@@ -1,7 +1,7 @@
 // @ts-check
 
 import { div, svg } from "gpui";
-import { Button as BaseButton, h_flex, v_flex } from "gpui-base";
+import { Button as BaseButton, Input, Link, h_flex, v_flex } from "gpui-base";
 import {
   optionalCallback,
   optionalText,
@@ -10,6 +10,8 @@ import {
   stableId,
 } from "./internal.js";
 import { alpha, style } from "./style.js";
+import { Label, MutedText } from "./text.js";
+import { role } from "./theme.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
 const SIZES = /** @type {const} */ (["small", "medium", "large"]);
@@ -83,20 +85,12 @@ function sizeStyle(size) {
 
 /** @param {string} value @param {import("gpui").Context} cx */
 function labelElement(value, cx) {
-  return div()
-    .text_size(style().font.body)
-    .line_height(1.35)
-    .text_color(cx.theme().colors.foreground)
-    .child(value);
+  return new Label(value).build(cx);
 }
 
 /** @param {string} value @param {import("gpui").Context} cx */
 function mutedElement(value, cx) {
-  return div()
-    .text_size(style().font.body)
-    .line_height(1.35)
-    .text_color(cx.theme().colors.muted_foreground)
-    .child(value);
+  return new MutedText(value).build(cx);
 }
 
 /**
@@ -715,8 +709,27 @@ export class MenuSeparator {
 
 export class Keycap {
   #value;
+  #pressed = false;
+  #quiet = false;
+
   /** @param {string} value */
   constructor(value) { this.#value = value; }
+
+  /**
+   * The key is physically down. A cap that reports this is reporting the
+   * keyboard, not the interface, so it takes the focus chrome rather than the
+   * selected chrome: nothing here is selectable.
+   * @param {boolean} [value]
+   */
+  pressed(value = true) { this.#pressed = value === true; return this; }
+
+  /**
+   * Supporting metadata rather than a control — a hint strip along the bottom
+   * of a window. Only the resting fill fades; the label and the border stay
+   * fully legible, and a pressed cap keeps its full-strength response.
+   * @param {boolean} [value]
+   */
+  quiet(value = true) { this.#quiet = value === true; return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
@@ -730,11 +743,28 @@ export class Keycap {
       .px(tokens.space(3))
       .py(tokens.space(1))
       .rounded(tokens.cornerRadius)
-      .border(states.normalBorderWidth)
-      .border_color(states.normalBorder)
-      .bg(states.normalFill)
+      .border(
+        this.#pressed ? states.focusBorderWidth : states.normalBorderWidth,
+      )
+      .border_color(this.#pressed ? states.focusBorder : states.normalBorder)
+      .bg(
+        this.#pressed
+          ? states.focusFill
+          : this.#quiet
+            ? alpha(
+                cx.theme().colors.foreground,
+                tokens.state.normalFillAlpha / 2,
+              )
+            : states.normalFill,
+      )
       .text_size(tokens.font.caption)
-      .text_color(cx.theme().colors.foreground)
+      .text_color(
+        this.#pressed
+          ? cx.theme().colors.foreground
+          : this.#quiet
+            ? cx.theme().colors.muted_foreground
+            : cx.theme().colors.foreground,
+      )
       .child(value);
   }
 }
@@ -765,5 +795,104 @@ export class KeyHints {
         .child(new Keycap(key).build(cx))
         .child(mutedElement(label, cx).text_size(tokens.font.caption).flex_none());
       }));
+  }
+}
+
+/**
+ * A link out of the application.
+ *
+ * Underlined as well as tinted, because a link identified by colour alone is
+ * not a link to a reader who cannot separate it from the body text around it.
+ */
+export class ExternalLink {
+  #id;
+  #label;
+  #href;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = stableId("ExternalLink", id); }
+
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+
+  /** @param {string} url */
+  href(url) { this.#href = url; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const label = requiredText("ExternalLink", "label", this.#label);
+    const href = requiredText("ExternalLink", "href", this.#href);
+    const tokens = style();
+    const color = role("link", cx.theme().colors.primary);
+    return Link.new(this.#id)
+      .href(href)
+      .cursor_pointer()
+      .text_size(tokens.font.body)
+      .text_color(color)
+      .border_b(tokens.state.normalBorderWidth)
+      .border_color(color)
+      .focus((appearance) =>
+        appearance
+          .bg(alpha(color, tokens.state.focusFillAlpha))
+          .border_color(
+            alpha(cx.theme().colors.ring, tokens.state.focusBorderAlpha),
+          ),
+      )
+      .child(label);
+  }
+}
+
+/**
+ * The frame around a text field the application owns.
+ *
+ * `InputState` needs a live host call and belongs to the view that retains it,
+ * so this class arranges and styles the control rather than creating it — the
+ * same division `FormField` follows. What it adds is the chrome: one height
+ * shared with every other control in a title row, and a focus ring drawn on
+ * the border, so the field does not resize when the keyboard reaches it.
+ */
+export class FilterField {
+  #state;
+  /** @type {string | number | undefined} */
+  #width;
+  /** @type {ControlSize} */
+  #size = "small";
+
+  /** @param {import("gpui-base").InputState} value */
+  state(value) { this.#state = value; return this; }
+
+  /** @param {string | number} value */
+  width(value) { this.#width = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("FilterField", value); return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    if (!this.#state || typeof this.#state !== "object") {
+      throw new Error(
+        "FilterField state must be an application-owned InputState",
+      );
+    }
+    const tokens = style();
+    const dimensions = sizeStyle(this.#size);
+    const states = surfaceStates(cx);
+    return Input.new(this.#state)
+      .when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      )
+      .h(dimensions.extent)
+      .px(tokens.spacing.xs)
+      .rounded(tokens.cornerRadius)
+      .border(states.normalBorderWidth)
+      .border_color(states.normalBorder)
+      .bg(states.normalFill)
+      .text_size(dimensions.fontSize)
+      .text_color(cx.theme().colors.foreground)
+      .focus((appearance) =>
+        appearance
+          .border(states.focusBorderWidth)
+          .border_color(states.focusBorder),
+      );
   }
 }

@@ -32,13 +32,19 @@ export function element(name, args = []) {
       return (...methodArgs) => {
         /** @type {ElementCall} */
         const call = { method: String(property), args: methodArgs };
-        elementCalls.push(call);
         if (property === "when") {
+          // Only the condition is recorded. The callback is a fresh closure on
+          // every build, so keeping it would make two structurally identical
+          // builds compare unequal and hide the repeatability the tests check.
           const [condition, callback] = methodArgs;
+          call.args = [Boolean(condition)];
+          elementCalls.push(call);
           if (condition && typeof callback === "function") {
             return callback(proxy);
           }
+          return proxy;
         }
+        elementCalls.push(call);
         if (["hover", "active", "focus"].includes(String(property))) {
           const [callback] = methodArgs;
           if (typeof callback === "function") {
@@ -87,3 +93,15 @@ export const Button = { new: (id) => element("Button", [id]) };
 export const Input = { new: (state) => element("Input", [state]) };
 export class View {}
 export const set_theme = (theme) => record("set_theme", theme);
+export const Link = { new: (id) => element("Link", [id]) };
+export const Avatar = { new: () => element("Avatar") };
+export const AvatarFallback = { new: () => element("AvatarFallback") };
+export const TableHeader = { new: (id) => element("TableHeader", [id]) };
+export const TableHead = { new: (id, column) => element("TableHead", [id, column]) };
+export const TableRow = { new: (id, index) => element("TableRow", [id, index]) };
+export const TableCell = { new: (id, column) => element("TableCell", [id, column]) };
+export const Accordion = { new: (id) => element("Accordion", [id]) };
+export const AccordionItem = { new: () => element("AccordionItem") };
+export const AccordionHeader = { new: (trigger) => element("AccordionHeader", [trigger]) };
+export const AccordionTrigger = { new: (id) => element("AccordionTrigger", [id]) };
+export const AccordionPanel = { new: () => element("AccordionPanel") };
