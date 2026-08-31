@@ -122,6 +122,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "loadingLabel",
     "onClick",
     "outlined",
+    "quiet",
     "selected",
     "size",
   ]);
@@ -136,6 +137,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "loadingLabel",
     "onClick",
     "outlined",
+    "quiet",
     "selected",
     "size",
   ]);
@@ -195,6 +197,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "icon",
     "initials",
     "onClick",
+    "quiet",
     "selected",
     "size",
     "tint",

@@ -272,9 +272,17 @@ function buildCompactCommand(config, cx) {
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
+  // A quiet command is supporting chrome -- the marks in a window's title row
+  // or a panel's heading -- so it rests in the muted foreground and comes up
+  // to full strength only when it is pointed at, focused or on. Two icons at
+  // full weight beside a heading read as the point of the panel rather than as
+  // the way out of it.
+  const emphatic = !config.quiet || config.selected;
   const foreground = inactive
     ? cx.theme().colors.muted_foreground
-    : cx.theme().colors.foreground;
+    : emphatic
+      ? cx.theme().colors.foreground
+      : cx.theme().colors.muted_foreground;
   const states = surfaceStates(cx);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
@@ -331,7 +339,9 @@ function buildCompactCommand(config, cx) {
                 : NO_FILL
               : states.hoverBorder,
           )
-          .text_color(foreground),
+          .text_color(
+            inactive ? foreground : cx.theme().colors.foreground,
+          ),
       ),
     )
     .when(!inactive, (element) =>
@@ -428,6 +438,7 @@ export class IconButton {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #quiet = false;
   #disabled = false;
   #loading = false;
   #loadingLabel;
@@ -447,6 +458,8 @@ export class IconButton {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -479,6 +492,7 @@ export class IconButton {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      quiet: this.#quiet,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -495,6 +509,7 @@ export class GlyphButton {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #quiet = false;
   #disabled = false;
   #loading = false;
   #loadingLabel;
@@ -514,6 +529,8 @@ export class GlyphButton {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -546,6 +563,7 @@ export class GlyphButton {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      quiet: this.#quiet,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -970,6 +988,7 @@ export class AvatarButton {
   /** @type {import("gpui").Color | undefined} */
   #tint;
   #selected = false;
+  #quiet = false;
   #disabled = false;
   /** @type {ControlSize} */
   #size = "medium";
@@ -993,6 +1012,9 @@ export class AvatarButton {
 
   /** @param {boolean} [value] the menu this trigger opens is showing */
   selected(value = true) { this.#selected = value; return this; }
+
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
 
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
@@ -1030,6 +1052,7 @@ export class AvatarButton {
         outlined: false,
         bordered: true,
         selected: this.#selected,
+        quiet: this.#quiet,
         disabled: this.#disabled,
         loading: false,
         loadingLabel: "",

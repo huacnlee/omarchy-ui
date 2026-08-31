@@ -119,12 +119,17 @@ intentional omissions.
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
 | `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
-| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. The description supplies the accessible name and tooltip while idle. |
-| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. Use only when no icon asset exists. |
+| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
+| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
 | `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
 | `FormField(id)` | Stable `id`, non-blank `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are omitted by default. A non-empty error replaces helper text; `.error("")` clears it. |
-| `AvatarButton(id)` | Stable `id`, `.description(text)`, and one of `.initials(text)` or `.icon(asset)` | `.tint(color)`, `.selected(false)`, `.disabled(false)`, `.size("medium")`, and `.onClick(callback)`. Use where the mark is a subject — an account, a person — rather than an action. |
+| `AvatarButton(id)` | Stable `id`, `.description(text)`, and one of `.initials(text)` or `.icon(asset)` | `.tint(color)`, `.selected(false)`, `.quiet(false)`, `.disabled(false)`, `.size("medium")`, and `.onClick(callback)`. Use where the mark is a subject — an account, a person — rather than an action. |
+
+`.quiet()` marks a compact command as supporting chrome — the marks in a
+window's title row or a panel's heading. It rests in the muted foreground and
+comes up to full strength when pointed at, focused or selected, so two icons
+beside a heading do not read as the point of the panel.
 | `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
 | `FilterField` | `.state(inputState)` | `.width(value)` and `.size("small")`. The `InputState` stays application-owned; this class supplies the chrome only. |
 | `Separator` | None | No configuration. |
