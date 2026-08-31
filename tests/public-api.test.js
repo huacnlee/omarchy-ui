@@ -67,6 +67,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Title",
     "Toolbar",
     "TopBar",
+    "ValueField",
     "alpha",
     "applyOmarchyRoles",
     "applyOmarchyStyle",
@@ -194,6 +195,14 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "state",
     "width",
   ]);
+  expect(builders(ui.ValueField)).toEqual([
+    "build",
+    "constructor",
+    "size",
+    "state",
+    "suffix",
+    "width",
+  ]);
   expect(builders(ui.AvatarButton)).toEqual([
     "build",
     "constructor",
@@ -254,7 +263,7 @@ test("layout, text, and value classes expose only the reviewed builders", () => 
     DefinitionList: ["build", "constructor", "entry"],
     EmptyState: ["build", "constructor", "heading", "hint"],
     FieldRow: ["build", "constructor", "control", "label"],
-    KeyHints: ["build", "constructor", "hint"],
+    KeyHints: ["build", "constructor", "hint", "hints"],
     Keycap: ["build", "constructor", "pressed", "quiet"],
     Label: text,
     MenuSeparator: ["build", "constructor"],

@@ -260,3 +260,30 @@ test("a compact command's tone is its full strength, and quiet decides when it a
   expect(rest(off)).toEqual([theme.colors.muted_foreground]);
   expect(callsTo(off, "hover")).toHaveLength(0);
 });
+
+test("a key-hint strip takes its hints one at a time or as the list it was handed", () => {
+  const entries = [
+    { key: "j", label: "Next" },
+    { key: "k", label: "Previous" },
+  ];
+
+  // The pair matches the open containers' `child`/`children`, so a strip built
+  // by hand and one rendered from a keymap are the same strip.
+  const named = new ui.KeyHints("hints").hint("j", "Next").hint("k", "Previous").build(cx);
+  const listed = new ui.KeyHints("hints").hints(entries).build(cx);
+  expect(listed.calls).toEqual(named.calls);
+
+  // The list is read, not retained: appending to it afterwards does not reach
+  // a strip that has already been given it.
+  const strip = new ui.KeyHints("hints").hints(entries);
+  entries.push({ key: "x", label: "Never" });
+  expect(strip.build(cx).calls).toEqual(named.calls);
+
+  expect(() => new ui.KeyHints("hints").hints({ key: "j", label: "Next" })).toThrow(
+    /KeyHints hints must be an array/,
+  );
+  // A blank key or label is the same error one hint at a time already gives.
+  expect(() => new ui.KeyHints("hints").hints([{ key: "", label: "Next" }]).build(cx)).toThrow(
+    /KeyHints key/,
+  );
+});

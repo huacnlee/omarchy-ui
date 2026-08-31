@@ -213,7 +213,7 @@ nothing further to say draws no tooltip rather than one repeating its label.
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |
-| `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint. |
+| `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint and `.hints(entries)` appends a whole strip, in order — the same pair as an open container's `child`/`children`. |
 
 Control sizes are the closed vocabulary `"small"`, `"medium"`, and
 `"large"`; `.size(value)` rejects any other value immediately. Required

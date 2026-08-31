@@ -49,6 +49,7 @@ export {
   ExternalLink,
   FieldRow,
   FilterField,
+  ValueField,
   FormField,
   GlyphButton,
   IconButton,

@@ -228,6 +228,20 @@ export declare class KeyHints {
     constructor(id: string);
     /** @param {string} key @param {string} label */
     hint(key: string, label: string): this;
+    /**
+     * Append a whole strip at once, in order.
+     *
+     * The pair matches the open containers' `child`/`children`: a caller
+     * building a strip by hand names each hint, and one rendering a strip it was
+     * handed -- a keymap, a table of routes -- passes the list it already has
+     * rather than reducing over it at every call site.
+     *
+     * @param {Array<{key: string, label: string}>} entries
+     */
+    hints(entries: Array<{
+        key: string;
+        label: string;
+    }>): this;
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
@@ -261,6 +275,33 @@ export declare class FilterField {
     #private;
     /** @param {import("gpui-base").InputState} value */
     state(value: import("gpui-base").InputState): this;
+    /** @param {string | number} value */
+    width(value: string | number): this;
+    /** @param {string} value */
+    size(value: string): this;
+    /** @param {import("gpui").Context} cx */
+    build(cx: import("gpui").Context): import("gpui").Element;
+}
+/**
+ * A field whose value carries a unit: a price in USD, a size in shares.
+ *
+ * The unit belongs to the value, so it sits *inside* the field rather than
+ * beside it. Beside it, a reader has to decide whether the word is part of
+ * this control or the label of the next one, and the answer changes with how
+ * wide the surrounding column happens to be.
+ *
+ * `Input` is a leaf and takes no children, so the unit is drawn over the
+ * field's own right edge and the field is given room for it. The border and
+ * the focus ring stay on the `Input`, which is what actually takes the
+ * keyboard -- a wrapper carrying them would have to know when its child was
+ * focused, and there is no `focus_within` to ask.
+ */
+export declare class ValueField {
+    #private;
+    /** @param {import("gpui-base").InputState} value */
+    state(value: import("gpui-base").InputState): this;
+    /** @param {string} text the unit this field's value is in */
+    suffix(text: string): this;
     /** @param {string | number} value */
     width(value: string | number): this;
     /** @param {string} value */

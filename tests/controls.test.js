@@ -54,6 +54,7 @@ test("exports exactly the control value classes", () => {
     "MenuItem",
     "MenuSeparator",
     "Separator",
+    "ValueField",
   ]);
 
   for (const name of Object.keys(controls)) {

@@ -936,6 +936,23 @@ export class KeyHints {
   constructor(id) { this.#id = stableId("KeyHints", id); }
   /** @param {string} key @param {string} label */
   hint(key, label) { this.#hints.push({ key, label }); return this; }
+  /**
+   * Append a whole strip at once, in order.
+   *
+   * The pair matches the open containers' `child`/`children`: a caller
+   * building a strip by hand names each hint, and one rendering a strip it was
+   * handed -- a keymap, a table of routes -- passes the list it already has
+   * rather than reducing over it at every call site.
+   *
+   * @param {Array<{key: string, label: string}>} entries
+   */
+  hints(entries) {
+    if (!Array.isArray(entries)) {
+      throw new Error("KeyHints hints must be an array of {key, label} entries");
+    }
+    for (const entry of entries) this.hint(entry?.key, entry?.label);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
@@ -1052,6 +1069,90 @@ export class FilterField {
         appearance
           .border(states.focusBorderWidth)
           .border_color(states.focusBorder),
+      );
+  }
+}
+
+/**
+ * A field whose value carries a unit: a price in USD, a size in shares.
+ *
+ * The unit belongs to the value, so it sits *inside* the field rather than
+ * beside it. Beside it, a reader has to decide whether the word is part of
+ * this control or the label of the next one, and the answer changes with how
+ * wide the surrounding column happens to be.
+ *
+ * `Input` is a leaf and takes no children, so the unit is drawn over the
+ * field's own right edge and the field is given room for it. The border and
+ * the focus ring stay on the `Input`, which is what actually takes the
+ * keyboard -- a wrapper carrying them would have to know when its child was
+ * focused, and there is no `focus_within` to ask.
+ */
+export class ValueField {
+  #state;
+  #suffix = "";
+  /** @type {string | number | undefined} */
+  #width;
+  /** @type {ControlSize} */
+  #size = "small";
+
+  /** @param {import("gpui-base").InputState} value */
+  state(value) { this.#state = value; return this; }
+
+  /** @param {string} text the unit this field's value is in */
+  suffix(text) { this.#suffix = optionalText("ValueField", "suffix", text) ?? ""; return this; }
+
+  /** @param {string | number} value */
+  width(value) { this.#width = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("ValueField", value); return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    if (!this.#state || typeof this.#state !== "object") {
+      throw new Error("ValueField state must be an application-owned InputState");
+    }
+    const tokens = style();
+    const dimensions = sizeStyle(this.#size);
+    const states = surfaceStates(cx);
+    const suffix = this.#suffix;
+    // The window is monospaced, so a unit's width is its length. The gap on
+    // either side is what stops the digits touching the word.
+    const room = suffix
+      ? Math.round(dimensions.fontSize * 0.62 * suffix.length) + tokens.spacing.sm * 2
+      : 0;
+    const field = Input.new(this.#state)
+      .h(dimensions.extent)
+      .pl(tokens.spacing.xs)
+      .pr(suffix ? room : tokens.spacing.xs)
+      .rounded(tokens.cornerRadius)
+      .border(states.normalBorderWidth)
+      .border_color(states.normalBorder)
+      .bg(states.normalFill)
+      .text_size(dimensions.fontSize)
+      .text_color(cx.theme().colors.foreground)
+      .focus((appearance) =>
+        appearance.border(states.focusBorderWidth).border_color(states.focusBorder),
+      );
+    if (!suffix) {
+      return field.when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      );
+    }
+    return h_flex()
+      .relative()
+      .when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      )
+      .child(field.flex_1())
+      .child(
+        h_flex()
+          .absolute()
+          .right(tokens.spacing.sm)
+          .top(0)
+          .h(dimensions.extent)
+          .items_center()
+          .child(mutedElement(suffix, cx).text_size(dimensions.fontSize)),
       );
   }
 }
