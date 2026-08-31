@@ -114,10 +114,12 @@ test("button-derived controls render Omarchy keyboard focus treatment", () => {
   for (const control of controls) {
     const focus = callsTo(control, "focus");
     expect(focus).toHaveLength(1);
-    expect(callsTo(focus[0].style, "bg")[0].args).toEqual(["#eeeeee14"]);
+    // A neutral control's focus is the theme's own chrome: the muted fill it
+    // uses for hover, ringed in the token named for exactly that.
+    expect(callsTo(focus[0].style, "bg")[0].args).toEqual([theme.colors.muted]);
     expect(callsTo(focus[0].style, "border")[0].args).toEqual([1]);
     expect(callsTo(focus[0].style, "border_color")[0].args).toEqual([
-      "#2233aa40",
+      theme.colors.ring,
     ]);
   }
 });

@@ -4,12 +4,14 @@ import { div } from "gpui";
 import { h_flex, v_flex } from "gpui-base";
 import {
   optionalRenderable,
+  optionalText,
   requiredRenderable,
   requiredRenderables,
   requiredText,
   stableId,
 } from "./internal.js";
 import { resolveSurfaceColor, style } from "./style.js";
+import { Label, MutedText } from "./text.js";
 import { role } from "./theme.js";
 
 /** @param {string} component @param {Array<[string, unknown]>} entries */
@@ -378,20 +380,30 @@ export class PopupSurface {
       .p(tokens.space(4))
       .gap(tokens.space(2))
       .rounded(tokens.cornerRadius)
+      // A popup is a raised surface, so with nothing named it takes the
+      // surface token rather than the window's ground. Omarchy's own themes
+      // set the two to the same colour on purpose -- the window is one
+      // surface, separated by hairlines -- so this changes nothing there and
+      // stops a menu reading as a hole under any theme that separates them.
       .bg(
         resolveSurfaceColor(
           tokens,
           tokens.surfaces.popupBackground,
-          cx.theme().colors.background,
+          cx.theme().colors.surface,
           tokens.surfaces.popupBackgroundAlpha,
         ),
       )
       .border(tokens.state.normalBorderWidth)
+      // A theme that names `popups.border` usually points it at Hyprland's
+      // active-border, so a menu's edge matches the frame the compositor
+      // draws. With nothing named, the fallback is the border every other
+      // surface uses -- not the focus ring, which would frame a resting menu
+      // in the one colour that is supposed to mean "the keyboard is here".
       .border_color(
         resolveSurfaceColor(
           tokens,
           tokens.surfaces.popupBorder,
-          cx.theme().colors.ring,
+          cx.theme().colors.border,
           tokens.surfaces.popupBorderAlpha,
         ),
       )
@@ -406,100 +418,146 @@ export class PopupSurface {
   }
 }
 
-export class Label {
-  #text;
+/**
+ * A titled region of a workspace: a `Surface` whose first row is a
+ * `PanelHeader`, and whose body is the caller's content.
+ *
+ * `note` is what the title alone cannot say — a count, a currency, a window of
+ * days. It sits *with* the heading rather than across the row from it, because
+ * it qualifies the title; opposite the title it reads as a second control.
+ *
+ * `grow` is how the body is sized. A pane whose content fills whatever it is
+ * given — a table, a plot, a tape — grows into the panel; a pane that is a
+ * fixed block of readings takes its own height instead, because a block of
+ * readings stretched to fill a tall window leaves a band of empty panel under
+ * its last row.
+ */
+export class Panel {
+  #id;
+  #title;
+  #note;
+  #accessory;
+  #content;
+  #grow = true;
 
-  /** @param {string} [value] */
-  constructor(value) {
-    this.#text = value;
+  /** @param {string} id */
+  constructor(id) {
+    this.#id = stableId("Panel", id);
   }
 
-  /** @param {string} value */
-  text(value) {
-    this.#text = value;
+  /** @param {string} text */
+  title(text) {
+    this.#title = text;
+    return this;
+  }
+
+  /** @param {string} text */
+  note(text) {
+    this.#note = text;
+    return this;
+  }
+
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  accessory(element) {
+    this.#accessory = element;
+    return this;
+  }
+
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  content(element) {
+    this.#content = element;
+    return this;
+  }
+
+  /** @param {boolean} [value] */
+  grow(value = true) {
+    this.#grow = value === true;
     return this;
   }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    const text = requiredText("Label", "text", this.#text);
-    return div()
-      .text_size(style().font.body)
-      .line_height(1.35)
-      .text_color(cx.theme().colors.foreground)
-      .child(text);
+    const title = requiredText("Panel", "title", this.#title);
+    const note = optionalText("Panel", "note", this.#note);
+    const content = requiredRenderable("Panel", "content", this.#content);
+    const tokens = style();
+
+    const heading = h_flex()
+      .items_baseline()
+      .min_w_0()
+      .gap(tokens.spacing.labelGap)
+      .child(new Label(title).size("subtitle").strong().build(cx))
+      // One step down from the title it qualifies: a note that matched the
+      // heading would read as a second heading.
+      .when(Boolean(note), (element) =>
+        element.child(
+          new MutedText(String(note)).size("bodySmall").truncate().build(cx),
+        ),
+      );
+
+    const header = new PanelHeader(`${this.#id}-header`).heading(heading);
+    if (this.#accessory) header.actions(this.#accessory);
+
+    return new Surface()
+      .child(header.build(cx))
+      .child(
+        this.#grow
+          ? content.flex_1().min_h_0()
+          : content.flex_none(),
+      )
+      .build(cx)
+      .id(this.#id)
+      .min_w_0()
+      .min_h_0();
   }
 }
 
-export class MutedText {
-  #text;
+/**
+ * A row of controls attached to the content below it.
+ *
+ * Unlike `ActionBar` it draws no rule of its own and takes the row inset
+ * rather than the panel inset, so a filter box, the first column heading and
+ * the first cell under it share one content edge.
+ */
+export class Toolbar {
+  #id;
+  #leading;
+  #trailing;
 
-  /** @param {string} [value] */
-  constructor(value) {
-    this.#text = value;
+  /** @param {string} id */
+  constructor(id) {
+    this.#id = stableId("Toolbar", id);
   }
 
-  /** @param {string} value */
-  text(value) {
-    this.#text = value;
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  leading(element) {
+    this.#leading = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
-  build(cx) {
-    const text = requiredText("MutedText", "text", this.#text);
-    return div()
-      .text_size(style().font.body)
-      .line_height(1.35)
-      .text_color(cx.theme().colors.muted_foreground)
-      .child(text);
-  }
-}
-
-export class Title {
-  #text;
-
-  /** @param {string} [value] */
-  constructor(value) {
-    this.#text = value;
-  }
-
-  /** @param {string} value */
-  text(value) {
-    this.#text = value;
+  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  trailing(element) {
+    this.#trailing = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
-  build(cx) {
-    const text = requiredText("Title", "text", this.#text);
-    return div()
-      .text_size(style().font.title)
-      .text_color(cx.theme().colors.foreground)
-      .child(text);
-  }
-}
-
-export class SectionLabel {
-  #text;
-
-  /** @param {string} [value] */
-  constructor(value) {
-    this.#text = value;
-  }
-
-  /** @param {string} value */
-  text(value) {
-    this.#text = value;
-    return this;
-  }
-
-  /** @param {import("gpui").Context} cx */
-  build(cx) {
-    const text = requiredText("SectionLabel", "text", this.#text);
-    return div()
-      .text_size(style().font.caption)
-      .text_color(cx.theme().colors.muted_foreground)
-      .child(text);
+  /** @param {import("gpui").Context} _cx */
+  build(_cx) {
+    const tokens = style();
+    return h_flex()
+      .id(this.#id)
+      .role("toolbar")
+      .flex_none()
+      .items_center()
+      .justify_between()
+      .gap(tokens.spacing.controlGap)
+      .px(tokens.spacing.rowPaddingX)
+      .py(tokens.spacing.sm)
+      .children(
+        optionalSlots("Toolbar", [
+          ["leading", this.#leading],
+          ["trailing", this.#trailing],
+        ]),
+      );
   }
 }

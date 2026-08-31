@@ -1,7 +1,7 @@
 // @ts-check
 
 import { div, svg } from "gpui";
-import { Button as BaseButton, h_flex, v_flex } from "gpui-base";
+import { Button as BaseButton, Input, Link, h_flex, v_flex } from "gpui-base";
 import {
   optionalCallback,
   optionalText,
@@ -9,7 +9,10 @@ import {
   requiredText,
   stableId,
 } from "./internal.js";
+import { Avatar } from "./data.js";
 import { alpha, style } from "./style.js";
+import { Label, MutedText } from "./text.js";
+import { role } from "./theme.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
 const SIZES = /** @type {const} */ (["small", "medium", "large"]);
@@ -21,22 +24,65 @@ const SIZES = /** @type {const} */ (["small", "medium", "large"]);
  * @param {import("gpui").Color} [color]
  * @param {import("gpui").Color} [focusColor]
  */
-function surfaceStates(cx, color, focusColor) {
+/**
+ * A control's chrome, in every state it can be in.
+ *
+ * There are two ways to arrive at these colours and the difference matters.
+ *
+ * A **tinted** control -- destructive, accent -- has no token for "destructive
+ * at eight percent", so its chrome is derived: the role's own colour at the
+ * theme's alphas. That derivation is Omarchy's model, and it is what keeps a
+ * light theme from getting a dark "muted" and a dark theme a light one.
+ *
+ * A **neutral** control takes the chrome the semantic theme already names.
+ * `surface` is a resting control's fill, `muted` its hover, `accent` its
+ * selection, `border` its edge, `ring` its focus. `omarchyTheme` builds those
+ * four tokens out of exactly the alphas below, so on an Omarchy desktop the
+ * two routes agree by construction -- and a theme written by hand rather than
+ * derived means its tokens literally, which is the case re-deriving would
+ * override. A window whose palette says its rules are `#cecdc3` should not get
+ * forty percent of its foreground instead.
+ *
+ * @param {import("gpui").Context} cx
+ * @param {import("gpui").Color} [tint] a role colour, for a tinted control
+ */
+function surfaceStates(cx, tint) {
   const state = style().state;
-  const own = color || cx.theme().colors.foreground;
+  const colors = cx.theme().colors;
+  if (tint) {
+    return {
+      normalFill: alpha(tint, state.normalFillAlpha),
+      hoverFill: alpha(tint, state.hoverFillAlpha),
+      selectedFill: alpha(tint, state.selectedFillAlpha),
+      pressedFill: alpha(tint, state.pressedFillAlpha),
+      normalBorder: alpha(tint, state.normalBorderAlpha),
+      hoverBorder: alpha(tint, state.hoverBorderAlpha),
+      selectedBorder: alpha(tint, state.selectedBorderAlpha),
+      focusFill: alpha(tint, state.focusFillAlpha),
+      focusBorder: alpha(tint, state.focusBorderAlpha),
+      ...widths(state),
+    };
+  }
   return {
-    normalFill: alpha(own, state.normalFillAlpha),
-    hoverFill: alpha(own, state.hoverFillAlpha),
-    selectedFill: alpha(own, state.selectedFillAlpha),
-    pressedFill: alpha(own, state.pressedFillAlpha),
-    normalBorder: alpha(own, state.normalBorderAlpha),
-    hoverBorder: alpha(own, state.hoverBorderAlpha),
-    selectedBorder: alpha(own, state.selectedBorderAlpha),
-    focusFill: alpha(own, state.focusFillAlpha),
-    focusBorder: alpha(
-      focusColor || cx.theme().colors.ring,
-      state.focusBorderAlpha,
-    ),
+    normalFill: colors.surface,
+    hoverFill: colors.muted,
+    selectedFill: colors.accent,
+    // No token names a pressed fill, and none should: it is the hover fill
+    // pushed one step, which is a derivation rather than a colour a theme has
+    // an opinion about.
+    pressedFill: alpha(colors.foreground, state.pressedFillAlpha),
+    normalBorder: colors.border,
+    hoverBorder: colors.border,
+    selectedBorder: colors.accent,
+    focusFill: colors.muted,
+    focusBorder: colors.ring,
+    ...widths(state),
+  };
+}
+
+/** @param {ReturnType<typeof style>["state"]} state */
+function widths(state) {
+  return {
     normalBorderWidth: state.normalBorderWidth,
     hoverBorderWidth: state.hoverBorderWidth,
     selectedBorderWidth: state.selectedBorderWidth,
@@ -83,25 +129,17 @@ function sizeStyle(size) {
 
 /** @param {string} value @param {import("gpui").Context} cx */
 function labelElement(value, cx) {
-  return div()
-    .text_size(style().font.body)
-    .line_height(1.35)
-    .text_color(cx.theme().colors.foreground)
-    .child(value);
+  return new Label(value).build(cx);
 }
 
 /** @param {string} value @param {import("gpui").Context} cx */
 function mutedElement(value, cx) {
-  return div()
-    .text_size(style().font.body)
-    .line_height(1.35)
-    .text_color(cx.theme().colors.muted_foreground)
-    .child(value);
+  return new MutedText(value).build(cx);
 }
 
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
- * selected:boolean, danger:boolean, disabled:boolean, loading:boolean,
+ * selected:boolean, accent:boolean, danger:boolean, disabled:boolean, loading:boolean,
  * loadingLabel:string, size:ControlSize,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
@@ -111,21 +149,23 @@ function buildButton(config, cx) {
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
-  const foreground = config.danger
+  // Emphasis is carried by the label and the border, never by a solid block of
+  // colour: an Omarchy control is an alpha of a role over the window's own
+  // ground, and one filled rectangle in a window of them reads as a different
+  // application. `accent` and `danger` are the two roles a control can take.
+  const emphasis = config.danger
+    ? cx.theme().colors.destructive
+    : config.accent
+      ? role("accent", cx.theme().colors.primary)
+      : undefined;
+  const foreground = emphasis
     ? inactive
-      ? alpha(
-          cx.theme().colors.destructive,
-          tokens.state.normalBorderAlpha,
-        )
-      : cx.theme().colors.destructive
+      ? alpha(emphasis, tokens.state.normalBorderAlpha)
+      : emphasis
     : inactive
       ? cx.theme().colors.muted_foreground
       : cx.theme().colors.foreground;
-  const states = surfaceStates(
-    cx,
-    foreground,
-    config.danger ? cx.theme().colors.destructive : undefined,
-  );
+  const states = surfaceStates(cx, emphasis);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -232,10 +272,18 @@ function buildCompactCommand(config, cx) {
   const dimensions = sizeStyle(config.size);
   const inactive = config.disabled || config.loading;
   const hasBorder = config.outlined || config.bordered || config.selected;
+  // A quiet command is supporting chrome -- the marks in a window's title row
+  // or a panel's heading -- so it rests in the muted foreground and comes up
+  // to full strength only when it is pointed at, focused or on. Two icons at
+  // full weight beside a heading read as the point of the panel rather than as
+  // the way out of it.
+  const emphatic = !config.quiet || config.selected;
   const foreground = inactive
     ? cx.theme().colors.muted_foreground
-    : cx.theme().colors.foreground;
-  const states = surfaceStates(cx, foreground);
+    : emphatic
+      ? cx.theme().colors.foreground
+      : cx.theme().colors.muted_foreground;
+  const states = surfaceStates(cx);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
     : states.normalBorderWidth;
@@ -291,7 +339,9 @@ function buildCompactCommand(config, cx) {
                 : NO_FILL
               : states.hoverBorder,
           )
-          .text_color(foreground),
+          .text_color(
+            inactive ? foreground : cx.theme().colors.foreground,
+          ),
       ),
     )
     .when(!inactive, (element) =>
@@ -317,6 +367,7 @@ export class Button {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #accent = false;
   #danger = false;
   #disabled = false;
   #loading = false;
@@ -337,6 +388,8 @@ export class Button {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] the one control a screen wants pressed */
+  accent(value = true) { this.#accent = value; return this; }
   /** @param {boolean} [value] */
   danger(value = true) { this.#danger = value; return this; }
   /** @param {boolean} [value] */
@@ -367,6 +420,7 @@ export class Button {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      accent: this.#accent,
       danger: this.#danger,
       disabled: this.#disabled,
       loading: this.#loading,
@@ -384,6 +438,7 @@ export class IconButton {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #quiet = false;
   #disabled = false;
   #loading = false;
   #loadingLabel;
@@ -403,6 +458,8 @@ export class IconButton {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -435,6 +492,7 @@ export class IconButton {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      quiet: this.#quiet,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -451,6 +509,7 @@ export class GlyphButton {
   #outlined = false;
   #bordered = false;
   #selected = false;
+  #quiet = false;
   #disabled = false;
   #loading = false;
   #loadingLabel;
@@ -470,6 +529,8 @@ export class GlyphButton {
   bordered(value = true) { this.#bordered = value; return this; }
   /** @param {boolean} [value] */
   selected(value = true) { this.#selected = value; return this; }
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -502,6 +563,7 @@ export class GlyphButton {
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
+      quiet: this.#quiet,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -560,7 +622,6 @@ export class MenuItem {
         : cx.theme().colors.foreground;
     const states = surfaceStates(
       cx,
-      foreground,
       this.#danger ? cx.theme().colors.destructive : undefined,
     );
     const restBorderWidth = this.#selected
@@ -589,17 +650,17 @@ export class MenuItem {
       .text_size(tokens.font.bodySmall)
       .text_color(foreground)
       .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
+      // A menu row lights as a band, not as a control that grows an edge: the
+      // popup is already a bordered surface, and a rule around every row
+      // inside it turns a list into a stack of buttons.
       .when(!this.#disabled, (element) => element.hover((appearance) => appearance
         .bg(this.#selected ? states.selectedFill : states.hoverFill)
-        .border(this.#selected ? states.selectedBorderWidth : states.hoverBorderWidth)
-        .border_color(
-          this.#selected
-            ? states.selectedBorderWidth > 0
-              ? states.selectedBorder
-              : NO_FILL
-            : states.hoverBorder,
-        )))
+        .border(restBorderWidth)
+        .border_color(restBorderColor)))
       .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
+      // Focus is the one state that does draw an edge: it reports where the
+      // keyboard is, which a fill alone cannot say when the pointer is
+      // hovering a different row.
       .focus((appearance) => appearance
         .bg(this.#selected ? states.selectedFill : states.focusFill)
         .border(states.focusBorderWidth)
@@ -702,7 +763,14 @@ export class FormField {
 export class Separator {
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    return v_flex().flex_none().h(style().spacing.hairline).w_full().bg(alpha(cx.theme().colors.foreground, 0.12));
+    // A panel rule, which is not a control border: `separator` is the derived
+    // role for it, and a theme that has not been read falls back to its own
+    // border token rather than to a hard-coded fraction of the foreground.
+    return v_flex()
+      .flex_none()
+      .h(style().spacing.hairline)
+      .w_full()
+      .bg(role("separator", cx.theme().colors.border));
   }
 }
 
@@ -715,8 +783,27 @@ export class MenuSeparator {
 
 export class Keycap {
   #value;
+  #pressed = false;
+  #quiet = false;
+
   /** @param {string} value */
   constructor(value) { this.#value = value; }
+
+  /**
+   * The key is physically down. A cap that reports this is reporting the
+   * keyboard, not the interface, so it takes the focus chrome rather than the
+   * selected chrome: nothing here is selectable.
+   * @param {boolean} [value]
+   */
+  pressed(value = true) { this.#pressed = value === true; return this; }
+
+  /**
+   * Supporting metadata rather than a control — a hint strip along the bottom
+   * of a window. Only the resting fill fades; the label and the border stay
+   * fully legible, and a pressed cap keeps its full-strength response.
+   * @param {boolean} [value]
+   */
+  quiet(value = true) { this.#quiet = value === true; return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
@@ -730,11 +817,29 @@ export class Keycap {
       .px(tokens.space(3))
       .py(tokens.space(1))
       .rounded(tokens.cornerRadius)
-      .border(states.normalBorderWidth)
-      .border_color(states.normalBorder)
-      .bg(states.normalFill)
+      .border(
+        this.#pressed ? states.focusBorderWidth : states.normalBorderWidth,
+      )
+      .border_color(this.#pressed ? states.focusBorder : states.normalBorder)
+      // A cap that is physically down takes the selected fill, which is the
+      // strongest one a control has -- it is reporting the keyboard, and the
+      // keyboard is unambiguous. A quiet cap takes the muted fill, so a hint
+      // strip reads as metadata rather than as a row of buttons.
+      .bg(
+        this.#pressed
+          ? states.selectedFill
+          : this.#quiet
+            ? cx.theme().colors.muted
+            : states.normalFill,
+      )
       .text_size(tokens.font.caption)
-      .text_color(cx.theme().colors.foreground)
+      .text_color(
+        this.#pressed
+          ? cx.theme().colors.foreground
+          : this.#quiet
+            ? cx.theme().colors.muted_foreground
+            : cx.theme().colors.foreground,
+      )
       .child(value);
   }
 }
@@ -765,5 +870,196 @@ export class KeyHints {
         .child(new Keycap(key).build(cx))
         .child(mutedElement(label, cx).text_size(tokens.font.caption).flex_none());
       }));
+  }
+}
+
+/**
+ * A link out of the application.
+ *
+ * Underlined as well as tinted, because a link identified by colour alone is
+ * not a link to a reader who cannot separate it from the body text around it.
+ */
+export class ExternalLink {
+  #id;
+  #label;
+  #href;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = stableId("ExternalLink", id); }
+
+  /** @param {string} text */
+  label(text) { this.#label = text; return this; }
+
+  /** @param {string} url */
+  href(url) { this.#href = url; return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const label = requiredText("ExternalLink", "label", this.#label);
+    const href = requiredText("ExternalLink", "href", this.#href);
+    const tokens = style();
+    const color = role("link", cx.theme().colors.primary);
+    return Link.new(this.#id)
+      .href(href)
+      .cursor_pointer()
+      .text_size(tokens.font.body)
+      .text_color(color)
+      .border_b(tokens.state.normalBorderWidth)
+      .border_color(color)
+      .focus((appearance) =>
+        appearance
+          .bg(alpha(color, tokens.state.focusFillAlpha))
+          .border_color(
+            alpha(cx.theme().colors.ring, tokens.state.focusBorderAlpha),
+          ),
+      )
+      .child(label);
+  }
+}
+
+/**
+ * The frame around a text field the application owns.
+ *
+ * `InputState` needs a live host call and belongs to the view that retains it,
+ * so this class arranges and styles the control rather than creating it — the
+ * same division `FormField` follows. What it adds is the chrome: one height
+ * shared with every other control in a title row, and a focus ring drawn on
+ * the border, so the field does not resize when the keyboard reaches it.
+ */
+export class FilterField {
+  #state;
+  /** @type {string | number | undefined} */
+  #width;
+  /** @type {ControlSize} */
+  #size = "small";
+
+  /** @param {import("gpui-base").InputState} value */
+  state(value) { this.#state = value; return this; }
+
+  /** @param {string | number} value */
+  width(value) { this.#width = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("FilterField", value); return this; }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    if (!this.#state || typeof this.#state !== "object") {
+      throw new Error(
+        "FilterField state must be an application-owned InputState",
+      );
+    }
+    const tokens = style();
+    const dimensions = sizeStyle(this.#size);
+    const states = surfaceStates(cx);
+    return Input.new(this.#state)
+      .when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      )
+      .h(dimensions.extent)
+      .px(tokens.spacing.xs)
+      .rounded(tokens.cornerRadius)
+      .border(states.normalBorderWidth)
+      .border_color(states.normalBorder)
+      .bg(states.normalFill)
+      .text_size(dimensions.fontSize)
+      .text_color(cx.theme().colors.foreground)
+      .focus((appearance) =>
+        appearance
+          .border(states.focusBorderWidth)
+          .border_color(states.focusBorder),
+      );
+  }
+}
+
+/**
+ * The trigger an account menu hangs from: a compact command whose content is
+ * an `Avatar` rather than an icon.
+ *
+ * Distinct from `IconButton` because the mark inside is a *subject* — a person,
+ * an account, an organisation — and carries the subject's own initials or
+ * tint. A trigger that drew the same glyph for everyone would not need one.
+ */
+export class AvatarButton {
+  #id;
+  #initials;
+  #asset;
+  #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tint;
+  #selected = false;
+  #quiet = false;
+  #disabled = false;
+  /** @type {ControlSize} */
+  #size = "medium";
+  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  #onClick;
+
+  /** @param {string} id */
+  constructor(id) { this.#id = stableId("AvatarButton", id); }
+
+  /** @param {string} text one or two characters */
+  initials(text) { this.#initials = text; return this; }
+
+  /** @param {string} asset complete application-root-relative asset path */
+  icon(asset) { this.#asset = asset; return this; }
+
+  /** @param {string} text the accessible name and the tooltip */
+  description(text) { this.#description = text; return this; }
+
+  /** @param {import("gpui").Color | undefined} color */
+  tint(color) { this.#tint = color; return this; }
+
+  /** @param {boolean} [value] the menu this trigger opens is showing */
+  selected(value = true) { this.#selected = value; return this; }
+
+  /** @param {boolean} [value] supporting chrome: muted until pointed at */
+  quiet(value = true) { this.#quiet = value; return this; }
+
+  /** @param {boolean} [value] */
+  disabled(value = true) { this.#disabled = value; return this; }
+
+  /** @param {string} value */
+  size(value) { this.#size = controlSize("AvatarButton", value); return this; }
+
+  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  onClick(callback) {
+    this.#onClick = optionalCallback("AvatarButton", "onClick", callback);
+    return this;
+  }
+
+  /** @param {import("gpui").Context} cx */
+  build(cx) {
+    const description = requiredText(
+      "AvatarButton",
+      "description",
+      this.#description,
+    );
+    // The compact command's own padding, so the mark sits inside the button's
+    // box rather than fighting it for the same edge.
+    const inset = style().space(2);
+    const avatar = new Avatar().extent(
+      Math.max(1, sizeStyle(this.#size).extent - inset * 2),
+    );
+    if (this.#initials) avatar.initials(this.#initials);
+    if (this.#asset) avatar.icon(this.#asset);
+    if (this.#tint) avatar.tint(this.#tint);
+    return buildCompactCommand(
+      {
+        id: this.#id,
+        content: avatar.build(cx),
+        description,
+        outlined: false,
+        bordered: true,
+        selected: this.#selected,
+        quiet: this.#quiet,
+        disabled: this.#disabled,
+        loading: false,
+        loadingLabel: "",
+        size: this.#size,
+        onClick: this.#onClick,
+      },
+      cx,
+    );
   }
 }

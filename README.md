@@ -86,8 +86,26 @@ interface text.
 | `PageColumn(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order. `.maxWidth(value)` defaults to `style().space(560)`. |
 | `Surface` | None | `.child(element)` and `.children(elements)` append in order; an empty surface is valid. |
 | `PopupSurface(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order; an empty popup surface is valid. |
-| `Label`, `MutedText` | Non-blank constructor text or `.text(value)` | No optional fields. |
-| `Title`, `SectionLabel` | Non-blank constructor text or `.text(value)` | `SectionLabel` applies the Omarchy section-label presentation while preserving caller casing. |
+| `Panel(id)` | Stable `id`, non-blank `.title(text)`, and `.content(element)` | `.note(text)` and `.accessory(element)` are omitted by default; `.grow(true)` fills the panel with the content, `.grow(false)` lets the content take its own height. |
+| `Toolbar(id)` | Stable `id` | `.leading(element)` and `.trailing(element)` are omitted by default. Unlike `ActionBar` it draws no rule and uses the row inset, so it lines up with the table under it. |
+| `Label`, `MutedText`, `Title`, `SectionLabel` | Constructor text or `.text(value)` | `.size(step)`, `.strong(false)`, `.truncate(false)`, and `.tone(color)`. |
+
+The four text roles share one set of builders and differ only in their
+defaults: `Label` and `Title` resolve to the foreground token, `MutedText` and
+`SectionLabel` to the muted one, and `SectionLabel` is bold at the caption step
+while preserving caller casing.
+
+`.size(step)` names one step of the shared type scale — `"caption"`,
+`"bodySmall"`, `"body"`, `"subtitle"`, `"title"`, `"heading"`, `"display"`,
+`"displayLarge"` — and rejects anything else, including a pixel value.
+`.tone(color)` is the one escape hatch for a colour the semantic tokens cannot
+carry, such as a rising price or a stale feed; passing `undefined` keeps the
+role's own colour, so an optional reading needs no branch at the call site.
+
+Text is required at `build(cx)` like every other required copy, with one
+documented exception: `""` is accepted as a deliberate blank line, because a
+fixed-height row keeps its second line even when there is nothing to say on it.
+Whitespace-only text stays an error.
 
 Named slots preserve semantic order. Falsy optional slots are omitted. Open
 containers preserve the order of every `.child(...)` and `.children(...)`
@@ -100,15 +118,23 @@ intentional omissions.
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
-| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. The description supplies the accessible name and tooltip while idle. |
-| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders. Use only when no icon asset exists. |
+| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
+| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
+| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
 | `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
 | `FormField(id)` | Stable `id`, non-blank `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are omitted by default. A non-empty error replaces helper text; `.error("")` clears it. |
+| `AvatarButton(id)` | Stable `id`, `.description(text)`, and one of `.initials(text)` or `.icon(asset)` | `.tint(color)`, `.selected(false)`, `.quiet(false)`, `.disabled(false)`, `.size("medium")`, and `.onClick(callback)`. Use where the mark is a subject — an account, a person — rather than an action. |
+
+`.quiet()` marks a compact command as supporting chrome — the marks in a
+window's title row or a panel's heading. It rests in the muted foreground and
+comes up to full strength when pointed at, focused or selected, so two icons
+beside a heading do not read as the point of the panel.
+| `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
+| `FilterField` | `.state(inputState)` | `.width(value)` and `.size("small")`. The `InputState` stays application-owned; this class supplies the chrome only. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
-| `Keycap(value)` | Non-blank key text | No optional fields. |
+| `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |
 | `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint. |
 
 Control sizes are the closed vocabulary `"small"`, `"medium"`, and
@@ -140,8 +166,62 @@ role and the destructive token; call `.error("")` to reveal helper text again.
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
 | `ListRow(id)` | Stable `id` | `.selected(false)`, `.disabled(false)`, and `.onClick(callback)`; `.child(element)` and `.children(elements)` append in order. |
+| `Avatar` | One of `.initials(text)` or `.icon(asset)`, never both | `.tint(color)`, `.extent(pixels)`, and `.description(text)`. A square block, not a disc: the kit draws no circles. |
+| `Metric(title)` | Non-blank title and `.value(text)` | `.tone(color)`, `.size("subtitle")`, and `.basis(104)`. A basis rather than a width is what makes a row of these rewrap instead of squeezing. |
+| `MetricGrid(id)` | Stable `id` | `.child(element)` and `.children(elements)` append in order. |
+| `DefinitionList(id)` | Stable `id` | `.entry(title, value, tone)` appends one label-and-value row. |
+| `CodeBlock(id)` | Stable `id` and non-blank `.value(text)` | No optional fields. Set large and spaced, because the value exists to be transcribed. |
 | `EmptyState` | `.heading(text)` and `.hint(text)` | No optional fields. |
 | `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. `.loadingLabel(text)` must be non-blank when state is loading. |
+| `Badge(id)` | Stable `id` and non-blank `.label(text)` | `.tone("neutral")`, `.color(value)`, `.dot(false)`, `.quiet(false)`, and `.description(text)`. |
+| `Alert(id)` | Stable `id` and non-blank `.message(text)` | `.tone("danger")` and `.color(value)`. |
+| `Step(index)` | A positive integer index and non-blank `.title(text)` | No optional fields. |
+
+`tone` is the closed vocabulary `"neutral"`, `"accent"`, `"success"`,
+`"warning"`, `"danger"`. Only `accent` and `danger` resolve to a semantic
+token; `success` and `warning` are readings the seventeen tokens do not carry,
+so a caller with a palette for them passes it as `.color(value)` and a caller
+without gets the muted foreground rather than an invented green. A `Badge`'s
+dot is never the whole signal — the word beside it says the same thing.
+
+### Tables
+
+| Class | Required before `build(cx)` | Optional builders and defaults |
+| --- | --- | --- |
+| `TableHeaderRow(id)` | Stable `id` | `.column(spec)` and `.columns(specs)` append in order. |
+| `TableRow(id, index)` | Stable `id` and a zero-based body index | `.height(pixels)`, `.selected(false)`, `.dimmed(false)`, `.onClick(callback)`, and `.cell(options, element)` appending in order. |
+| `CellStack` | None | `.align("start")` and `.child(element)` appending in order. |
+
+A column spec is `{title, width, align, hint}`. `width` is a share of the row
+(`"31%"`), a fixed extent (`96`), or omitted to take what the fixed columns
+leave; `align` is `"start"`, `"center"` or `"end"`; `hint` is the pointer's
+tooltip, for a column abbreviated too far to read. A cell takes the same
+`width` and `align`, which is what keeps the header and the body agreeing about
+one set of columns rather than two.
+
+Column titles are drawn folded to upper case, the way a terminal writes small
+caps, while `title` itself stays as written so a hint, a sort order or a saved
+layout still finds the column by name. The header is announced as row one and
+`TableRow` adds that offset to the body index itself. `tableHeaderHeight()`
+reports the header's drawn height for a virtualized body that has to size
+itself against it.
+
+A `TableRow` registers no click handler unless one is given: a virtualized list
+rebuilds its rows every scrolled frame, so lists that scroll carry a single
+item-click handler and leave the row presentational. `selected` still lights
+the row without one.
+
+### Disclosure
+
+| Class | Required before `build(cx)` | Optional builders and defaults |
+| --- | --- | --- |
+| `AccordionGroup(id)` | Stable `id` | `.child(element)` appends one section. |
+| `AccordionSection(id)` | Stable `id`, non-blank `.title(text)`, and `.body(element)` | `.detail(text)`, `.open(false)`, `.level(3)`, `.keepMounted(false)`, `.inset(value)`, and `.onToggle(callback)`. |
+
+`open` and `onToggle` are the application's: a disclosure that remembered its
+own state would forget it the next time the data under it changed and the view
+rebuilt. `keepMounted` is for a body that is a retained child view — a chart,
+an editor — which a collapse that unmounted would tear down and rebuild.
 
 `ListRow` remains a presentation-only row when no callback is supplied: it has
 no hover, press, or focus affordance. Adding `onClick` uses the semantic button

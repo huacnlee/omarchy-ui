@@ -5,13 +5,19 @@ import { element, resolvedStyle } from "./gpui-stub.js";
 import * as controls from "../src/controls.js";
 import { applyOmarchyStyle } from "../src/style.js";
 
+// A neutral control takes the chrome the theme names, so the fixture names all
+// of it. The values are deliberately unrelated to any alpha of the foreground:
+// a test that passed with either would not tell the two routes apart.
 const theme = {
   colors: {
+    accent: "#445566ff",
     border: "#777777ff",
     destructive: "#ff3344ff",
     foreground: "#eeeeeeff",
+    muted: "#333333ff",
     muted_foreground: "#999999ff",
     ring: "#2233aaff",
+    surface: "#181818ff",
   },
 };
 
@@ -35,8 +41,11 @@ function oneCall(value, method) {
 
 test("exports exactly the control value classes", () => {
   expect(Object.keys(controls).sort()).toEqual([
+    "AvatarButton",
     "Button",
+    "ExternalLink",
     "FieldRow",
+    "FilterField",
     "FormField",
     "GlyphButton",
     "IconButton",
@@ -535,32 +544,32 @@ focus-border-alpha = 0.7
 
   const selected = new controls.Button("save").label("Save").selected().build(cx);
   expect(oneCall(selected, "selected").args).toEqual([true]);
-  expect(oneCall(selected, "bg").args).toEqual(["#eeeeee2e"]);
+  expect(oneCall(selected, "bg").args).toEqual([theme.colors.accent]);
   expect(oneCall(selected, "border").args).toEqual([3]);
-  expect(oneCall(selected, "border_color").args).toEqual(["#eeeeee99"]);
+  expect(oneCall(selected, "border_color").args).toEqual([theme.colors.accent]);
 
   expect(resolvedStyle(selected, "hover")).toMatchObject({
-    bg: "#eeeeee2e",
+    bg: theme.colors.accent,
     border: 3,
-    border_color: "#eeeeee99",
+    border_color: theme.colors.accent,
   });
   expect(resolvedStyle(selected, "focus")).toMatchObject({
-    bg: "#eeeeee2e",
+    bg: theme.colors.accent,
     border: 4,
-    border_color: "#2233aab3",
+    border_color: theme.colors.ring,
   });
   expect(resolvedStyle(selected, "active").bg).toBe("#eeeeee38");
 
   const unselected = new controls.Button("edit").label("Edit").build(cx);
   expect(resolvedStyle(unselected, "hover")).toMatchObject({
-    bg: "#eeeeee14",
+    bg: theme.colors.muted,
     border: 2,
-    border_color: "#eeeeee40",
+    border_color: theme.colors.border,
   });
   expect(resolvedStyle(unselected, "focus")).toMatchObject({
-    bg: "#eeeeee1f",
+    bg: theme.colors.muted,
     border: 4,
-    border_color: "#2233aab3",
+    border_color: theme.colors.ring,
   });
 
   const selectedControls = [
@@ -578,11 +587,11 @@ focus-border-alpha = 0.7
   ];
 
   for (const control of selectedControls) {
-    expect(resolvedStyle(control, "hover").bg).toBe("#eeeeee2e");
+    expect(resolvedStyle(control, "hover").bg).toBe(theme.colors.accent);
     expect(resolvedStyle(control, "focus")).toMatchObject({
-      bg: "#eeeeee2e",
+      bg: theme.colors.accent,
       border: 4,
-      border_color: "#2233aab3",
+      border_color: theme.colors.ring,
     });
   }
 });
@@ -597,7 +606,7 @@ test("outlined, disabled, and loading states remain visibly distinct", () => {
     .loading()
     .build(cx);
 
-  expect(oneCall(outlined, "border_color").args).toEqual(["#eeeeee66"]);
+  expect(oneCall(outlined, "border_color").args).toEqual([theme.colors.border]);
   expect(oneCall(outlined, "bg").args).toEqual(["#00000000"]);
   expect(oneCall(disabled, "text_color").args).toEqual(["#999999ff"]);
   expect(callsTo(disabled, "opacity")).toHaveLength(0);
@@ -651,13 +660,13 @@ test("compact commands and menu items expose focus, hover, press, selection, and
     .build(cx);
 
   expect(oneCall(compact, "selected").args).toEqual([true]);
-  expect(oneCall(compact, "bg").args).toEqual(["#eeeeee2e"]);
+  expect(oneCall(compact, "bg").args).toEqual([theme.colors.accent]);
   expect(oneCall(compact, "hover").style).toBeDefined();
   expect(oneCall(compact, "active").style).toBeDefined();
   expect(oneCall(compact, "focus").style).toBeDefined();
 
   expect(oneCall(menuItem, "selected").args).toEqual([true]);
-  expect(oneCall(menuItem, "bg").args).toEqual(["#eeeeee2e"]);
+  expect(oneCall(menuItem, "bg").args).toEqual([theme.colors.accent]);
   expect(oneCall(menuItem, "hover").style).toBeDefined();
   expect(oneCall(menuItem, "active").style).toBeDefined();
   expect(oneCall(menuItem, "focus").style).toBeDefined();
