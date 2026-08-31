@@ -23,16 +23,29 @@ function first(palette, ...keys) {
   return keys.map((key) => palette[key]).find(Boolean);
 }
 
+/**
+ * The same lookup for the entries that are colours, which is all of them but
+ * `mode`. A palette is parsed out of a text file, so its values arrive as
+ * strings; saying so once here is what keeps every role, and every declaration
+ * generated from one, a `Color` rather than a string an application would have
+ * to cast before it could paint with it.
+ * @param {Record<string, string>} palette @param {...string} keys
+ * @returns {import("gpui").Color}
+ */
+function firstColor(palette, ...keys) {
+  return /** @type {import("gpui").Color} */ (first(palette, ...keys));
+}
+
 /** @param {string} source */
 export function omarchyBaseColors(source) {
   const palette = parsePalette(source);
   return [
-    first(palette, "red", "color1"),
-    first(palette, "green", "color2"),
-    first(palette, "yellow", "color3"),
-    first(palette, "blue", "color4"),
-    first(palette, "magenta", "purple", "color5"),
-    first(palette, "cyan", "color6"),
+    firstColor(palette, "red", "color1"),
+    firstColor(palette, "green", "color2"),
+    firstColor(palette, "yellow", "color3"),
+    firstColor(palette, "blue", "color4"),
+    firstColor(palette, "magenta", "purple", "color5"),
+    firstColor(palette, "cyan", "color6"),
   ].filter(Boolean);
 }
 
@@ -40,10 +53,10 @@ export function omarchyBaseColors(source) {
 export function omarchyStatusColors(source) {
   const palette = parsePalette(source);
   return {
-    danger: first(palette, "red", "color1"),
-    success: first(palette, "green", "color2"),
-    warning: first(palette, "yellow", "color3"),
-    info: first(palette, "cyan", "color6"),
+    danger: firstColor(palette, "red", "color1"),
+    success: firstColor(palette, "green", "color2"),
+    warning: firstColor(palette, "yellow", "color3"),
+    info: firstColor(palette, "cyan", "color6"),
   };
 }
 
@@ -59,19 +72,11 @@ export function omarchyStatusColors(source) {
  */
 export function omarchyRoles(source) {
   const palette = parsePalette(source);
-  const background = /** @type {import("gpui").Color|undefined} */ (
-    first(palette, "background", "bg", "color0")
-  );
-  const foreground = /** @type {import("gpui").Color|undefined} */ (
-    first(palette, "foreground", "fg", "color7")
-  );
+  const background = firstColor(palette, "background", "bg", "color0");
+  const foreground = firstColor(palette, "foreground", "fg", "color7");
   if (!background || !foreground) return null;
-  const accent = /** @type {import("gpui").Color} */ (
-    first(palette, "accent", "blue", "color4") ?? foreground
-  );
-  const urgent = /** @type {import("gpui").Color} */ (
-    first(palette, "red", "color1") ?? foreground
-  );
+  const accent = firstColor(palette, "accent", "blue", "color4") ?? foreground;
+  const urgent = firstColor(palette, "red", "color1") ?? foreground;
   return {
     background,
     foreground,
@@ -96,18 +101,22 @@ export function omarchyRoles(source) {
     // rule — at the heavier one. Blended against the ground rather than left
     // translucent, because a theme token drops its alpha.
     separator: mix(background, foreground, 0.12),
-    selection: palette.selection ?? alpha(accent, 0.35),
+    selection:
+      /** @type {import("gpui").Color} */ (palette.selection) ??
+      alpha(accent, 0.35),
     lighterBackground:
-      first(palette, "lighter_background", "lighter_bg") ?? background,
-    darkBackground: first(palette, "dark_background", "dark_bg") ?? background,
+      firstColor(palette, "lighter_background", "lighter_bg") ?? background,
+    darkBackground:
+      firstColor(palette, "dark_background", "dark_bg") ?? background,
     lightForeground:
-      first(palette, "light_foreground", "light_fg") ?? foreground,
+      firstColor(palette, "light_foreground", "light_fg") ?? foreground,
     brightForeground:
-      first(palette, "bright_foreground", "bright_fg") ??
-      first(palette, "light_foreground", "light_fg") ??
+      firstColor(palette, "bright_foreground", "bright_fg") ??
+      firstColor(palette, "light_foreground", "light_fg") ??
       foreground,
     mutedForeground:
-      first(palette, "dark_foreground", "dark_fg") ?? mix(foreground, background, 0.32),
+      firstColor(palette, "dark_foreground", "dark_fg") ??
+      mix(foreground, background, 0.32),
   };
 }
 
@@ -190,6 +199,12 @@ export function omarchyTheme(source, fallback, tokens = activeStyle()) {
         border,
         input: border,
         ring: roles.accent,
+        // The one role that was computed and then not handed over. gpui's
+        // token set requires it, so a theme built here without it is refused
+        // at `set_theme` -- and because the theme is applied from a task, the
+        // refusal surfaces as an unhandled rejection rather than at the call
+        // site, which is a long way from the missing key.
+        selection: roles.selection,
       },
     },
   };

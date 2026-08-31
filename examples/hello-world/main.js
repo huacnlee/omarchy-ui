@@ -37,6 +37,7 @@ scale-with-font = true
 `;
 
 export default class HelloWorld extends View {
+  /** @param {Record<string, unknown>} _props @param {import("gpui").Context} cx */
   init(_props, cx) {
     const tokens = applyOmarchyStyle(OMARCHY_SHELL, {
       cornerRadius: 0,
@@ -47,6 +48,7 @@ export default class HelloWorld extends View {
     if (theme) set_theme(theme);
   }
 
+  /** @param {import("gpui").Context} cx */
   render(cx) {
     const tokens = style();
     const card = new Surface()

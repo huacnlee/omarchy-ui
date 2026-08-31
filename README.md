@@ -69,6 +69,60 @@ can be chained. `build(cx)` creates a fresh element on every call and resolves
 the active theme from the supplied context. It does not retain GPUI state or
 perform application side effects.
 
+## Types
+
+The library is JavaScript; its types are the JSDoc in `src/`, emitted as
+declaration files beside the sources and committed. gpui-shell fetches this
+repository as a Git dependency and runs no build step in it, so what an
+application can see is exactly what is checked in. `package.json` names the
+public entry twice for that reason:
+
+```json
+{
+  "main": "src/index.js",
+  "types": "src/index.d.ts"
+}
+```
+
+An application needs no `paths` entry. Every load — and `gpui-shell types` —
+links each resolved Git dependency into `<application>/node_modules` under the
+name the manifest gave it, so a bare `import { style } from "omarchy-ui"`
+resolves the same way for the editor as it does for the runtime, and reads the
+declarations through `types`.
+
+The declarations sit beside the sources rather than in a directory of their own
+because that is where both forms of that link look. A symlinked checkout reads
+`package.json`; where a platform refuses a symlink, gpui-shell writes a small
+package that re-exports `src/index.js` by path, and an editor answers a path
+with the declaration file next to it.
+
+They also keep the library's own diagnostics out of the application. Without
+them an editor loads `src/*.js` to read its JSDoc, and reports every
+implicit-`any` in a private field of this library against the application that
+imported it. A declaration file is read instead of the source, so an
+application sees only its own.
+
+The declarations name `import("gpui").Element`, `import("gpui").Color` and
+`import("gpui").Context` instead of carrying copies of them. Those resolve
+against the `gpui.d.ts` gpui-shell writes beside the application's own sources,
+so `build(cx)` answers the same `Element` every other element in that window
+is, and a role reads as a `Color` rather than as a string.
+
+One type is named as well as the values: `import("omarchy-ui").OmarchyStyle` is
+what `style()` answers and what `resolveSurfaceColor` takes, so a view that
+holds the tokens between renders can say what it is holding.
+
+`bun test` regenerates them first, so the committed declarations cannot fall
+behind the sources they describe. To emit them alone:
+
+```bash
+bun run types
+```
+
+`typings/gpui.d.ts` supplies the gpui names during that run, which is what
+makes the emit identical on a machine with no gpui-shell installed. It is not
+shipped: two `declare module "gpui"` blocks in one program collide.
+
 ## Component catalog
 
 Constructors marked with `id` require a stable, non-blank application ID. Use

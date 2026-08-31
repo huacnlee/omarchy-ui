@@ -90,6 +90,7 @@ describe("theme", () => {
           border: "#a3a3a0ff",
           input: "#a3a3a0ff",
           ring: "#3465a4",
+          selection: "#d9e4f2",
         },
       },
     });
@@ -99,9 +100,12 @@ describe("theme", () => {
     const theme = omarchyTheme(samplePalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
 
     expect(theme.tokens.colors.unexpected).toBe("#abcdef");
+    // `link` and `popover` are roles gpui's token set has no name for, so they
+    // stay out of the theme and are read from `role()` instead. `selection` is
+    // a name it does have, and one it requires.
     expect(theme.tokens.colors.link).toBeUndefined();
     expect(theme.tokens.colors.popover).toBeUndefined();
-    expect(theme.tokens.colors.selection).toBeUndefined();
+    expect(theme.tokens.colors.selection).toBe("#d9e4f2");
     for (const value of Object.values(theme.tokens.colors)) {
       if (typeof value === "string" && value.startsWith("#")) {
         expect(value.length === 9 ? value.slice(-2) : "ff").toBe("ff");
