@@ -632,17 +632,17 @@ export class MenuItem {
       .text_size(tokens.font.bodySmall)
       .text_color(foreground)
       .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
+      // A menu row lights as a band, not as a control that grows an edge: the
+      // popup is already a bordered surface, and a rule around every row
+      // inside it turns a list into a stack of buttons.
       .when(!this.#disabled, (element) => element.hover((appearance) => appearance
         .bg(this.#selected ? states.selectedFill : states.hoverFill)
-        .border(this.#selected ? states.selectedBorderWidth : states.hoverBorderWidth)
-        .border_color(
-          this.#selected
-            ? states.selectedBorderWidth > 0
-              ? states.selectedBorder
-              : NO_FILL
-            : states.hoverBorder,
-        )))
+        .border(restBorderWidth)
+        .border_color(restBorderColor)))
       .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
+      // Focus is the one state that does draw an edge: it reports where the
+      // keyboard is, which a fill alone cannot say when the pointer is
+      // hovering a different row.
       .focus((appearance) => appearance
         .bg(this.#selected ? states.selectedFill : states.focusFill)
         .border(states.focusBorderWidth)
