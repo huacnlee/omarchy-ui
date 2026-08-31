@@ -328,6 +328,16 @@ export function omarchyStyle(shellSource, host = {}) {
             ),
           );
   }
+  // How wide one character is, as a fraction of the size it is set at.
+  //
+  // The window is monospaced -- `fontFamily` above is the fontconfig alias the
+  // desktop's own font setting rewrites -- so a run of N characters is N of
+  // these wide, and a component that has to leave room for a word it is not
+  // laying out can work the room out instead of measuring. Typography is what
+  // this file owns, so the ratio lives here rather than as a constant inside
+  // whichever component needed it first. `font.advance` overrides it for a
+  // family whose cell is not the usual 0.6 of its size.
+  font.advance = number(values, "font.advance", 0.62);
   font.iconSmall = Math.round(number(values, "font.icon-small", font.bodySmall));
   font.icon = Math.round(number(values, "font.icon", font.title));
   font.iconLarge = Math.round(
@@ -363,7 +373,7 @@ export function omarchyStyle(shellSource, host = {}) {
     spacing: /** @type {typeof DEFAULT_SPACING & {hairline:number}} */ (
       /** @type {unknown} */ (spacing)
     ),
-    font: /** @type {Record<keyof typeof FONT_SCALE | "baseSize"|"icon"|"iconSmall"|"iconLarge", number>} */ (
+    font: /** @type {Record<keyof typeof FONT_SCALE | "baseSize"|"icon"|"iconSmall"|"iconLarge"|"advance", number>} */ (
       /** @type {unknown} */ (font)
     ),
     state: {

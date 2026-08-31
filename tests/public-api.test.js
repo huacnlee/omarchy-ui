@@ -31,7 +31,6 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "Avatar",
     "AvatarButton",
     "Badge",
-    "BottomBar",
     "Button",
     "CellStack",
     "CenteredWorkspace",
@@ -40,7 +39,6 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "EmptyState",
     "ExternalLink",
     "FieldRow",
-    "FilterField",
     "FormField",
     "GlyphButton",
     "IconButton",
@@ -59,14 +57,16 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "PopupSurface",
     "SectionLabel",
     "Separator",
-    "StatusLine",
+    "StatusBar",
+    "StatusItem",
     "Step",
     "Surface",
     "TableHeaderRow",
     "TableRow",
+    "TextField",
     "Title",
+    "TitleBar",
     "Toolbar",
-    "TopBar",
     "alpha",
     "applyOmarchyRoles",
     "applyOmarchyStyle",
@@ -110,6 +110,8 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "outlined",
     "selected",
     "size",
+    "tone",
+    "tooltip",
   ]);
   expect(builders(ui.IconButton)).toEqual([
     "bordered",
@@ -125,6 +127,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "quiet",
     "selected",
     "size",
+    "tone",
   ]);
   expect(builders(ui.GlyphButton)).toEqual([
     "bordered",
@@ -140,6 +143,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "quiet",
     "selected",
     "size",
+    "tone",
   ]);
   expect(builders(ui.MenuItem)).toEqual([
     "build",
@@ -170,7 +174,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "onClick",
     "selected",
   ]);
-  expect(builders(ui.StatusLine)).toEqual([
+  expect(builders(ui.StatusItem)).toEqual([
     "build",
     "constructor",
     "label",
@@ -183,11 +187,12 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "href",
     "label",
   ]);
-  expect(builders(ui.FilterField)).toEqual([
+  expect(builders(ui.TextField)).toEqual([
     "build",
     "constructor",
     "size",
     "state",
+    "suffix",
     "width",
   ]);
   expect(builders(ui.AvatarButton)).toEqual([
@@ -243,14 +248,14 @@ test("layout, text, and value classes expose only the reviewed builders", () => 
       "quiet",
       "tone",
     ],
-    BottomBar: ["build", "constructor", "hints", "leadsWithIcon", "status"],
+    StatusBar: ["build", "constructor", "hints", "leadsWithIcon", "status"],
     CellStack: ["align", "build", "child", "constructor"],
     CenteredWorkspace: ["build", "constructor", "content"],
     CodeBlock: ["build", "constructor", "value"],
     DefinitionList: ["build", "constructor", "entry"],
     EmptyState: ["build", "constructor", "heading", "hint"],
     FieldRow: ["build", "constructor", "control", "label"],
-    KeyHints: ["build", "constructor", "hint"],
+    KeyHints: ["build", "constructor", "hint", "hints"],
     Keycap: ["build", "constructor", "pressed", "quiet"],
     Label: text,
     MenuSeparator: ["build", "constructor"],
@@ -285,7 +290,7 @@ test("layout, text, and value classes expose only the reviewed builders", () => 
     ],
     Title: text,
     Toolbar: ["build", "constructor", "leading", "trailing"],
-    TopBar: ["actions", "brand", "build", "center", "constructor"],
+    TitleBar: ["actions", "brand", "build", "center", "constructor"],
   };
 
   for (const [name, expected] of Object.entries(methods)) {

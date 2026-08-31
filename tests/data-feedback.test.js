@@ -3,7 +3,7 @@
 import { expect, test } from "bun:test";
 import { element as gpuiElement, resolvedStyle } from "./gpui-stub.js";
 import { ListRow } from "../src/data.js";
-import { EmptyState, StatusLine } from "../src/feedback.js";
+import { EmptyState, StatusItem } from "../src/feedback.js";
 
 const theme = {
   colors: {
@@ -196,7 +196,6 @@ test("feedback required copy accepts only non-blank strings", () => {
   const factories = [
     ["EmptyState", "heading", (value) => new EmptyState().heading(value).hint("Create one")],
     ["EmptyState", "hint", (value) => new EmptyState().heading("No projects").hint(value)],
-    ["StatusLine", "label", (value) => new StatusLine().label(value)],
   ];
 
   for (const [name, field, create] of factories) {
@@ -224,26 +223,26 @@ test("EmptyState chains its messages and renders heading before hint", () => {
   expect(callsTo(children[1], "text_color")[0].args).toEqual(["#999999ff"]);
 });
 
-test("StatusLine defaults to ready and validates its closed state vocabulary", () => {
-  const status = new StatusLine();
+test("StatusItem defaults to ready and validates its closed state vocabulary", () => {
+  const status = new StatusItem();
 
   expect(status.label("Saved")).toBe(status);
   expect(status.loadingLabel("Saving changes")).toBe(status);
-  expect(() => status.state("paused")).toThrow("StatusLine state must be one of: ready, loading, error.");
+  expect(() => status.state("paused")).toThrow("StatusItem state must be one of: ready, loading, error.");
 
   const element = status.build(cx);
   expect(callsTo(element, "role")[0].args).toEqual(["status"]);
   expect(callsTo(element, "text_color")[0].args).toEqual(["#999999ff"]);
 });
 
-test("StatusLine renders ready, loading, and error as distinct semantic states", () => {
-  const ready = new StatusLine().label("Ready").state("ready").build(cx);
-  const loading = new StatusLine()
+test("StatusItem renders ready, loading, and error as distinct semantic states", () => {
+  const ready = new StatusItem().label("Ready").state("ready").build(cx);
+  const loading = new StatusItem()
     .label("Ready")
     .loadingLabel("Synchronizing calendar")
     .state("loading")
     .build(cx);
-  const error = new StatusLine().label("Sync failed").state("error").build(cx);
+  const error = new StatusItem().label("Sync failed").state("error").build(cx);
 
   expect(callsTo(ready, "text_color")[0].args).toEqual(["#999999ff"]);
   expect(callsTo(ready, "child")[0].args).toEqual(["Ready"]);
@@ -259,25 +258,45 @@ test("StatusLine renders ready, loading, and error as distinct semantic states",
   expect(callsTo(error, "child")[0].args).toEqual(["Sync failed"]);
 });
 
-test("StatusLine requires a label before building", () => {
-  expect(() => new StatusLine().build(cx)).toThrow(
-    "StatusLine label must be a non-blank string",
+test("StatusItem is blank at rest only, and only on purpose", () => {
+  // A window at rest is often a window with nothing to report, and the bar
+  // carrying this keeps its height either way.
+  expect(() => new StatusItem().label("").build(cx)).not.toThrow();
+  expect(() => new StatusItem().build(cx)).not.toThrow();
+
+  // Whitespace is not a decision, and neither loading nor error is at rest: a
+  // report of either that says nothing has lost its sentence.
+  expect(() => new StatusItem().label("   ").build(cx)).toThrow(
+    "StatusItem label must be a non-blank string when supplied",
   );
+  expect(() => new StatusItem().label("").state("error").build(cx)).toThrow(
+    "StatusItem label must be a non-blank string",
+  );
+  expect(() =>
+    new StatusItem().label("").loadingLabel("Syncing…").state("loading").build(cx),
+  ).toThrow("StatusItem label must be a non-blank string");
+
+  // Anything that is not a string is still a mistake, at rest or not.
+  for (const value of [null, 42, false, {}, []]) {
+    expect(() => new StatusItem().label(value).build(cx)).toThrow(
+      /StatusItem label must be a non-blank string/,
+    );
+  }
 });
 
-test("StatusLine loading requires caller-owned non-blank copy", () => {
+test("StatusItem loading requires caller-owned non-blank copy", () => {
   for (const value of [undefined, null, "", "   ", 42, false, {}, []]) {
     expect(() =>
-      new StatusLine()
+      new StatusItem()
         .label("Ready")
         .loadingLabel(value)
         .state("loading")
         .build(cx),
-    ).toThrow("StatusLine loading label must be a non-blank string");
+    ).toThrow("StatusItem loading label must be a non-blank string");
   }
 });
 
-test("StatusLine rejects invalid configured loading copy before it is active", () => {
+test("StatusItem rejects invalid configured loading copy before it is active", () => {
   for (const value of [
     null,
     "",
@@ -290,9 +309,9 @@ test("StatusLine rejects invalid configured loading copy before it is active", (
     () => "text",
   ]) {
     expect(() =>
-      new StatusLine().label("Ready").loadingLabel(value).build(cx),
+      new StatusItem().label("Ready").loadingLabel(value).build(cx),
     ).toThrow(
-      "StatusLine loading label must be a non-blank string when supplied",
+      "StatusItem loading label must be a non-blank string when supplied",
     );
   }
 });

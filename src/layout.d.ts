@@ -9,7 +9,7 @@ export declare class AppShell {
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
-export declare class TopBar {
+export declare class TitleBar {
     #private;
     /** @param {import("gpui").Element | import("gpui").Entity} element */
     brand(element: import("gpui").Element | import("gpui").Entity): this;
@@ -20,7 +20,7 @@ export declare class TopBar {
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
-export declare class BottomBar {
+export declare class StatusBar {
     #private;
     /** @param {import("gpui").Element | import("gpui").Entity} element */
     status(element: import("gpui").Element | import("gpui").Entity): this;

@@ -1,4 +1,4 @@
-declare const SIZES: readonly ["small", "medium", "large"];
+declare const SIZES: readonly ["xsmall", "small", "medium", "large"];
 export type ControlSize = typeof SIZES[number];
 export declare class Button {
     #private;
@@ -8,6 +8,27 @@ export declare class Button {
     label(text: string): this;
     /** @param {string} asset complete application-root-relative asset path */
     icon(asset: string): this;
+    /**
+     * What the label alone cannot say -- most often the keyboard route to the
+     * same action. A compact command carries this in its `description`, which is
+     * also its accessible name; a labelled button already has an accessible name
+     * and needs only the hint.
+     * @param {string} text
+     */
+    tooltip(text: string): this;
+    /**
+     * A colour this control is a *reading* in, rather than an interface role.
+     *
+     * `accent` and `danger` are roles and the theme owns their colours. A tone
+     * is a meaning the caller worked out -- a direction, a category, a mark that
+     * is on -- that no token can name. It reaches the label and the icon
+     * together, because a control half in one colour reads as a rendering bug.
+     *
+     * Disabled still wins: a control that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     outlined(): this;
     /** @param {boolean} [value] */
     bordered(value?: boolean): this;
@@ -45,6 +66,19 @@ export declare class IconButton {
     selected(value?: boolean): this;
     /** @param {boolean} [value] supporting chrome: muted until pointed at */
     quiet(value?: boolean): this;
+    /**
+     * A colour this command is a *reading* in, rather than an interface role.
+     *
+     * It is the command's full strength, and `quiet` decides when the command
+     * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+     * rests muted and arrives at its own colour under the pointer. A starred
+     * message keeps its mark lit; the star on every other row does not.
+     *
+     * Disabled still wins: a command that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */
@@ -73,6 +107,19 @@ export declare class GlyphButton {
     selected(value?: boolean): this;
     /** @param {boolean} [value] supporting chrome: muted until pointed at */
     quiet(value?: boolean): this;
+    /**
+     * A colour this command is a *reading* in, rather than an interface role.
+     *
+     * It is the command's full strength, and `quiet` decides when the command
+     * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+     * rests muted and arrives at its own colour under the pointer. A starred
+     * message keeps its mark lit; the star on every other row does not.
+     *
+     * Disabled still wins: a command that cannot be pressed has to look like one.
+     *
+     * @param {import("gpui").Color | undefined} color
+     */
+    tone(color: import("gpui").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */
@@ -96,7 +143,17 @@ export declare class MenuItem {
     detail(text: string): this;
     /** @param {string} asset complete application-root-relative asset path */
     icon(asset: string): this;
-    /** @param {boolean} [value] */
+    /**
+     * The active row: where the arrow keys have got to.
+     *
+     * A menu row has one such state and not two. Nothing in a menu is *chosen* --
+     * a row is activated and the menu closes -- so there is no membership for a
+     * heavier treatment to outrank, which is why this is the same fill the
+     * pointer draws and no edge at all. A rule around the active row turns an
+     * open menu into a stack of buttons with one pressed in it.
+     *
+     * @param {boolean} [value]
+     */
     selected(value?: boolean): this;
     /** @param {boolean} [value] */
     danger(value?: boolean): this;
@@ -181,6 +238,20 @@ export declare class KeyHints {
     constructor(id: string);
     /** @param {string} key @param {string} label */
     hint(key: string, label: string): this;
+    /**
+     * Append a whole strip at once, in order.
+     *
+     * The pair matches the open containers' `child`/`children`: a caller
+     * building a strip by hand names each hint, and one rendering a strip it was
+     * handed -- a keymap, a table of routes -- passes the list it already has
+     * rather than reducing over it at every call site.
+     *
+     * @param {Array<{key: string, label: string}>} entries
+     */
+    hints(entries: Array<{
+        key: string;
+        label: string;
+    }>): this;
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
@@ -202,18 +273,37 @@ export declare class ExternalLink {
     build(cx: import("gpui").Context): import("gpui").Element;
 }
 /**
- * The frame around a text field the application owns.
+ * A text field the application owns the state of, wearing the kit's chrome.
  *
  * `InputState` needs a live host call and belongs to the view that retains it,
  * so this class arranges and styles the control rather than creating it — the
  * same division `FormField` follows. What it adds is the chrome: one height
- * shared with every other control in a title row, and a focus ring drawn on
- * the border, so the field does not resize when the keyboard reaches it.
+ * shared with every other control in a row, and a focus ring drawn on the
+ * border, so the field does not resize when the keyboard reaches it.
+ *
+ * `suffix` is the unit the value is in — a currency, `shares`, `ms`. It sits
+ * *inside* the field's own edge, because beside it a reader has to work out
+ * whether the word belongs to this control or labels the next one, and the
+ * answer moves with the width of whatever column they are in:
+ *
+ *     Price                      Price
+ *     [ 141.500        ] USD  →  [ 141.500    USD ]
+ *
+ * `Input` is a leaf and takes no children, so the unit is drawn over the
+ * field's trailing edge and the field is given room for it out of its trailing
+ * padding — the digits stop before the word rather than running under it. The
+ * room a word needs is its length times `font.advance`, because the window is
+ * monospaced. The border and the focus ring stay on the `Input`: it is what
+ * actually takes the keyboard, and a wrapper carrying them would have to know
+ * when its child was focused, which there is no `focus_within` to ask. With no
+ * suffix there is nothing to wrap, so nothing is wrapped.
  */
-export declare class FilterField {
+export declare class TextField {
     #private;
     /** @param {import("gpui-base").InputState} value */
     state(value: import("gpui-base").InputState): this;
+    /** @param {string} text the unit this field's value is in */
+    suffix(text: string): this;
     /** @param {string | number} value */
     width(value: string | number): this;
     /** @param {string} value */

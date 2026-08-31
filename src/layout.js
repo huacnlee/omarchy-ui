@@ -74,7 +74,7 @@ export class AppShell {
   }
 }
 
-export class TopBar {
+export class TitleBar {
   #brand;
   #center;
   #actions;
@@ -110,7 +110,7 @@ export class TopBar {
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(optionalSlots("TopBar", [
+      .children(optionalSlots("TitleBar", [
         ["brand", this.#brand],
         ["center", this.#center],
         ["actions", this.#actions],
@@ -118,7 +118,7 @@ export class TopBar {
   }
 }
 
-export class BottomBar {
+export class StatusBar {
   #status;
   #hints;
   #leadsWithIcon = false;
@@ -155,7 +155,7 @@ export class BottomBar {
       .border_t(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)
-      .children(optionalSlots("BottomBar", [
+      .children(optionalSlots("StatusBar", [
         ["status", this.#status],
         ["hints", this.#hints],
       ]));

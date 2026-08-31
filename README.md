@@ -136,8 +136,8 @@ interface text.
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
 | `AppShell` | `.content(element)` | `.top(element)` and `.bottom(element)` are omitted by default. |
-| `TopBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. |
-| `BottomBar` | None | `.status(element)` and `.hints(element)` are omitted; `.leadsWithIcon(false)` controls the leading inset. |
+| `TitleBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. |
+| `StatusBar` | None | `.status(element)` and `.hints(element)` are omitted; `.leadsWithIcon(false)` controls the leading inset. |
 | `ActionBar(id)` | Stable `id` | `.actions(element)` and `.status(element)` are omitted by default. |
 | `PanelHeader(id)` | Stable `id` and `.heading(element)` | `.actions(element)` is omitted by default. |
 | `CenteredWorkspace(id)` | Stable `id` and `.content(element)` | No optional fields. |
@@ -176,10 +176,10 @@ intentional omissions.
 
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
-| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` is omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
-| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
-| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
-| `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.disabled(false)`, and `.onClick(callback)`. |
+| `Button(id)` | Stable `id` and non-blank `.label(text)` | `.icon(asset)` and `.tooltip(text)` are omitted by default. `.outlined()`, `.bordered(false)`, `.selected(false)`, `.accent(false)`, `.danger(false)`, `.tone(color)`, `.disabled(false)`, `.loading(false)`, `.loadingLabel(text)`, `.size("medium")`, and `.onClick(callback)`. A non-blank loading label is required while loading. |
+| `IconButton(id)` | Stable `id`, `.icon(asset)`, and `.description(text)` | Shares Button's visual-state, tone, loading-label, size, and callback builders, plus `.quiet(false)`. The description supplies the accessible name and tooltip while idle. |
+| `GlyphButton(id)` | Stable `id`, `.glyph(text)`, and `.description(text)` | Shares Button's visual-state, tone, loading-label, size, and callback builders, plus `.quiet(false)`. Use only when no icon asset exists. |
+| `MenuItem(id)` | Stable `id` and non-blank `.label(text)` | `.detail(text)` and `.icon(asset)` are omitted; `.selected(false)`, `.danger(false)`, `.tone(color)`, `.disabled(false)`, and `.onClick(callback)`. |
 | `FieldRow(id)` | Stable `id`, `.label(text)`, and `.control(element)` | No optional fields. |
 | `FormField(id)` | Stable `id`, non-blank `.label(text)`, and `.control(element)` | `.helper(text)` and `.error(message)` are omitted by default. A non-empty error replaces helper text; `.error("")` clears it. |
 | `AvatarButton(id)` | Stable `id`, `.description(text)`, and one of `.initials(text)` or `.icon(asset)` | `.tint(color)`, `.selected(false)`, `.quiet(false)`, `.disabled(false)`, `.size("medium")`, and `.onClick(callback)`. Use where the mark is a subject — an account, a person — rather than an action. |
@@ -188,15 +188,65 @@ intentional omissions.
 window's title row or a panel's heading. It rests in the muted foreground and
 comes up to full strength when pointed at, focused or selected, so two icons
 beside a heading do not read as the point of the panel.
+
+`.tone(color)` is what full strength *is*. `accent` and `danger` are roles
+whose colours the theme owns; a tone is a reading the caller worked out that no
+token can name — a direction, a category, a mark that is on. It is resolved
+once and reaches the label and the icon together, which is why it is a builder
+rather than a `.text_color()` on the element you get back: that colours the
+control and leaves every piece of text inside it in the theme's own.
+
+The two are orthogonal, and compose. A tone alone shows at rest and stays there
+under the pointer — a starred message is starred whether or not anyone is
+pointing at it. `quiet` governs the resting state only, so a quiet toned
+command waits in the muted foreground and arrives at its own colour when
+pointed at. Disabled outranks both: a control that cannot be pressed has to
+look like one.
+
+`MenuItem.selected()` is the active row: where the arrow keys have got to. A
+menu row has one such state and not two — nothing in a menu is *chosen*, a row
+is activated and the menu closes — so it draws what the pointer draws and no
+edge at all. A rule around every row turns an open menu into a stack of buttons
+with one pressed in it.
+
+`TextField.suffix(text)` is the unit the value is in — a currency, `shares`,
+`ms`. It sits *inside* the field's own edge, because beside it a reader has to
+work out whether the word belongs to this control or labels the next one, and
+the answer moves with the width of whatever column they are in:
+
+```
+Price                      Price
+[ 141.500        ] USD  →  [ 141.500    USD ]
+```
+
+`Input` is a leaf and takes no children, so the unit is drawn over the field's
+trailing edge and the field is given room for it out of its trailing padding —
+the digits stop before the word rather than running under it. The room a word
+needs is its length times `style().font.advance`, because the window is
+monospaced. The border and the focus ring stay on the `Input`: it is what
+actually takes the keyboard, and a wrapper carrying them would have to know
+when its child was focused, which there is no `focus_within` to ask. With no
+suffix there is nothing to wrap, so nothing is wrapped.
+
+`.tooltip(text)` on `Button` is what the label alone cannot say — most often
+the keyboard route to the same action. A compact command carries this in
+`.description(text)`, which is also its accessible name; a labelled button
+already has an accessible name and needs only the hint, so a button with
+nothing further to say draws no tooltip rather than one repeating its label.
 | `ExternalLink(id)` | Stable `id`, non-blank `.label(text)` and `.href(url)` | No optional fields. Underlined as well as tinted, so the link is not identified by colour alone. |
-| `FilterField` | `.state(inputState)` | `.width(value)` and `.size("small")`. The `InputState` stays application-owned; this class supplies the chrome only. |
+| `TextField` | `.state(inputState)` | `.suffix(text)` is omitted by default; `.width(value)` and `.size("medium")`. The `InputState` stays application-owned; this class supplies the chrome only. |
 | `Separator` | None | No configuration. |
 | `MenuSeparator` | None | No configuration. |
 | `Keycap(value)` | Non-blank key text | `.pressed(false)` draws the key physically down; `.quiet(false)` fades the resting fill for a hint strip. |
-| `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint. |
+| `KeyHints(id)` | Stable `id` | Starts empty; `.hint(key, label)` appends one hint and `.hints(entries)` appends a whole strip, in order — the same pair as an open container's `child`/`children`. |
 
-Control sizes are the closed vocabulary `"small"`, `"medium"`, and
-`"large"`; `.size(value)` rejects any other value immediately. Required
+Control sizes are the closed vocabulary `"xsmall"`, `"small"`, `"medium"`, and
+`"large"`; `.size(value)` rejects any other value immediately. Each step is
+strictly smaller than the next in both type and height. `"small"` is one step
+of the type scale under the body, which is the right ramp for a row of
+controls; `"xsmall"` reaches the caption, for a control that sits *inside* a
+run of text — a segmented picker, a chip on an attachment, the toggle at the
+end of a caption — and would otherwise stand taller than the words around it. Required
 labels, icons, descriptions, glyphs, and controls are checked at `build(cx)`
 with an error that names the component and field. Optional copy must also be
 non-blank when configured, except the documented `.error("")` clearing seam.
@@ -230,7 +280,7 @@ role and the destructive token; call `.error("")` to reveal helper text again.
 | `DefinitionList(id)` | Stable `id` | `.entry(title, value, tone)` appends one label-and-value row. |
 | `CodeBlock(id)` | Stable `id` and non-blank `.value(text)` | No optional fields. Set large and spaced, because the value exists to be transcribed. |
 | `EmptyState` | `.heading(text)` and `.hint(text)` | No optional fields. |
-| `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. `.loadingLabel(text)` must be non-blank when state is loading. |
+| `StatusItem` | None | `.label(text)` and `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. At rest the label may be blank — a window with nothing to report keeps its bar; loading and error must say something, and `.loadingLabel(text)` must be non-blank when state is loading. |
 | `Badge(id)` | Stable `id` and non-blank `.label(text)` | `.tone("neutral")`, `.color(value)`, `.dot(false)`, `.quiet(false)`, and `.description(text)`. |
 | `Alert(id)` | Stable `id` and non-blank `.message(text)` | `.tone("danger")` and `.color(value)`. |
 | `Step(index)` | A positive integer index and non-blank `.title(text)` | No optional fields. |
@@ -286,7 +336,7 @@ no hover, press, or focus affordance. Adding `onClick` uses the semantic button
 boundary and enables token-driven hover, pressed, focus, selected, and disabled
 states. Selection remains visible through hover and focus.
 
-`StatusLine.state(value)` validates its closed vocabulary immediately. An error
+`StatusItem.state(value)` validates its closed vocabulary immediately. An error
 state uses the active destructive token and a status role. Loading uses the
 caller's exact `.loadingLabel(text)` as visible and accessible copy, so the
 library does not assemble language or punctuation.

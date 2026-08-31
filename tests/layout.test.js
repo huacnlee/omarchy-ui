@@ -4,7 +4,7 @@ import { expect, test } from "bun:test";
 import {
   ActionBar,
   AppShell,
-  BottomBar,
+  StatusBar,
   CenteredWorkspace,
   PageColumn,
   Panel,
@@ -12,7 +12,7 @@ import {
   PopupSurface,
   Surface,
   Toolbar,
-  TopBar,
+  TitleBar,
 } from "../src/layout.js";
 import { Label, MutedText, SectionLabel, Title } from "../src/text.js";
 import { element } from "./gpui-stub.js";
@@ -100,8 +100,8 @@ test("named slot builders chain and preserve semantic child order", () => {
   const hints = element("hints");
   const heading = element("heading");
   const content = element("content");
-  const top = new TopBar();
-  const bottom = new BottomBar();
+  const top = new TitleBar();
+  const bottom = new StatusBar();
   const action = new ActionBar("action");
   const panel = new PanelHeader("panel");
   const shell = new AppShell();
@@ -124,10 +124,10 @@ test("named slot builders chain and preserve semantic child order", () => {
 
   expect(
     childrenOf(
-      new TopBar().brand(brand).center(center).actions(actions).build(cx),
+      new TitleBar().brand(brand).center(center).actions(actions).build(cx),
     ),
   ).toEqual([brand, center, actions]);
-  expect(childrenOf(new BottomBar().status(status).hints(hints).build(cx))).toEqual([
+  expect(childrenOf(new StatusBar().status(status).hints(hints).build(cx))).toEqual([
     status,
     hints,
   ]);
@@ -160,13 +160,13 @@ test("optional named slots omit every falsy value", () => {
   const heading = element("heading");
 
   for (const value of [undefined, null, false, "", 0, Number.NaN]) {
-    expect(childrenOf(new TopBar().brand(value).build(cx))).toEqual([]);
+    expect(childrenOf(new TitleBar().brand(value).build(cx))).toEqual([]);
   }
 
   expect(
-    childrenOf(new TopBar().brand(false).center("").actions(0).build(cx)),
+    childrenOf(new TitleBar().brand(false).center("").actions(0).build(cx)),
   ).toEqual([]);
-  expect(childrenOf(new BottomBar().status(false).hints("").build(cx))).toEqual(
+  expect(childrenOf(new StatusBar().status(false).hints("").build(cx))).toEqual(
     [],
   );
 
@@ -306,11 +306,11 @@ test("truthy optional layout slots reject non-renderables", () => {
   const factories = [
     ["AppShell", "top", (value) => new AppShell().top(value).content(element("content"))],
     ["AppShell", "bottom", (value) => new AppShell().content(element("content")).bottom(value)],
-    ["TopBar", "brand", (value) => new TopBar().brand(value)],
-    ["TopBar", "center", (value) => new TopBar().center(value)],
-    ["TopBar", "actions", (value) => new TopBar().actions(value)],
-    ["BottomBar", "status", (value) => new BottomBar().status(value)],
-    ["BottomBar", "hints", (value) => new BottomBar().hints(value)],
+    ["TitleBar", "brand", (value) => new TitleBar().brand(value)],
+    ["TitleBar", "center", (value) => new TitleBar().center(value)],
+    ["TitleBar", "actions", (value) => new TitleBar().actions(value)],
+    ["StatusBar", "status", (value) => new StatusBar().status(value)],
+    ["StatusBar", "hints", (value) => new StatusBar().hints(value)],
     ["ActionBar", "actions", (value) => new ActionBar("action").actions(value)],
     ["ActionBar", "status", (value) => new ActionBar("action").status(value)],
     ["PanelHeader", "actions", (value) => new PanelHeader("panel").heading(element("heading")).actions(value)],
@@ -397,8 +397,8 @@ test("build is repeatable and does not consume component configuration", () => {
   const child = element("stable");
   const components = [
     new AppShell().content(child),
-    new TopBar().center(child),
-    new BottomBar().status(child),
+    new TitleBar().center(child),
+    new StatusBar().status(child),
     new ActionBar("action").actions(child),
     new PanelHeader("panel").heading(child),
     new CenteredWorkspace("workspace").content(child),
@@ -441,8 +441,8 @@ test("layout classes preserve stable ids", () => {
   const shell = new AppShell().content(child).build(cx);
   expect(idOf(shell)).toBe("application-frame");
   expect(idOf(childrenOf(shell)[0])).toBe("application-content");
-  expect(idOf(new TopBar().build(cx))).toBe("application-top-bar");
-  expect(idOf(new BottomBar().build(cx))).toBe("application-bottom-bar");
+  expect(idOf(new TitleBar().build(cx))).toBe("application-top-bar");
+  expect(idOf(new StatusBar().build(cx))).toBe("application-bottom-bar");
   expect(idOf(new ActionBar("actions-id").build(cx))).toBe("actions-id");
   expect(idOf(new PanelHeader("panel-id").heading(child).build(cx))).toBe("panel-id");
   expect(
@@ -469,7 +469,7 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
   expect(callsTo(content, "min_h_0")).toHaveLength(1);
   expect(callsTo(content, "overflow_hidden")).toHaveLength(1);
 
-  const top = new TopBar().build(cx);
+  const top = new TitleBar().build(cx);
   expect(callsTo(top, "h")[0].args).toEqual([tokens.space(48)]);
   expect(callsTo(top, "flex_none")).toHaveLength(1);
   expect(callsTo(top, "items_center")).toHaveLength(1);
@@ -482,7 +482,7 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
   expect(callsTo(top, "border_color")[0].args).toEqual(["#777777ff"]);
   expect(callsTo(top, "bg")[0].args).toEqual(["#101010ff"]);
 
-  const bottom = new BottomBar().build(cx);
+  const bottom = new StatusBar().build(cx);
   expect(callsTo(bottom, "h")[0].args).toEqual([tokens.space(28)]);
   expect(callsTo(bottom, "flex_none")).toHaveLength(1);
   expect(callsTo(bottom, "items_center")).toHaveLength(1);
@@ -491,7 +491,7 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
     tokens.spacing.controlGap,
   ]);
   expect(callsTo(bottom, "pl")[0].args).toEqual([tokens.space(14)]);
-  expect(callsTo(new BottomBar().leadsWithIcon().build(cx), "pl")[0].args).toEqual([
+  expect(callsTo(new StatusBar().leadsWithIcon().build(cx), "pl")[0].args).toEqual([
     tokens.space(8),
   ]);
   expect(callsTo(bottom, "pr")[0].args).toEqual([tokens.space(12)]);

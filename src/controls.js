@@ -15,7 +15,7 @@ import { Label, MutedText } from "./text.js";
 import { role } from "./theme.js";
 
 const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
-const SIZES = /** @type {const} */ (["small", "medium", "large"]);
+const SIZES = /** @type {const} */ (["xsmall", "small", "medium", "large"]);
 
 /** @typedef {typeof SIZES[number]} ControlSize */
 
@@ -103,6 +103,19 @@ function controlSize(component, value) {
 /** @param {ControlSize} size */
 function sizeStyle(size) {
   const tokens = style();
+  // A control inside a run of text rather than in a row of its own: a
+  // segmented reading picker, a chip on an attachment, the toggle at the end
+  // of a caption. `small` is one step of the type scale under the body, which
+  // is the right ramp for a row of controls; a control sitting *in* a caption
+  // has to reach the caption or it stands taller than the words around it.
+  if (size === "xsmall") {
+    return {
+      extent: tokens.space(20),
+      fontSize: tokens.font.caption,
+      iconSize: tokens.font.iconSmall,
+      paddingX: tokens.spacing.md,
+    };
+  }
   if (size === "small") {
     return {
       extent: tokens.space(24),
@@ -140,7 +153,8 @@ function mutedElement(value, cx) {
 /**
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
  * selected:boolean, accent:boolean, danger:boolean, disabled:boolean, loading:boolean,
- * loadingLabel:string, size:ControlSize,
+ * loadingLabel:string, size:ControlSize, tooltip:string,
+ * tone?: import("gpui").Color,
  * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
  */
@@ -158,13 +172,15 @@ function buildButton(config, cx) {
     : config.accent
       ? role("accent", cx.theme().colors.primary)
       : undefined;
-  const foreground = emphasis
-    ? inactive
+  // Disabled first: a control that cannot be pressed has to look like one,
+  // whatever it would otherwise have been coloured. Then the caller's tone,
+  // which is a reading no token names, then the role, then the plain
+  // foreground.
+  const foreground = inactive
+    ? emphasis
       ? alpha(emphasis, tokens.state.normalBorderAlpha)
-      : emphasis
-    : inactive
-      ? cx.theme().colors.muted_foreground
-      : cx.theme().colors.foreground;
+      : cx.theme().colors.muted_foreground
+    : (config.tone ?? emphasis ?? cx.theme().colors.foreground);
   const states = surfaceStates(cx, emphasis);
   const restBorderWidth = config.selected
     ? states.selectedBorderWidth
@@ -198,6 +214,9 @@ function buildButton(config, cx) {
     )
     .text_size(dimensions.fontSize)
     .text_color(foreground)
+    .when(Boolean(config.tooltip), (element) =>
+      element.tooltip(config.tooltip),
+    )
     .when(config.loading, (element) =>
       element.accessibility_label(config.loadingLabel),
     )
@@ -264,6 +283,7 @@ function activityMarker(label, dimensions, foreground) {
  * @param {{id:string, content:any, description:string, outlined:boolean,
  * bordered:boolean, selected:boolean, quiet:boolean, disabled:boolean,
  * loading:boolean, loadingLabel:string, size:ControlSize,
+ * tone?: import("gpui").Color,
  * onClick?: (event: import("gpui").ClickEvent,
  * cx: import("gpui").Context) => void}} config
  * @param {import("gpui").Context} cx
@@ -279,10 +299,15 @@ function buildCompactCommand(config, cx) {
   // full weight beside a heading read as the point of the panel rather than as
   // the way out of it.
   const emphatic = !config.quiet || config.selected;
+  // Full strength is the caller's tone where there is one, and the foreground
+  // otherwise. `quiet` decides when the command reaches it, not what it is, so
+  // the two compose: a quiet toned command rests muted and arrives at its own
+  // colour under the pointer.
+  const strength = config.tone ?? cx.theme().colors.foreground;
   const foreground = inactive
     ? cx.theme().colors.muted_foreground
     : emphatic
-      ? cx.theme().colors.foreground
+      ? strength
       : cx.theme().colors.muted_foreground;
   const states = surfaceStates(cx);
   const restBorderWidth = config.selected
@@ -340,9 +365,7 @@ function buildCompactCommand(config, cx) {
                 : NO_FILL
               : states.hoverBorder,
           )
-          .text_color(
-            inactive ? foreground : cx.theme().colors.foreground,
-          ),
+          .text_color(inactive ? foreground : strength),
       ),
     )
     .when(!inactive, (element) =>
@@ -365,6 +388,9 @@ export class Button {
   #id;
   #label;
   #asset;
+  #tooltip;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -384,6 +410,27 @@ export class Button {
   label(text) { this.#label = text; return this; }
   /** @param {string} asset complete application-root-relative asset path */
   icon(asset) { this.#asset = asset; return this; }
+  /**
+   * What the label alone cannot say -- most often the keyboard route to the
+   * same action. A compact command carries this in its `description`, which is
+   * also its accessible name; a labelled button already has an accessible name
+   * and needs only the hint.
+   * @param {string} text
+   */
+  tooltip(text) { this.#tooltip = text; return this; }
+  /**
+   * A colour this control is a *reading* in, rather than an interface role.
+   *
+   * `accent` and `danger` are roles and the theme owns their colours. A tone
+   * is a meaning the caller worked out -- a direction, a category, a mark that
+   * is on -- that no token can name. It reaches the label and the icon
+   * together, because a control half in one colour reads as a rendering bug.
+   *
+   * Disabled still wins: a control that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   outlined() { this.#outlined = true; return this; }
   /** @param {boolean} [value] */
   bordered(value = true) { this.#bordered = value; return this; }
@@ -414,10 +461,13 @@ export class Button {
     const loadingLabel = this.#loading
       ? requiredText("Button", "loading label", this.#loadingLabel)
       : optionalText("Button", "loading label", this.#loadingLabel) ?? "";
+    const tooltip = optionalText("Button", "tooltip", this.#tooltip) ?? "";
     return buildButton({
       id: this.#id,
       label,
       asset,
+      tooltip,
+      tone: this.#tone,
       outlined: this.#outlined,
       bordered: this.#bordered,
       selected: this.#selected,
@@ -436,6 +486,8 @@ export class IconButton {
   #id;
   #asset;
   #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -461,6 +513,19 @@ export class IconButton {
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] supporting chrome: muted until pointed at */
   quiet(value = true) { this.#quiet = value; return this; }
+  /**
+   * A colour this command is a *reading* in, rather than an interface role.
+   *
+   * It is the command's full strength, and `quiet` decides when the command
+   * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+   * rests muted and arrives at its own colour under the pointer. A starred
+   * message keeps its mark lit; the star on every other row does not.
+   *
+   * Disabled still wins: a command that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -494,6 +559,7 @@ export class IconButton {
       bordered: this.#bordered,
       selected: this.#selected,
       quiet: this.#quiet,
+      tone: this.#tone,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -507,6 +573,8 @@ export class GlyphButton {
   #id;
   #glyph;
   #description;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   #outlined = false;
   #bordered = false;
   #selected = false;
@@ -532,6 +600,19 @@ export class GlyphButton {
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] supporting chrome: muted until pointed at */
   quiet(value = true) { this.#quiet = value; return this; }
+  /**
+   * A colour this command is a *reading* in, rather than an interface role.
+   *
+   * It is the command's full strength, and `quiet` decides when the command
+   * reaches it: on its own the tone shows at rest, and with `quiet` the mark
+   * rests muted and arrives at its own colour under the pointer. A starred
+   * message keeps its mark lit; the star on every other row does not.
+   *
+   * Disabled still wins: a command that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {boolean} [value] */
@@ -565,6 +646,7 @@ export class GlyphButton {
       bordered: this.#bordered,
       selected: this.#selected,
       quiet: this.#quiet,
+      tone: this.#tone,
       disabled: this.#disabled,
       loading: this.#loading,
       loadingLabel,
@@ -595,7 +677,17 @@ export class MenuItem {
   detail(text) { this.#detail = text; return this; }
   /** @param {string} asset complete application-root-relative asset path */
   icon(asset) { this.#asset = asset; return this; }
-  /** @param {boolean} [value] */
+  /**
+   * The active row: where the arrow keys have got to.
+   *
+   * A menu row has one such state and not two. Nothing in a menu is *chosen* --
+   * a row is activated and the menu closes -- so there is no membership for a
+   * heavier treatment to outrank, which is why this is the same fill the
+   * pointer draws and no edge at all. A rule around the active row turns an
+   * open menu into a stack of buttons with one pressed in it.
+   *
+   * @param {boolean} [value]
+   */
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] */
   danger(value = true) { this.#danger = value; return this; }
@@ -639,13 +731,12 @@ export class MenuItem {
       cx,
       this.#danger ? cx.theme().colors.destructive : undefined,
     );
-    const restBorderWidth = this.#selected
-      ? states.selectedBorderWidth
-      : states.normalBorderWidth;
-    const restBorderColor =
-      this.#selected && states.selectedBorderWidth > 0
-        ? states.selectedBorder
-        : NO_FILL;
+    // No edge in any state, active or not: the popup is already a bordered
+    // surface, and a rule around every row inside it turns a list into a stack
+    // of buttons. The width is still declared so the row does not change size
+    // when a theme gives its controls one.
+    const restBorderWidth = states.normalBorderWidth;
+    const restBorderColor = NO_FILL;
     return BaseButton.new(this.#id)
       .role("menu_item")
       .disabled(this.#disabled)
@@ -661,7 +752,7 @@ export class MenuItem {
       .rounded(tokens.cornerRadius)
       .border(restBorderWidth)
       .border_color(restBorderColor)
-      .bg(this.#selected ? states.selectedFill : NO_FILL)
+      .bg(this.#selected ? states.hoverFill : NO_FILL)
       .text_size(tokens.font.bodySmall)
       .text_color(foreground)
       .when(!this.#disabled && typeof this.#onClick === "function", (element) => element.on_click(this.#onClick))
@@ -669,7 +760,7 @@ export class MenuItem {
       // popup is already a bordered surface, and a rule around every row
       // inside it turns a list into a stack of buttons.
       .when(!this.#disabled, (element) => element.hover((appearance) => appearance
-        .bg(this.#selected ? states.selectedFill : states.hoverFill)
+        .bg(states.hoverFill)
         .border(restBorderWidth)
         .border_color(restBorderColor)))
       .when(!this.#disabled, (element) => element.active((appearance) => appearance.bg(states.pressedFill)))
@@ -677,7 +768,7 @@ export class MenuItem {
       // keyboard is, which a fill alone cannot say when the pointer is
       // hovering a different row.
       .focus((appearance) => appearance
-        .bg(this.#selected ? states.selectedFill : states.focusFill)
+        .bg(this.#selected ? states.hoverFill : states.focusFill)
         .border(states.focusBorderWidth)
         .border_color(states.focusBorder))
       .child(
@@ -867,6 +958,23 @@ export class KeyHints {
   constructor(id) { this.#id = stableId("KeyHints", id); }
   /** @param {string} key @param {string} label */
   hint(key, label) { this.#hints.push({ key, label }); return this; }
+  /**
+   * Append a whole strip at once, in order.
+   *
+   * The pair matches the open containers' `child`/`children`: a caller
+   * building a strip by hand names each hint, and one rendering a strip it was
+   * handed -- a keymap, a table of routes -- passes the list it already has
+   * rather than reducing over it at every call site.
+   *
+   * @param {Array<{key: string, label: string}>} entries
+   */
+  hints(entries) {
+    if (!Array.isArray(entries)) {
+      throw new Error("KeyHints hints must be an array of {key, label} entries");
+    }
+    for (const entry of entries) this.hint(entry?.key, entry?.label);
+    return this;
+  }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
@@ -933,46 +1041,68 @@ export class ExternalLink {
 }
 
 /**
- * The frame around a text field the application owns.
+ * A text field the application owns the state of, wearing the kit's chrome.
  *
  * `InputState` needs a live host call and belongs to the view that retains it,
  * so this class arranges and styles the control rather than creating it — the
  * same division `FormField` follows. What it adds is the chrome: one height
- * shared with every other control in a title row, and a focus ring drawn on
- * the border, so the field does not resize when the keyboard reaches it.
+ * shared with every other control in a row, and a focus ring drawn on the
+ * border, so the field does not resize when the keyboard reaches it.
+ *
+ * `suffix` is the unit the value is in — a currency, `shares`, `ms`. It sits
+ * *inside* the field's own edge, because beside it a reader has to work out
+ * whether the word belongs to this control or labels the next one, and the
+ * answer moves with the width of whatever column they are in:
+ *
+ *     Price                      Price
+ *     [ 141.500        ] USD  →  [ 141.500    USD ]
+ *
+ * `Input` is a leaf and takes no children, so the unit is drawn over the
+ * field's trailing edge and the field is given room for it out of its trailing
+ * padding — the digits stop before the word rather than running under it. The
+ * room a word needs is its length times `font.advance`, because the window is
+ * monospaced. The border and the focus ring stay on the `Input`: it is what
+ * actually takes the keyboard, and a wrapper carrying them would have to know
+ * when its child was focused, which there is no `focus_within` to ask. With no
+ * suffix there is nothing to wrap, so nothing is wrapped.
  */
-export class FilterField {
+export class TextField {
   #state;
+  #suffix = "";
   /** @type {string | number | undefined} */
   #width;
   /** @type {ControlSize} */
-  #size = "small";
+  #size = "medium";
 
   /** @param {import("gpui-base").InputState} value */
   state(value) { this.#state = value; return this; }
+
+  /** @param {string} text the unit this field's value is in */
+  suffix(text) { this.#suffix = optionalText("TextField", "suffix", text) ?? ""; return this; }
 
   /** @param {string | number} value */
   width(value) { this.#width = value; return this; }
 
   /** @param {string} value */
-  size(value) { this.#size = controlSize("FilterField", value); return this; }
+  size(value) { this.#size = controlSize("TextField", value); return this; }
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
     if (!this.#state || typeof this.#state !== "object") {
-      throw new Error(
-        "FilterField state must be an application-owned InputState",
-      );
+      throw new Error("TextField state must be an application-owned InputState");
     }
     const tokens = style();
     const dimensions = sizeStyle(this.#size);
     const states = surfaceStates(cx);
-    return Input.new(this.#state)
-      .when(this.#width !== undefined, (element) =>
-        element.w(/** @type {any} */ (this.#width)),
-      )
+    const suffix = this.#suffix;
+    const room = suffix
+      ? Math.round(dimensions.fontSize * tokens.font.advance * suffix.length) +
+        tokens.spacing.sm * 2
+      : 0;
+    const field = Input.new(this.#state)
       .h(dimensions.extent)
-      .px(tokens.spacing.xs)
+      .pl(tokens.spacing.xs)
+      .pr(suffix ? room : tokens.spacing.xs)
       .rounded(tokens.cornerRadius)
       .border(states.normalBorderWidth)
       .border_color(states.normalBorder)
@@ -983,6 +1113,26 @@ export class FilterField {
         appearance
           .border(states.focusBorderWidth)
           .border_color(states.focusBorder),
+      );
+    if (!suffix) {
+      return field.when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      );
+    }
+    return h_flex()
+      .relative()
+      .when(this.#width !== undefined, (element) =>
+        element.w(/** @type {any} */ (this.#width)),
+      )
+      .child(field.flex_1())
+      .child(
+        h_flex()
+          .absolute()
+          .right(tokens.spacing.sm)
+          .top(0)
+          .h(dimensions.extent)
+          .items_center()
+          .child(mutedElement(suffix, cx).text_size(dimensions.fontSize)),
       );
   }
 }
