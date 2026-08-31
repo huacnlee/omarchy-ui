@@ -144,10 +144,15 @@ export class ListRow {
  * terminal writes a badge as.
  *
  * `.initials(text)` and `.icon(asset)` are the two fallbacks, and exactly one
- * is required — an avatar with neither has nothing to draw. `.tint(color)`
- * supplies a categorical hue the semantic tokens cannot know, such as one
- * derived from the subject's own name; without it the badge is drawn in the
- * control chrome every other resting surface uses.
+ * is required — an avatar with neither has nothing to draw.
+ *
+ * `.tint(color)` supplies a categorical hue the semantic tokens cannot know,
+ * such as one derived from the subject's own name, and it is also what decides
+ * whether the badge draws a box at all. A tinted avatar is a filled square:
+ * the fill *is* the identity, which is what makes a column of them scannable.
+ * An untinted one draws only its mark, because it has no identity to fill and
+ * is almost always sitting inside something that already frames it — an
+ * `AvatarButton`, a row, a header. Two nested boxes is one box too many.
  */
 export class Avatar {
   #initials;
@@ -211,7 +216,8 @@ export class Avatar {
     );
     const tokens = style();
     const extent = this.#extent ?? tokens.space(26);
-    const own = this.#tint ?? cx.theme().colors.foreground;
+    const tint = this.#tint;
+    const own = tint ?? cx.theme().colors.foreground;
 
     return BaseAvatar.new()
       .flex_none()
@@ -219,12 +225,15 @@ export class Avatar {
       .h(extent)
       .rounded(tokens.cornerRadius)
       .overflow_hidden()
-      .border(tokens.state.normalBorderWidth)
-      .border_color(alpha(own, tokens.state.normalBorderAlpha))
       // A badge is a filled mark, not a resting control surface, so it takes
       // the selected fill rather than the four percent a button rests at: a
       // tint you cannot see is a tint that identifies nothing.
-      .bg(alpha(own, tokens.state.selectedFillAlpha))
+      .when(Boolean(tint), (element) =>
+        element
+          .border(tokens.state.normalBorderWidth)
+          .border_color(alpha(own, tokens.state.normalBorderAlpha))
+          .bg(alpha(own, tokens.state.selectedFillAlpha)),
+      )
       .when(Boolean(description), (element) =>
         element.accessibility_label(String(description)),
       )
@@ -241,7 +250,13 @@ export class Avatar {
           .child(
             initials
               ? initials
-              : svg(String(asset)).flex_none().size(tokens.font.icon),
+              // Sized from the box rather than from the type scale: an avatar
+              // is drawn at whatever extent its container gives it, and a mark
+              // pinned to one size would swim in a large one and overflow a
+              // small one.
+              : svg(String(asset))
+                  .flex_none()
+                  .size(Math.max(1, Math.round(extent * 0.6))),
           ),
       );
   }

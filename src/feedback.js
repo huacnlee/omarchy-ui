@@ -223,7 +223,7 @@ export class Badge {
             .bg(color),
         ),
       )
-      .child(new MutedText(label).build(cx));
+      .child(new MutedText(label).size("bodySmall").build(cx));
   }
 }
 

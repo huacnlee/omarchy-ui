@@ -1013,7 +1013,12 @@ export class AvatarButton {
       "description",
       this.#description,
     );
-    const avatar = new Avatar().extent(sizeStyle(this.#size).iconSize * 2);
+    // The compact command's own padding, so the mark sits inside the button's
+    // box rather than fighting it for the same edge.
+    const inset = style().space(2);
+    const avatar = new Avatar().extent(
+      Math.max(1, sizeStyle(this.#size).extent - inset * 2),
+    );
     if (this.#initials) avatar.initials(this.#initials);
     if (this.#asset) avatar.icon(this.#asset);
     if (this.#tint) avatar.tint(this.#tint);
