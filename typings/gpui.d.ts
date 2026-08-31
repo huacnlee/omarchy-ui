@@ -103,6 +103,7 @@ declare module "gpui-base" {
   export const Button: ComponentType;
   export const Input: { new: (state: InputState) => Element };
   export const Link: ComponentType;
+  export const NumberInput: { new: (state: InputState) => Element };
   export const Tab: ComponentType;
   export const Tabs: ComponentType;
   export const TableCell: { new: (id: string | number, column_index: number) => Element };
