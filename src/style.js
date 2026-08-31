@@ -280,9 +280,34 @@ const FONT_KEYS = {
 };
 
 /**
+ * How much of a window's leading edge its host draws its own controls over.
+ *
+ * macOS puts the close, minimise and zoom buttons inside the window, at a
+ * fixed place the application does not choose and the user cannot move. A
+ * title row that starts at its own inset therefore starts *underneath* them.
+ *
+ * The number is macOS's, not this kit's, so it does not scale with the
+ * spacing scale the way every other measurement here does: the buttons stay
+ * where the system draws them however large the interface is set. It is the
+ * documented kind of literal — a platform window inset.
+ *
+ * 85 is measured from the drawn window: where the last button ends, plus the
+ * gap that makes what follows read as the window's content rather than as a
+ * fourth control in their row.
+ *
+ * Omarchy's own desktop has no client-side decorations, so a Hyprland window
+ * reserves nothing.
+ *
+ * @param {string} platform a `process.platform` value
+ */
+function windowControlsInset(platform) {
+  return platform === "darwin" ? 85 : 0;
+}
+
+/**
  * Build the token set from the shell's own two sources.
  * @param {string} shellSource contents of `theme/shell.toml`
- * @param {{ cornerRadius?: number, fontFamily?: string }} [host]
+ * @param {{ cornerRadius?: number, fontFamily?: string, platform?: string }} [host]
  */
 export function omarchyStyle(shellSource, host = {}) {
   const values = parseShellToml(shellSource);
@@ -313,6 +338,9 @@ export function omarchyStyle(shellSource, host = {}) {
         : space(DEFAULT_SPACING[/** @type {keyof typeof DEFAULT_SPACING} */ (name)]);
   }
   spacing.hairline = space(1);
+  // Not `space()`: see `windowControlsInset`. The host draws these buttons at
+  // a fixed place whatever the interface is scaled to.
+  spacing.windowControlsInset = windowControlsInset(String(host.platform ?? ""));
 
   /** @type {Record<string, number>} */
   const font = { baseSize };
@@ -370,7 +398,7 @@ export function omarchyStyle(shellSource, host = {}) {
     spacingScale,
     space,
     spaceReal,
-    spacing: /** @type {typeof DEFAULT_SPACING & {hairline:number}} */ (
+    spacing: /** @type {typeof DEFAULT_SPACING & {hairline:number, windowControlsInset:number}} */ (
       /** @type {unknown} */ (spacing)
     ),
     font: /** @type {Record<keyof typeof FONT_SCALE | "baseSize"|"icon"|"iconSmall"|"iconLarge"|"advance", number>} */ (
@@ -451,7 +479,8 @@ export function style() {
 /**
  * Replace the live tokens. Called once at startup with the host's sources, and
  * again if the theme changes underneath a running window.
- * @param {string} shellSource @param {{cornerRadius?:number,fontFamily?:string}} [host]
+ * @param {string} shellSource
+ * @param {{cornerRadius?:number,fontFamily?:string,platform?:string}} [host]
  */
 export function applyOmarchyStyle(shellSource, host = {}) {
   active = omarchyStyle(shellSource, host);

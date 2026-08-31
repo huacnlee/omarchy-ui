@@ -16,7 +16,7 @@ import {
 } from "../src/layout.js";
 import { Label, MutedText, SectionLabel, Title } from "../src/text.js";
 import { element } from "./gpui-stub.js";
-import { resolveSurfaceColor, style } from "../src/style.js";
+import { applyOmarchyStyle, resolveSurfaceColor, style } from "../src/style.js";
 
 const theme = {
   colors: {
@@ -475,7 +475,11 @@ test("shell and bar classes preserve resolved layout and surface styling", () =>
   expect(callsTo(top, "items_center")).toHaveLength(1);
   expect(callsTo(top, "justify_between")).toHaveLength(1);
   expect(callsTo(top, "gap")[0].args).toEqual([tokens.space(14)]);
-  expect(callsTo(top, "px")[0].args).toEqual([tokens.space(14)]);
+  // The trailing inset is the kit's own; the leading one yields to whatever
+  // the host draws over that edge, which is nothing on a desktop without
+  // client-side decorations.
+  expect(callsTo(top, "pr")[0].args).toEqual([tokens.space(14)]);
+  expect(callsTo(top, "pl")[0].args).toEqual([tokens.space(14)]);
   expect(callsTo(top, "border_b")[0].args).toEqual([
     tokens.spacing.hairline,
   ]);
@@ -603,4 +607,30 @@ test("workspace and surface classes preserve resolved layout and styling", () =>
       theme.colors.foreground,
     ),
   ]);
+});
+
+test("a title bar yields its leading edge to the host's own window buttons", () => {
+  const cx = { theme: () => theme };
+  const brand = () => element("brand");
+
+  applyOmarchyStyle("", { platform: "darwin" });
+  const mac = new TitleBar().brand(brand()).build(cx);
+  const reserved = style().spacing.windowControlsInset;
+  expect(callsTo(mac, "pl")[0].args).toEqual([reserved]);
+  // Only the leading edge moves: the trailing one is the kit's own inset, and
+  // nothing is drawn over it.
+  expect(callsTo(mac, "pr")[0].args).toEqual([style().space(14)]);
+
+  applyOmarchyStyle("", { platform: "linux" });
+  const hyprland = new TitleBar().brand(brand()).build(cx);
+  expect(callsTo(hyprland, "pl")[0].args).toEqual([style().space(14)]);
+
+  // `max`, not a replacement: a spacing scale wide enough to exceed what the
+  // host reserves keeps its own inset.
+  applyOmarchyStyle(`[spacing]\nscale = 12\n`, { platform: "darwin" });
+  const wide = new TitleBar().brand(brand()).build(cx);
+  expect(style().space(14)).toBeGreaterThan(reserved);
+  expect(callsTo(wide, "pl")[0].args).toEqual([style().space(14)]);
+
+  applyOmarchyStyle("");
 });
