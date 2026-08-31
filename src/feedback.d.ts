@@ -7,7 +7,7 @@ export declare class EmptyState {
     /** @param {import("gpui").Context} cx */
     build(cx: import("gpui").Context): import("gpui").Element;
 }
-export declare class StatusLine {
+export declare class StatusItem {
     #private;
     /** @param {string} value */
     label(value: string): this;

@@ -41,7 +41,7 @@ export class EmptyState {
   }
 }
 
-export class StatusLine {
+export class StatusItem {
   /** @type {string | undefined} */
   #label;
 
@@ -66,7 +66,7 @@ export class StatusLine {
   /** @param {"ready" | "loading" | "error"} value */
   state(value) {
     if (!["ready", "loading", "error"].includes(value)) {
-      throw new Error("StatusLine state must be one of: ready, loading, error.");
+      throw new Error("StatusItem state must be one of: ready, loading, error.");
     }
     this.#state = value;
     return this;
@@ -74,13 +74,23 @@ export class StatusLine {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
-    const label = requiredText("StatusLine", "label", this.#label);
+    // A window at rest is often a window with nothing to report, and the bar
+    // that carries this keeps its height either way — so `""` is a deliberate
+    // blank line here, the same exception the text classes make for a fixed
+    // row. Loading and error are not at rest: a report of either that says
+    // nothing is a report that has lost its sentence.
+    const label =
+      this.#state === "ready"
+        ? optionalText("StatusItem", "label", this.#label, {
+            allowEmpty: true,
+          }) ?? ""
+        : requiredText("StatusItem", "label", this.#label);
     if (this.#state !== "loading") {
-      optionalText("StatusLine", "loading label", this.#loadingLabel);
+      optionalText("StatusItem", "loading label", this.#loadingLabel);
     }
     const visibleLabel = this.#state === "loading"
       ? requiredText(
-          "StatusLine",
+          "StatusItem",
           "loading label",
           this.#loadingLabel,
         )

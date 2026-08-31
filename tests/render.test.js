@@ -55,7 +55,7 @@ test("composes generic shell, controls, data, and feedback through the public en
         .heading("Nothing selected")
         .hint("Choose a project to continue")
         .build(cx),
-      new ui.StatusLine().label("Sync failed").state("error").build(cx),
+      new ui.StatusItem().label("Sync failed").state("error").build(cx),
     ])
     .build(cx);
   const workspace = new ui.CenteredWorkspace("workspace")
@@ -71,7 +71,7 @@ test("composes generic shell, controls, data, and feedback through the public en
     .content(workspace)
     .bottom(
       new ui.StatusBar()
-        .status(new ui.StatusLine().label("Ready").build(cx))
+        .status(new ui.StatusItem().label("Ready").build(cx))
         .hints(new ui.KeyHints("navigation-hints").hint("j", "Next").build(cx))
         .build(cx),
     )
@@ -84,7 +84,7 @@ test("composes generic shell, controls, data, and feedback through the public en
   expect(callsTo(shell, "size_full")).toHaveLength(1);
   expect(
     callsTo(
-      new ui.StatusLine().label("Sync failed").state("error").build(cx),
+      new ui.StatusItem().label("Sync failed").state("error").build(cx),
       "text_color",
     ).at(-1).args,
   ).toEqual(["#ff3344ff"]);

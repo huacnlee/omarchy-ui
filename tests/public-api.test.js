@@ -58,7 +58,7 @@ test("exports exactly the frozen generic Omarchy UI API", () => {
     "SectionLabel",
     "Separator",
     "StatusBar",
-    "StatusLine",
+    "StatusItem",
     "Step",
     "Surface",
     "TableHeaderRow",
@@ -174,7 +174,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "onClick",
     "selected",
   ]);
-  expect(builders(ui.StatusLine)).toEqual([
+  expect(builders(ui.StatusItem)).toEqual([
     "build",
     "constructor",
     "label",

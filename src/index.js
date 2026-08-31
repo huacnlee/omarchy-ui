@@ -73,4 +73,4 @@ export {
   tableHeaderHeight,
 } from "./table.js";
 export { AccordionGroup, AccordionSection } from "./disclosure.js";
-export { Alert, Badge, EmptyState, StatusLine, Step } from "./feedback.js";
+export { Alert, Badge, EmptyState, StatusItem, Step } from "./feedback.js";

@@ -8,4 +8,4 @@ export { AvatarButton, Button, ExternalLink, FieldRow, FormField, GlyphButton, I
 export { Avatar, CodeBlock, DefinitionList, ListRow, Metric, MetricGrid, } from "./data.js";
 export { CellStack, TableHeaderRow, TableRow, tableHeaderHeight, } from "./table.js";
 export { AccordionGroup, AccordionSection } from "./disclosure.js";
-export { Alert, Badge, EmptyState, StatusLine, Step } from "./feedback.js";
+export { Alert, Badge, EmptyState, StatusItem, Step } from "./feedback.js";

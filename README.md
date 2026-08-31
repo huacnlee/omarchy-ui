@@ -275,7 +275,7 @@ role and the destructive token; call `.error("")` to reveal helper text again.
 | `DefinitionList(id)` | Stable `id` | `.entry(title, value, tone)` appends one label-and-value row. |
 | `CodeBlock(id)` | Stable `id` and non-blank `.value(text)` | No optional fields. Set large and spaced, because the value exists to be transcribed. |
 | `EmptyState` | `.heading(text)` and `.hint(text)` | No optional fields. |
-| `StatusLine` | `.label(text)` | `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. `.loadingLabel(text)` must be non-blank when state is loading. |
+| `StatusItem` | None | `.label(text)` and `.state("ready")`; valid states are `"ready"`, `"loading"`, and `"error"`. At rest the label may be blank — a window with nothing to report keeps its bar; loading and error must say something, and `.loadingLabel(text)` must be non-blank when state is loading. |
 | `Badge(id)` | Stable `id` and non-blank `.label(text)` | `.tone("neutral")`, `.color(value)`, `.dot(false)`, `.quiet(false)`, and `.description(text)`. |
 | `Alert(id)` | Stable `id` and non-blank `.message(text)` | `.tone("danger")` and `.color(value)`. |
 | `Step(index)` | A positive integer index and non-blank `.title(text)` | No optional fields. |
@@ -331,7 +331,7 @@ no hover, press, or focus affordance. Adding `onClick` uses the semantic button
 boundary and enables token-driven hover, pressed, focus, selected, and disabled
 states. Selection remains visible through hover and focus.
 
-`StatusLine.state(value)` validates its closed vocabulary immediately. An error
+`StatusItem.state(value)` validates its closed vocabulary immediately. An error
 state uses the active destructive token and a status role. Loading uses the
 caller's exact `.loadingLabel(text)` as visible and accessible copy, so the
 library does not assemble language or punctuation.
