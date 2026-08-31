@@ -151,6 +151,7 @@ test("interactive and validation classes expose the exact reviewed builders", ()
     "label",
     "onClick",
     "selected",
+    "tone",
   ]);
   expect(builders(ui.FormField)).toEqual([
     "build",

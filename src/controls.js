@@ -582,6 +582,8 @@ export class MenuItem {
   #selected = false;
   #danger = false;
   #disabled = false;
+  /** @type {import("gpui").Color | undefined} */
+  #tone;
   /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
   #onClick;
 
@@ -597,6 +599,19 @@ export class MenuItem {
   selected(value = true) { this.#selected = value; return this; }
   /** @param {boolean} [value] */
   danger(value = true) { this.#danger = value; return this; }
+  /**
+   * A colour this row's text is a *reading* in, rather than an interface role.
+   *
+   * `danger` is a role and the theme owns its colour. A tone is a meaning the
+   * caller worked out -- a direction, a rising or falling value -- that no
+   * token can name. It reaches the label, the icon and the detail together,
+   * because a row half in one colour reads as a rendering bug.
+   *
+   * Disabled still wins: a row that cannot be pressed has to look like one.
+   *
+   * @param {import("gpui").Color | undefined} color
+   */
+  tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
   /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
@@ -611,16 +626,15 @@ export class MenuItem {
     const detail = optionalText("MenuItem", "detail", this.#detail) ?? "";
     const asset = optionalText("MenuItem", "icon", this.#asset) ?? "";
     const tokens = style();
-    const foreground = this.#danger
-      ? this.#disabled
-        ? alpha(
-            cx.theme().colors.destructive,
-            tokens.state.normalBorderAlpha,
-          )
-        : cx.theme().colors.destructive
-      : this.#disabled
-        ? cx.theme().colors.muted_foreground
-        : cx.theme().colors.foreground;
+    // Disabled first: a row that cannot be pressed has to look like one,
+    // whatever it would otherwise have been coloured. Then the caller's tone,
+    // which is a reading no token names, then the theme's own role.
+    const foreground = this.#disabled
+      ? this.#danger
+        ? alpha(cx.theme().colors.destructive, tokens.state.normalBorderAlpha)
+        : cx.theme().colors.muted_foreground
+      : (this.#tone ??
+        (this.#danger ? cx.theme().colors.destructive : cx.theme().colors.foreground));
     const states = surfaceStates(
       cx,
       this.#danger ? cx.theme().colors.destructive : undefined,
