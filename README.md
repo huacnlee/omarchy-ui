@@ -136,7 +136,7 @@ interface text.
 | Class | Required before `build(cx)` | Optional builders and defaults |
 | --- | --- | --- |
 | `AppShell` | `.content(element)` | `.top(element)` and `.bottom(element)` are omitted by default. |
-| `TitleBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. |
+| `TitleBar` | None | `.brand(element)`, `.center(element)`, and `.actions(element)` are omitted by default. Its leading edge yields to the host's own window buttons where there are any — see **Window controls** below. |
 | `StatusBar` | None | `.status(element)` and `.hints(element)` are omitted; `.leadsWithIcon(false)` controls the leading inset. |
 | `ActionBar(id)` | Stable `id` | `.actions(element)` and `.status(element)` are omitted by default. |
 | `PanelHeader(id)` | Stable `id` and `.heading(element)` | `.actions(element)` is omitted by default. |
@@ -368,3 +368,30 @@ The unchanged pure utilities are exported alongside the classes:
 Install the theme once during application initialization, before rendering the
 class-built shell. See [Hello World](examples/hello-world/README.md) for the
 complete theme setup and consumer example.
+
+### Window controls
+
+`omarchyStyle(shellSource, host)` and `applyOmarchyStyle(shellSource, host)`
+take the facts only the host knows: `cornerRadius` from Hyprland's
+`decoration:rounding`, the `fontFamily` it resolved from fontconfig, and
+`platform` — a `process.platform` value.
+
+`platform` decides `style().spacing.windowControlsInset`: how much of the
+window's leading edge the host draws its own controls over. macOS puts close,
+minimise and zoom inside the window, at a fixed place the application does not
+choose, so a title row that started at its own inset would start underneath
+them. Omarchy's own desktop has no client-side decorations and reserves
+nothing, and a host that does not say is treated as one that draws nothing.
+
+`TitleBar` already yields that edge. An application drawing its own band at the
+top of the window — a compose header, a back bar — should read the same token
+rather than repeating the number:
+
+```js
+.pl(Math.max(tokens.space(14), tokens.spacing.windowControlsInset))
+```
+
+Unlike every other measurement here it does not move with the spacing scale:
+the buttons stay where the system draws them however large the interface is
+set. Only the leading edge is known; a host that draws its controls at the
+trailing edge is not described yet.

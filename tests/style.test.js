@@ -212,3 +212,29 @@ border-alpha = 1.0
     expect(style().fontFamily).toBe("Iosevka");
   });
 });
+
+describe("window controls", () => {
+  afterEach(() => applyOmarchyStyle(""));
+
+  test("a leading inset is reserved only where the host draws its own buttons", () => {
+    // macOS puts close, minimise and zoom inside the window, so a title row
+    // that started at its own inset would start underneath them.
+    expect(omarchyStyle("", { platform: "darwin" }).spacing.windowControlsInset)
+      .toBeGreaterThan(0);
+
+    // Omarchy's own desktop has no client-side decorations, and a host that
+    // did not say is treated as one that draws nothing.
+    for (const platform of ["linux", "win32", undefined]) {
+      expect(omarchyStyle("", { platform }).spacing.windowControlsInset).toBe(0);
+    }
+  });
+
+  test("the inset does not move with the spacing scale", () => {
+    // Every other measurement here scales; this one is the system's, and the
+    // buttons stay where the system draws them however large the interface is.
+    const scaled = omarchyStyle(`[spacing]\nscale = 2\n`, { platform: "darwin" });
+    const plain = omarchyStyle("", { platform: "darwin" });
+    expect(scaled.spacing.windowControlsInset).toBe(plain.spacing.windowControlsInset);
+    expect(scaled.space(14)).toBeGreaterThan(plain.space(14));
+  });
+});

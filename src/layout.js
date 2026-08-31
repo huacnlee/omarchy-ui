@@ -99,14 +99,22 @@ export class TitleBar {
 
   /** @param {import("gpui").Context} cx */
   build(cx) {
+    const tokens = style();
+    const inset = tokens.space(14);
     return h_flex()
       .id("application-top-bar")
-      .h(style().space(48))
+      .h(tokens.space(48))
       .flex_none()
       .items_center()
       .justify_between()
-      .gap(style().space(14))
-      .px(style().space(14))
+      .gap(inset)
+      // The leading edge yields to the host's own window buttons where it has
+      // any: on macOS the brand would otherwise start underneath the close,
+      // minimise and zoom controls. `max` rather than a replacement, so a
+      // large spacing scale still gets its own inset when that is the wider
+      // of the two.
+      .pl(Math.max(inset, tokens.spacing.windowControlsInset))
+      .pr(inset)
       .border_b(style().spacing.hairline)
       .border_color(role("separator", cx.theme().colors.border))
       .bg(cx.theme().colors.background)

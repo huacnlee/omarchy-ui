@@ -93,11 +93,12 @@ declare const FONT_SCALE: {
 /**
  * Build the token set from the shell's own two sources.
  * @param {string} shellSource contents of `theme/shell.toml`
- * @param {{ cornerRadius?: number, fontFamily?: string }} [host]
+ * @param {{ cornerRadius?: number, fontFamily?: string, platform?: string }} [host]
  */
 export declare function omarchyStyle(shellSource: string, host?: {
     cornerRadius?: number;
     fontFamily?: string;
+    platform?: string;
 }): {
     cornerRadius: number;
     fontFamily: string;
@@ -106,6 +107,7 @@ export declare function omarchyStyle(shellSource: string, host?: {
     spaceReal: (px: number) => number;
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
+        windowControlsInset: number;
     };
     font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
@@ -149,6 +151,7 @@ export declare function style(): {
     spaceReal: (px: number) => number;
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
+        windowControlsInset: number;
     };
     font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
@@ -185,11 +188,13 @@ export declare function style(): {
 /**
  * Replace the live tokens. Called once at startup with the host's sources, and
  * again if the theme changes underneath a running window.
- * @param {string} shellSource @param {{cornerRadius?:number,fontFamily?:string}} [host]
+ * @param {string} shellSource
+ * @param {{cornerRadius?:number,fontFamily?:string,platform?:string}} [host]
  */
 export declare function applyOmarchyStyle(shellSource: string, host?: {
     cornerRadius?: number;
     fontFamily?: string;
+    platform?: string;
 }): {
     cornerRadius: number;
     fontFamily: string;
@@ -198,6 +203,7 @@ export declare function applyOmarchyStyle(shellSource: string, host?: {
     spaceReal: (px: number) => number;
     spacing: typeof DEFAULT_SPACING & {
         hairline: number;
+        windowControlsInset: number;
     };
     font: Record<keyof typeof FONT_SCALE | "baseSize" | "icon" | "iconSmall" | "iconLarge" | "advance", number>;
     state: {
