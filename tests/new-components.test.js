@@ -88,11 +88,16 @@ test("a panel is a surface whose first row is its header", () => {
   expect(callsTo(header, "role")[0].args).toEqual(["section_header"]);
   // A growing panel hands its height to a cached box around the content, so a
   // frame that changes something inside the panel rebuilds only the panel.
+  expect(body.name).toEqual("v_flex");
   expect(callsTo(body, "id")[0].args).toEqual(["holdings-content"]);
   expect(callsTo(body, "flex_1")).toHaveLength(1);
   expect(callsTo(body, "min_h_0")).toHaveLength(1);
   expect(callsTo(body, "cached")).toHaveLength(1);
   expect(childArgs(body)).toEqual([content]);
+  // The wrapper's flex context has to reach the content itself, or a table
+  // whose body sizes off `flex_1().min_h(0)` collapses to zero height.
+  expect(callsTo(content, "flex_1")).toHaveLength(1);
+  expect(callsTo(content, "min_h_0")).toHaveLength(1);
 });
 
 test("a panel that does not grow lets its content keep its own height", () => {

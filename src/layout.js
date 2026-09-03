@@ -510,12 +510,12 @@ export class Panel {
       .child(header.build(cx))
       .child(
         this.#grow
-          ? div()
+          ? v_flex()
               .id(`${this.#id}-content`)
               .flex_1()
               .min_h_0()
               .cached()
-              .child(content)
+              .child(content.flex_1().min_h_0())
           : content.flex_none(),
       )
       .build(cx)
