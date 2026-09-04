@@ -64,13 +64,13 @@ describe("theme", () => {
   });
 
   test("projects a complete Omarchy semantic theme", () => {
-    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle(""));
 
     expect(theme).toEqual({
       appearance: "light",
       tokens: {
         spacing: { xxs: 2, xs: 3, sm: 4, md: 6, lg: 8, xl: 10, xxl: 12 },
-        radius: { none: 0, sm: 6, md: 6, lg: 6, xl: 6, full: 9999 },
+        radius: { none: 0, sm: 0, md: 0, lg: 0, xl: 0, full: 9999 },
         colors: {
           unexpected: "#abcdef",
           background: "#f8f7f2",
@@ -97,7 +97,7 @@ describe("theme", () => {
   });
 
   test("preserves fallback roles and gives every projected color an opaque alpha", () => {
-    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle(""));
 
     expect(theme.tokens.colors.unexpected).toBe("#abcdef");
     // `link` and `popover` are roles gpui's token set has no name for, so they
@@ -115,11 +115,11 @@ describe("theme", () => {
 
   test("projects complete semantic theme tokens", () => {
     const fallback = { colors: { unexpected: "#abcdef" } };
-    const theme = omarchyTheme(palette, fallback, omarchyStyle("", { cornerRadius: 2 }));
+    const theme = omarchyTheme(palette, fallback, omarchyStyle(""));
     expect(theme).toMatchObject({
       appearance: "light",
       tokens: {
-        radius: { sm: 2, full: 9999 },
+        radius: { sm: 0, full: 9999 },
         colors: { unexpected: "#abcdef", background: "#101010", surface: "#101010", primary: "#3366ff", border: "#696969ff" },
       },
     });
@@ -134,7 +134,7 @@ describe("theme", () => {
 
   test("keeps derived roles beside the semantic theme and honors radius variants", () => {
     const derived = omarchyRoles(samplePalette);
-    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle("", { cornerRadius: 6 }));
+    const theme = omarchyTheme(samplePalette, fallback, omarchyStyle(""));
 
     expect(omarchyBaseColors(samplePalette)).toEqual([
       "#a40000",
@@ -154,7 +154,7 @@ describe("theme", () => {
     expect(derived.dim).toBe("#686866ff");
     expect(derived.separator).toBe("#dfded9ff");
     expect(derived.separator).not.toBe(theme.tokens.colors.border);
-    expect(theme.tokens.radius).toEqual({ none: 0, sm: 6, md: 6, lg: 6, xl: 6, full: 9999 });
+    expect(theme.tokens.radius).toEqual({ none: 0, sm: 0, md: 0, lg: 0, xl: 0, full: 9999 });
     expect(omarchyTheme(samplePalette, fallback, omarchyStyle("")).tokens.radius.sm).toBe(0);
     expect(role("link", "#000000")).toBe("#000000");
     applyOmarchyRoles(samplePalette);

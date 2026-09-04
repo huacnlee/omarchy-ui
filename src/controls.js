@@ -211,7 +211,6 @@ function buildButton(config, cx) {
     .gap(tokens.spacing.md)
     .h(dimensions.extent)
     .px(dimensions.paddingX)
-    .rounded(tokens.cornerRadius)
     .border(restBorderWidth)
     .border_color(restBorderColor)
     .bg(
@@ -343,7 +342,6 @@ function buildCompactCommand(config, cx) {
     .flex_none()
     .size(dimensions.extent)
     .p(tokens.space(2))
-    .rounded(tokens.cornerRadius)
     .border(restBorderWidth)
     .border_color(restBorderColor)
     .bg(
@@ -758,7 +756,6 @@ export class MenuItem {
       .h(tokens.spacing.popupRowHeight)
       .gap(tokens.spacing.controlGap)
       .px(tokens.space(9))
-      .rounded(tokens.cornerRadius)
       .border(restBorderWidth)
       .border_color(restBorderColor)
       .bg(this.#selected ? states.hoverFill : NO_FILL)
@@ -913,7 +910,6 @@ export class Tabs {
         return (
           tab
             .flex_1()
-            .rounded(tokens.cornerRadius)
             // The fill is the whole of the mark. The enclosure draws the edge,
             // so a segment has none to grow or lose and the run cannot change
             // width as the pointer crosses it.
@@ -951,7 +947,6 @@ export class Tabs {
               .w_full()
               .gap(tokens.spacing.xxs)
               .p(tokens.spacing.xxs)
-              .rounded(tokens.cornerRadius)
               .border(states.normalBorderWidth)
               .border_color(states.normalBorder),
           )
@@ -1094,7 +1089,6 @@ export class Keycap {
       .justify_center()
       .px(tokens.space(3))
       .py(tokens.space(1))
-      .rounded(tokens.cornerRadius)
       .border(
         this.#pressed ? states.focusBorderWidth : states.normalBorderWidth,
       )
@@ -1275,7 +1269,6 @@ export class TextField {
       .h(dimensions.extent)
       .pl(tokens.spacing.xs)
       .pr(suffix ? room : tokens.spacing.xs)
-      .rounded(tokens.cornerRadius)
       .border(states.normalBorderWidth)
       .border_color(states.normalBorder)
       .bg(states.normalFill)
@@ -1409,7 +1402,6 @@ export class NumberInput {
       .h(dimensions.extent)
       .w(this.#width ?? tokens.spacing.numberFieldWidth)
       .pl(tokens.spacing.xs)
-      .rounded(tokens.cornerRadius)
       .border(states.normalBorderWidth)
       .border_color(states.normalBorder)
       .bg(states.normalFill)

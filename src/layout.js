@@ -352,7 +352,6 @@ export class Surface {
       .bg(cx.theme().colors.surface)
       .border(style().spacing.hairline)
       .border_color(cx.theme().colors.border)
-      .rounded(style().cornerRadius)
       .overflow_hidden()
       .children([...this.#children]);
   }
@@ -387,7 +386,6 @@ export class PopupSurface {
       .flex_none()
       .p(tokens.space(4))
       .gap(tokens.space(2))
-      .rounded(tokens.cornerRadius)
       // A popup is a raised surface, so with nothing named it takes the
       // surface token rather than the window's ground. Omarchy's own themes
       // set the two to the same colour on purpose -- the window is one

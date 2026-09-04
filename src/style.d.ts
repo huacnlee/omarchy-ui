@@ -93,14 +93,12 @@ declare const FONT_SCALE: {
 /**
  * Build the token set from the shell's own two sources.
  * @param {string} shellSource contents of `theme/shell.toml`
- * @param {{ cornerRadius?: number, fontFamily?: string, platform?: string }} [host]
+ * @param {{ fontFamily?: string, platform?: string }} [host]
  */
 export declare function omarchyStyle(shellSource: string, host?: {
-    cornerRadius?: number;
     fontFamily?: string;
     platform?: string;
 }): {
-    cornerRadius: number;
     fontFamily: string;
     spacingScale: number;
     space: (px: number) => number;
@@ -144,7 +142,6 @@ export declare function omarchyStyle(shellSource: string, host?: {
 export type OmarchyStyle = ReturnType<typeof omarchyStyle>;
 /** The live token set. Views read this the way QML read the `Style` singleton. */
 export declare function style(): {
-    cornerRadius: number;
     fontFamily: string;
     spacingScale: number;
     space: (px: number) => number;
@@ -189,14 +186,12 @@ export declare function style(): {
  * Replace the live tokens. Called once at startup with the host's sources, and
  * again if the theme changes underneath a running window.
  * @param {string} shellSource
- * @param {{cornerRadius?:number,fontFamily?:string,platform?:string}} [host]
+ * @param {{fontFamily?:string,platform?:string}} [host]
  */
 export declare function applyOmarchyStyle(shellSource: string, host?: {
-    cornerRadius?: number;
     fontFamily?: string;
     platform?: string;
 }): {
-    cornerRadius: number;
     fontFamily: string;
     spacingScale: number;
     space: (px: number) => number;

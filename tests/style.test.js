@@ -55,7 +55,6 @@ describe("Bun harness", () => {
 describe("style", () => {
   test("matches Omarchy's default structural tokens and control state", () => {
     const tokens = omarchyStyle(shell, {
-      cornerRadius: 0,
       fontFamily: "JetBrainsMono Nerd Font",
     });
 
@@ -85,7 +84,6 @@ describe("style", () => {
       icon: 14,
     });
     expect(tokens.fontFamily).toBe("JetBrainsMono Nerd Font");
-    expect(tokens.cornerRadius).toBe(0);
     expect(tokens.space(14)).toBe(14);
     expect(tokens.space(0)).toBe(0);
     expect(tokens.state).toMatchObject({
@@ -145,15 +143,14 @@ describe("style", () => {
 
   test("derives shell tokens and replaces the active style", () => {
     const source = `[font]\nbase-size = 15\n[spacing]\nscale = 1.2\nscale-with-font = true\nmd = 9\n[controls]\nhover-cursor-fill-alpha = 2\n[popups]\nbackground = "hyprland.active-border"\nbackground-alpha = 0.4\n[hyprland]\nactive-border = "rgb(336699)"`;
-    const tokens = omarchyStyle(source, { cornerRadius: 3, fontFamily: "Iosevka" });
+    const tokens = omarchyStyle(source, { fontFamily: "Iosevka" });
 
     expect(tokens.spacingScale).toBe(1.5);
     expect(tokens.spacing.md).toBe(9);
     expect(tokens.font.title).toBe(18);
-    expect(tokens.cornerRadius).toBe(3);
     expect(tokens.state.hoverFillAlpha).toBe(1);
     expect(tokens.surfaces.popupBackground).toBe("hyprland.active-border");
-    expect(applyOmarchyStyle(source, { cornerRadius: 3 })).toBe(style());
+    expect(applyOmarchyStyle(source)).toBe(style());
     expect(omarchyStyle("[controls]\nnormal-fill-alpha = 4").state.normalFillAlpha).toBe(1);
   });
 
@@ -207,8 +204,7 @@ border-alpha = 1.0
     expect(bare.spacing.md).toBe(6);
     expect(bare.font.body).toBe(12);
     expect(bare.fontFamily).toBe("monospace");
-    expect(applyOmarchyStyle(shell, { cornerRadius: 7, fontFamily: "Iosevka" })).toBe(style());
-    expect(style().cornerRadius).toBe(7);
+    expect(applyOmarchyStyle(shell, { fontFamily: "Iosevka" })).toBe(style());
     expect(style().fontFamily).toBe("Iosevka");
   });
 });

@@ -387,9 +387,12 @@ complete theme setup and consumer example.
 ### Window controls
 
 `omarchyStyle(shellSource, host)` and `applyOmarchyStyle(shellSource, host)`
-take the facts only the host knows: `cornerRadius` from Hyprland's
-`decoration:rounding`, the `fontFamily` it resolved from fontconfig, and
-`platform` — a `process.platform` value.
+take the facts only the host knows: the `fontFamily` it resolved from
+fontconfig, and `platform` — a `process.platform` value.
+
+Corners are not among them. Omarchy's surfaces are square, so this library
+draws no rounding and does not read Hyprland's `decoration:rounding`; the one
+round thing left is the status dot, which is a pill rather than a corner.
 
 `platform` decides `style().spacing.windowControlsInset`: how much of the
 window's leading edge the host draws its own controls over. macOS puts close,
