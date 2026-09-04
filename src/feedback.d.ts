@@ -4,8 +4,8 @@ export declare class EmptyState {
     heading(value: string): this;
     /** @param {string} value */
     hint(value: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class StatusItem {
     #private;
@@ -15,8 +15,8 @@ export declare class StatusItem {
     loadingLabel(value: string): this;
     /** @param {"ready" | "loading" | "error"} value */
     state(value: "ready" | "loading" | "error"): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 declare const TONES: readonly ["neutral", "accent", "success", "warning", "danger"];
 export type FeedbackTone = typeof TONES[number];
@@ -35,16 +35,16 @@ export declare class Badge {
     label(text: string): this;
     /** @param {string} value */
     tone(value: string): this;
-    /** @param {import("gpui").Color | undefined} value a palette the tokens cannot supply */
-    color(value: import("gpui").Color | undefined): this;
+    /** @param {import("gpui-kit").Color | undefined} value a palette the tokens cannot supply */
+    color(value: import("gpui-kit").Color | undefined): this;
     /** @param {boolean} [value] draw the leading state dot */
     dot(value?: boolean): this;
     /** @param {boolean} [value] a transitional state, held back from full emphasis */
     quiet(value?: boolean): this;
     /** @param {string} text the tooltip and accessible detail */
     description(text: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A message the caller must read before carrying on.
@@ -63,10 +63,10 @@ export declare class Alert {
     message(text: string): this;
     /** @param {string} value */
     tone(value: string): this;
-    /** @param {import("gpui").Color | undefined} value */
-    color(value: import("gpui").Color | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Color | undefined} value */
+    color(value: import("gpui-kit").Color | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * One place in a numbered errand.
@@ -81,7 +81,7 @@ export declare class Step {
     constructor(index: number);
     /** @param {string} text */
     title(text: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export {};

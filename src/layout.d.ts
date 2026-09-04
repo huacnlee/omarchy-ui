@@ -1,99 +1,99 @@
 export declare class AppShell {
     #private;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    top(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    content(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    bottom(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    top(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    content(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    bottom(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class TitleBar {
     #private;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    brand(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    center(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    actions(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    brand(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    center(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    actions(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class StatusBar {
     #private;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    status(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    hints(element: import("gpui").Element | import("gpui").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    status(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    hints(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
     /** @param {boolean} [value] */
     leadsWithIcon(value?: boolean): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class ActionBar {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    actions(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    status(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    actions(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    status(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class PanelHeader {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    heading(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    actions(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    heading(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    actions(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class CenteredWorkspace {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    content(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    content(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class PageColumn {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
-    children(elements: Array<import("gpui").Element | import("gpui").Entity>): this;
-    /** @param {import("gpui").DefiniteLength} value */
-    maxWidth(value: import("gpui").DefiniteLength): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
+    children(elements: Array<import("gpui-kit").Element | import("gpui-kit").Entity>): this;
+    /** @param {import("gpui-kit").DefiniteLength} value */
+    maxWidth(value: import("gpui-kit").DefiniteLength): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class Surface {
     #private;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
-    children(elements: Array<import("gpui").Element | import("gpui").Entity>): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
+    children(elements: Array<import("gpui-kit").Element | import("gpui-kit").Entity>): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class PopupSurface {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
-    children(elements: Array<import("gpui").Element | import("gpui").Entity>): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
+    children(elements: Array<import("gpui-kit").Element | import("gpui-kit").Entity>): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A titled region of a workspace: a `Surface` whose first row is a
@@ -117,14 +117,14 @@ export declare class Panel {
     title(text: string): this;
     /** @param {string} text */
     note(text: string): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    accessory(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    content(element: import("gpui").Element | import("gpui").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    accessory(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    content(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
     /** @param {boolean} [value] */
     grow(value?: boolean): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A row of controls attached to the content below it.
@@ -137,10 +137,10 @@ export declare class Toolbar {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    leading(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    trailing(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    leading(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    trailing(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }

@@ -1,6 +1,6 @@
 // @ts-check
 
-import { div } from "gpui";
+import { div } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import {
   optionalRenderable,
@@ -26,25 +26,25 @@ export class AppShell {
   #content;
   #bottom;
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   top(element) {
     this.#top = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   content(element) {
     this.#content = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   bottom(element) {
     this.#bottom = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const contentElement = requiredRenderable(
       "AppShell",
@@ -79,25 +79,25 @@ export class TitleBar {
   #center;
   #actions;
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   brand(element) {
     this.#brand = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   center(element) {
     this.#center = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     const inset = tokens.space(14);
@@ -131,13 +131,13 @@ export class StatusBar {
   #hints;
   #leadsWithIcon = false;
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   status(element) {
     this.#status = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   hints(element) {
     this.#hints = element;
     return this;
@@ -149,7 +149,7 @@ export class StatusBar {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     return h_flex()
       .id("application-bottom-bar")
@@ -180,19 +180,19 @@ export class ActionBar {
     this.#id = stableId("ActionBar", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   status(element) {
     this.#status = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     return h_flex()
       .id(this.#id)
@@ -220,19 +220,19 @@ export class PanelHeader {
     this.#id = stableId("PanelHeader", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   heading(element) {
     this.#heading = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   actions(element) {
     this.#actions = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const heading = requiredRenderable(
       "PanelHeader",
@@ -264,13 +264,13 @@ export class CenteredWorkspace {
     this.#id = stableId("CenteredWorkspace", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   content(element) {
     this.#content = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     const content = requiredRenderable(
       "CenteredWorkspace",
@@ -299,25 +299,25 @@ export class PageColumn {
     this.#id = stableId("PageColumn", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("PageColumn", "child", element));
     return this;
   }
 
-  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
+  /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
   children(elements) {
     this.#children.push(...requiredRenderables("PageColumn", "children", elements));
     return this;
   }
 
-  /** @param {import("gpui").DefiniteLength} value */
+  /** @param {import("gpui-kit").DefiniteLength} value */
   maxWidth(value) {
     this.#maxWidth = value;
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     return v_flex()
       .id(this.#id)
@@ -332,19 +332,19 @@ export class PageColumn {
 export class Surface {
   #children = [];
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("Surface", "child", element));
     return this;
   }
 
-  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
+  /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
   children(elements) {
     this.#children.push(...requiredRenderables("Surface", "children", elements));
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     return v_flex()
       .min_w_0()
@@ -367,19 +367,19 @@ export class PopupSurface {
     this.#id = stableId("PopupSurface", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("PopupSurface", "child", element));
     return this;
   }
 
-  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
+  /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
   children(elements) {
     this.#children.push(...requiredRenderables("PopupSurface", "children", elements));
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     return v_flex()
@@ -465,13 +465,13 @@ export class Panel {
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   accessory(element) {
     this.#accessory = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   content(element) {
     this.#content = element;
     return this;
@@ -483,7 +483,7 @@ export class Panel {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const title = requiredText("Panel", "title", this.#title);
     const note = optionalText("Panel", "note", this.#note);
@@ -537,19 +537,19 @@ export class Toolbar {
     this.#id = stableId("Toolbar", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   leading(element) {
     this.#leading = element;
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   trailing(element) {
     this.#trailing = element;
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     const tokens = style();
     return h_flex()

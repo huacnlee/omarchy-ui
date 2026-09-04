@@ -48,7 +48,7 @@ The surface is asserted exactly, so an unregistered class fails the suite
 rather than slipping in.
 
 Anything reached from `gpui` or `gpui-base` needs a declaration in
-`typings/gpui.d.ts` and a matching stub in `tests/gpui-stub.js`. That file
+`typings/gpui-kit.d.ts` and a matching stub in `tests/gpui-stub.js`. That file
 names only what `src/` actually uses, so it grows one entry at a time.
 
 ## Sizing and state

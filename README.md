@@ -102,9 +102,9 @@ implicit-`any` in a private field of this library against the application that
 imported it. A declaration file is read instead of the source, so an
 application sees only its own.
 
-The declarations name `import("gpui").Element`, `import("gpui").Color` and
-`import("gpui").Context` instead of carrying copies of them. Those resolve
-against the `gpui.d.ts` gpui-shell writes beside the application's own sources,
+The declarations name `import("gpui-kit").Element`, `import("gpui-kit").Color` and
+`import("gpui-kit").Context` instead of carrying copies of them. Those resolve
+against the `gpui-kit.d.ts` gpui-shell writes beside the application's own sources,
 so `build(cx)` answers the same `Element` every other element in that window
 is, and a role reads as a `Color` rather than as a string.
 
@@ -119,9 +119,9 @@ behind the sources they describe. To emit them alone:
 bun run types
 ```
 
-`typings/gpui.d.ts` supplies the gpui names during that run, which is what
+`typings/gpui-kit.d.ts` supplies the gpui names during that run, which is what
 makes the emit identical on a machine with no gpui-shell installed. It is not
-shipped: two `declare module "gpui"` blocks in one program collide.
+shipped: two `declare module "gpui-kit"` blocks in one program collide.
 
 ## Component catalog
 

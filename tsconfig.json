@@ -10,7 +10,7 @@
     "reason; the script clears the previous emit so tsc does not read its own",
     "output as input.",
     "",
-    "typings/gpui.d.ts stands in for the declarations gpui-shell generates",
+    "typings/gpui-kit.d.ts stands in for the declarations gpui-shell generates",
     "beside a running application, so the emit is the same on any machine.",
     "noImplicitAny is off because a private field assigned only in a builder",
     "has no annotation to read; every public shape is declared in JSDoc."

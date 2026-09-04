@@ -26,9 +26,9 @@ export declare class Button {
      *
      * Disabled still wins: a control that cannot be pressed has to look like one.
      *
-     * @param {import("gpui").Color | undefined} color
+     * @param {import("gpui-kit").Color | undefined} color
      */
-    tone(color: import("gpui").Color | undefined): this;
+    tone(color: import("gpui-kit").Color | undefined): this;
     outlined(): this;
     /** @param {boolean} [value] */
     bordered(value?: boolean): this;
@@ -46,10 +46,10 @@ export declare class Button {
     loadingLabel(text: string): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class IconButton {
     #private;
@@ -76,9 +76,9 @@ export declare class IconButton {
      *
      * Disabled still wins: a command that cannot be pressed has to look like one.
      *
-     * @param {import("gpui").Color | undefined} color
+     * @param {import("gpui-kit").Color | undefined} color
      */
-    tone(color: import("gpui").Color | undefined): this;
+    tone(color: import("gpui-kit").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */
@@ -87,10 +87,10 @@ export declare class IconButton {
     loadingLabel(text: string): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class GlyphButton {
     #private;
@@ -117,9 +117,9 @@ export declare class GlyphButton {
      *
      * Disabled still wins: a command that cannot be pressed has to look like one.
      *
-     * @param {import("gpui").Color | undefined} color
+     * @param {import("gpui-kit").Color | undefined} color
      */
-    tone(color: import("gpui").Color | undefined): this;
+    tone(color: import("gpui-kit").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
     /** @param {boolean} [value] */
@@ -128,10 +128,10 @@ export declare class GlyphButton {
     loadingLabel(text: string): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class MenuItem {
     #private;
@@ -167,15 +167,15 @@ export declare class MenuItem {
      *
      * Disabled still wins: a row that cannot be pressed has to look like one.
      *
-     * @param {import("gpui").Color | undefined} color
+     * @param {import("gpui-kit").Color | undefined} color
      */
-    tone(color: import("gpui").Color | undefined): this;
+    tone(color: import("gpui-kit").Color | undefined): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * One choice out of a few, laid out flat.
@@ -228,14 +228,14 @@ export declare class Tabs {
     }[]): this;
     /** @param {string} value the item currently chosen */
     value(value: string): this;
-    /** @param {(value: string, cx: import("gpui").Context) => void} callback */
-    onChange(callback: (value: string, cx: import("gpui").Context) => void): this;
+    /** @param {(value: string, cx: import("gpui-kit").Context) => void} callback */
+    onChange(callback: (value: string, cx: import("gpui-kit").Context) => void): this;
     /** @param {string} value */
     size(value: string): this;
     /** @param {string} text what this run of tabs is choosing, for a screen reader */
     accessibilityLabel(text: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class FieldRow {
     #private;
@@ -243,10 +243,10 @@ export declare class FieldRow {
     constructor(id: string);
     /** @param {string} text */
     label(text: string): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    control(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    control(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class FormField {
     #private;
@@ -254,22 +254,22 @@ export declare class FormField {
     constructor(id: string);
     /** @param {string} text */
     label(text: string): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    control(element: import("gpui").Element | import("gpui").Entity): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    control(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
     /** @param {string} text */
     helper(text: string): this;
     /** @param {string} message */
     error(message: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class Separator {
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class MenuSeparator {
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class Keycap {
     #private;
@@ -289,8 +289,8 @@ export declare class Keycap {
      * @param {boolean} [value]
      */
     quiet(value?: boolean): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class KeyHints {
     #private;
@@ -312,8 +312,8 @@ export declare class KeyHints {
         key: string;
         label: string;
     }>): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A link out of the application.
@@ -329,8 +329,8 @@ export declare class ExternalLink {
     label(text: string): this;
     /** @param {string} url */
     href(url: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A text field the application owns the state of, wearing the kit's chrome.
@@ -368,8 +368,8 @@ export declare class TextField {
     width(value: string | number): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * The trigger an account menu hangs from: a compact command whose content is
@@ -407,8 +407,8 @@ export declare class NumberInput {
     width(value: string | number): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export declare class AvatarButton {
     #private;
@@ -420,8 +420,8 @@ export declare class AvatarButton {
     icon(asset: string): this;
     /** @param {string} text the accessible name and the tooltip */
     description(text: string): this;
-    /** @param {import("gpui").Color | undefined} color */
-    tint(color: import("gpui").Color | undefined): this;
+    /** @param {import("gpui-kit").Color | undefined} color */
+    tint(color: import("gpui-kit").Color | undefined): this;
     /** @param {boolean} [value] the menu this trigger opens is showing */
     selected(value?: boolean): this;
     /** @param {boolean} [value] supporting chrome: muted until pointed at */
@@ -430,9 +430,9 @@ export declare class AvatarButton {
     disabled(value?: boolean): this;
     /** @param {string} value */
     size(value: string): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 export {};

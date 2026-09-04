@@ -15,7 +15,7 @@
 // an explicit colour would force the application to rebuild the text element
 // out of `div()` to paint one.
 
-import { div } from "gpui";
+import { div } from "gpui-kit";
 import { optionalText, requiredText } from "./internal.js";
 import { style } from "./style.js";
 
@@ -61,7 +61,7 @@ class TextRun {
   /** @type {TextSize} */
   #size;
 
-  /** @type {(cx: import("gpui").Context) => import("gpui").Color} */
+  /** @type {(cx: import("gpui-kit").Context) => import("gpui-kit").Color} */
   #resting;
 
   /** @type {unknown} */
@@ -71,13 +71,13 @@ class TextRun {
 
   #truncate = false;
 
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
 
   /**
    * @param {string} component
    * @param {TextSize} size
-   * @param {(cx: import("gpui").Context) => import("gpui").Color} resting
+   * @param {(cx: import("gpui-kit").Context) => import("gpui-kit").Color} resting
    * @param {string} [value]
    */
   constructor(component, size, resting, value) {
@@ -113,7 +113,7 @@ class TextRun {
 
   /**
    * A colour the semantic tokens cannot supply — a reading, not a state.
-   * @param {import("gpui").Color | undefined} value
+   * @param {import("gpui-kit").Color | undefined} value
    */
   tone(value) {
     if (value !== undefined && typeof value !== "string") {
@@ -125,7 +125,7 @@ class TextRun {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     // An empty string is the one blank this accepts, and it is deliberate: a
     // fixed-height row keeps its second line even when there is nothing to say
@@ -202,7 +202,7 @@ export class SectionLabel extends TextRun {
  * @param {string} component
  * @param {string} field
  * @param {unknown} value
- * @param {import("gpui").Context} cx
+ * @param {import("gpui-kit").Context} cx
  * @param {{muted?: boolean, size?: TextSize, strong?: boolean, optional?: boolean}} [options]
  */
 export function copy(component, field, value, cx, options = {}) {

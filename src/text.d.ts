@@ -20,10 +20,10 @@ declare class TextRun {
     /**
      * @param {string} component
      * @param {TextSize} size
-     * @param {(cx: import("gpui").Context) => import("gpui").Color} resting
+     * @param {(cx: import("gpui-kit").Context) => import("gpui-kit").Color} resting
      * @param {string} [value]
      */
-    constructor(component: string, size: TextSize, resting: (cx: import("gpui").Context) => import("gpui").Color, value?: string);
+    constructor(component: string, size: TextSize, resting: (cx: import("gpui-kit").Context) => import("gpui-kit").Color, value?: string);
     /** @param {string} value */
     text(value: string): this;
     /** @param {string} value one step of the shared type scale */
@@ -34,11 +34,11 @@ declare class TextRun {
     truncate(value?: boolean): this;
     /**
      * A colour the semantic tokens cannot supply — a reading, not a state.
-     * @param {import("gpui").Color | undefined} value
+     * @param {import("gpui-kit").Color | undefined} value
      */
-    tone(value: import("gpui").Color | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    tone(value: import("gpui-kit").Color | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /** Body copy in the foreground token: a name, a figure, a row's subject. */
 export declare class Label extends TextRun {
@@ -73,13 +73,13 @@ export declare class SectionLabel extends TextRun {
  * @param {string} component
  * @param {string} field
  * @param {unknown} value
- * @param {import("gpui").Context} cx
+ * @param {import("gpui-kit").Context} cx
  * @param {{muted?: boolean, size?: TextSize, strong?: boolean, optional?: boolean}} [options]
  */
-export declare function copy(component: string, field: string, value: unknown, cx: import("gpui").Context, options?: {
+export declare function copy(component: string, field: string, value: unknown, cx: import("gpui-kit").Context, options?: {
     muted?: boolean;
     size?: TextSize;
     strong?: boolean;
     optional?: boolean;
-}): import("gpui").Element;
+}): import("gpui-kit").Element;
 export {};

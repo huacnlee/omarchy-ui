@@ -23,8 +23,8 @@ export declare class TableHeaderRow {
     column(spec: ColumnSpec): this;
     /** @param {ColumnSpec[]} specs */
     columns(specs: ColumnSpec[]): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * One body row of a table.
@@ -45,18 +45,18 @@ export declare class TableRow {
     selected(value?: boolean): this;
     /** @param {boolean} [value] the row's data has not arrived yet */
     dimmed(value?: boolean): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
     /**
      * @param {{width?: string | number, align?: ColumnAlignment}} options
-     * @param {import("gpui").Element | import("gpui").Entity} element
+     * @param {import("gpui-kit").Element | import("gpui-kit").Entity} element
      */
     cell(options: {
         width?: string | number;
         align?: ColumnAlignment;
-    }, element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    }, element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A stack inside one cell: two lines of type where the column has room for a
@@ -68,8 +68,8 @@ export declare class CellStack {
     #private;
     /** @param {ColumnAlignment} value */
     align(value: ColumnAlignment): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }

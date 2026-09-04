@@ -1,6 +1,6 @@
 // The gpui surface this library touches, as declarations, for generation only.
 //
-// gpui-shell writes a complete `gpui.d.ts` into every directory that imports a
+// gpui-shell writes a complete `gpui-kit.d.ts` into every directory that imports a
 // built-in module, from the runtime that is about to run — which is why that
 // file is never committed anywhere, including here. A library cannot depend on
 // it: `bun run types` has to emit the same declarations on a machine with no
@@ -8,9 +8,9 @@
 //
 // So this file names the handful of gpui and gpui-base entries `src/` actually
 // imports, and nothing else. It is not shipped: the declarations in `types/`
-// only ever *refer* to `import("gpui").Color` and friends, and those names
-// resolve, in an application, against the real generated `gpui.d.ts` sitting
-// beside the application's own sources. Two `declare module "gpui"` blocks in
+// only ever *refer* to `import("gpui-kit").Color` and friends, and those names
+// resolve, in an application, against the real generated `gpui-kit.d.ts` sitting
+// beside the application's own sources. Two `declare module "gpui-kit"` blocks in
 // one program would collide, which is the other reason this one stays home.
 //
 // Elements are deliberately loose. Reproducing GPUI's style surface here would
@@ -19,7 +19,7 @@
 // style calls is still an element — so `build()` says `Element` rather than
 // `any` in the file an application reads.
 
-declare module "gpui" {
+declare module "gpui-kit" {
   /** Any style or content call on an element answers the element. */
   export interface Element {
     [method: string]: (...args: any[]) => Element;
@@ -51,7 +51,7 @@ declare module "gpui" {
 }
 
 declare module "gpui-base" {
-  import { Element } from "gpui";
+  import { Element } from "gpui-kit";
 
   /** A component identified across renders by `new(id)`. */
   export interface ComponentType {

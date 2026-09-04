@@ -41,7 +41,7 @@ example `.icon("assets/icons/wave.svg")`.
 
 `jsconfig.json` is what turns checking on; it is the file gpui-shell scaffolds
 into an application that has none, kept here verbatim. The rest of what an
-editor needs is generated on every run and never committed: `gpui.d.ts` beside
+editor needs is generated on every run and never committed: `gpui-kit.d.ts` beside
 this file, and a `node_modules/omarchy-ui` link into the resolved checkout,
 which is how a bare `import ... from "omarchy-ui"` is answered.
 

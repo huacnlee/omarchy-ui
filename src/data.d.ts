@@ -6,14 +6,14 @@ export declare class ListRow {
     selected(value?: boolean): this;
     /** @param {boolean} [value] */
     disabled(value?: boolean): this;
-    /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
-    onClick(callback: ((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
-    children(elements: Array<import("gpui").Element | import("gpui").Entity>): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onClick(callback: ((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
+    children(elements: Array<import("gpui-kit").Element | import("gpui-kit").Entity>): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * The badge that opens a row, or stands in for an account in a title bar.
@@ -43,12 +43,12 @@ export declare class Avatar {
     icon(asset: string): this;
     /** @param {string} text the accessible name */
     description(text: string): this;
-    /** @param {import("gpui").Color | undefined} color */
-    tint(color: import("gpui").Color | undefined): this;
+    /** @param {import("gpui-kit").Color | undefined} color */
+    tint(color: import("gpui-kit").Color | undefined): this;
     /** @param {number} value the badge's drawn extent, in scaled pixels */
     extent(value: number): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * One reading: a muted field label above its figure.
@@ -65,26 +65,26 @@ export declare class Metric {
     title(text: string): this;
     /** @param {string} text */
     value(text: string): this;
-    /** @param {import("gpui").Color | undefined} color a reading, not a state */
-    tone(color: import("gpui").Color | undefined): this;
+    /** @param {import("gpui-kit").Color | undefined} color a reading, not a state */
+    tone(color: import("gpui-kit").Color | undefined): this;
     /** @param {string} value the figure's step on the shared type scale */
     size(value: string): this;
     /** @param {number} value the wrapping basis, in scaled pixels */
     basis(value: number): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /** A wrapping row of `Metric`s: the same readings at any pane width. */
 export declare class MetricGrid {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
-    children(elements: Array<import("gpui").Element | import("gpui").Entity>): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
+    children(elements: Array<import("gpui-kit").Element | import("gpui-kit").Entity>): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * Label-and-value rows: the same pairs a `MetricGrid` draws as tiles, drawn as
@@ -98,11 +98,11 @@ export declare class DefinitionList {
     /**
      * @param {string} title
      * @param {string} value
-     * @param {import("gpui").Color} [tone]
+     * @param {import("gpui-kit").Color} [tone]
      */
-    entry(title: string, value: string, tone?: import("gpui").Color): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    entry(title: string, value: string, tone?: import("gpui-kit").Color): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * A value meant to be read aloud or typed somewhere else: a pairing code, a
@@ -116,6 +116,6 @@ export declare class CodeBlock {
     constructor(id: string);
     /** @param {string} text */
     value(text: string): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }

@@ -44,7 +44,7 @@ afterEach(() => {
 
 describe("Bun harness", () => {
   test("maps gpui and gpui-base imports to the local recording stub", async () => {
-    const [gpui, gpuiBase] = await Promise.all([import("gpui"), import("gpui-base")]);
+    const [gpui, gpuiBase] = await Promise.all([import("gpui-kit"), import("gpui-base")]);
     gpui.reset();
     gpui.record("div", "child");
     expect(gpui.calls).toEqual([{ name: "div", args: ["child"] }]);

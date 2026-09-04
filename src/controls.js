@@ -1,6 +1,6 @@
 // @ts-check
 
-import { div, svg } from "gpui";
+import { div, svg } from "gpui-kit";
 import {
   Button as BaseButton,
   Input,
@@ -23,15 +23,15 @@ import { alpha, style } from "./style.js";
 import { Label, MutedText } from "./text.js";
 import { role } from "./theme.js";
 
-const NO_FILL = /** @type {import("gpui").Color} */ ("#00000000");
+const NO_FILL = /** @type {import("gpui-kit").Color} */ ("#00000000");
 const SIZES = /** @type {const} */ (["xsmall", "small", "medium", "large"]);
 
 /** @typedef {typeof SIZES[number]} ControlSize */
 
 /**
- * @param {import("gpui").Context} cx
- * @param {import("gpui").Color} [color]
- * @param {import("gpui").Color} [focusColor]
+ * @param {import("gpui-kit").Context} cx
+ * @param {import("gpui-kit").Color} [color]
+ * @param {import("gpui-kit").Color} [focusColor]
  */
 /**
  * A control's chrome, in every state it can be in.
@@ -52,8 +52,8 @@ const SIZES = /** @type {const} */ (["xsmall", "small", "medium", "large"]);
  * override. A window whose palette says its rules are `#cecdc3` should not get
  * forty percent of its foreground instead.
  *
- * @param {import("gpui").Context} cx
- * @param {import("gpui").Color} [tint] a role colour, for a tinted control
+ * @param {import("gpui-kit").Context} cx
+ * @param {import("gpui-kit").Color} [tint] a role colour, for a tinted control
  */
 function surfaceStates(cx, tint) {
   const state = style().state;
@@ -149,12 +149,12 @@ function sizeStyle(size) {
   };
 }
 
-/** @param {string} value @param {import("gpui").Context} cx */
+/** @param {string} value @param {import("gpui-kit").Context} cx */
 function labelElement(value, cx) {
   return new Label(value).build(cx);
 }
 
-/** @param {string} value @param {import("gpui").Context} cx */
+/** @param {string} value @param {import("gpui-kit").Context} cx */
 function mutedElement(value, cx) {
   return new MutedText(value).build(cx);
 }
@@ -163,9 +163,9 @@ function mutedElement(value, cx) {
  * @param {{id:string, label:string, asset:string, outlined:boolean, bordered:boolean,
  * selected:boolean, accent:boolean, danger:boolean, disabled:boolean, loading:boolean,
  * loadingLabel:string, size:ControlSize, tooltip:string,
- * tone?: import("gpui").Color,
- * onClick?: (event: import("gpui").ClickEvent, cx: import("gpui").Context) => void}} config
- * @param {import("gpui").Context} cx
+ * tone?: import("gpui-kit").Color,
+ * onClick?: (event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void}} config
+ * @param {import("gpui-kit").Context} cx
  */
 function buildButton(config, cx) {
   const tokens = style();
@@ -273,7 +273,7 @@ function buildButton(config, cx) {
 /**
  * @param {string} label
  * @param {{iconSize:number}} dimensions
- * @param {import("gpui").Color} foreground
+ * @param {import("gpui-kit").Color} foreground
  */
 function activityMarker(label, dimensions, foreground) {
   const tokens = style();
@@ -292,10 +292,10 @@ function activityMarker(label, dimensions, foreground) {
  * @param {{id:string, content:any, description:string, outlined:boolean,
  * bordered:boolean, selected:boolean, quiet:boolean, disabled:boolean,
  * loading:boolean, loadingLabel:string, size:ControlSize,
- * tone?: import("gpui").Color,
- * onClick?: (event: import("gpui").ClickEvent,
- * cx: import("gpui").Context) => void}} config
- * @param {import("gpui").Context} cx
+ * tone?: import("gpui-kit").Color,
+ * onClick?: (event: import("gpui-kit").ClickEvent,
+ * cx: import("gpui-kit").Context) => void}} config
+ * @param {import("gpui-kit").Context} cx
  */
 function buildCompactCommand(config, cx) {
   const tokens = style();
@@ -398,7 +398,7 @@ export class Button {
   #label;
   #asset;
   #tooltip;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
   #outlined = false;
   #bordered = false;
@@ -410,7 +410,7 @@ export class Button {
   #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
   /** @param {string} id */
@@ -437,7 +437,7 @@ export class Button {
    *
    * Disabled still wins: a control that cannot be pressed has to look like one.
    *
-   * @param {import("gpui").Color | undefined} color
+   * @param {import("gpui-kit").Color | undefined} color
    */
   tone(color) { this.#tone = color; return this; }
   outlined() { this.#outlined = true; return this; }
@@ -457,13 +457,13 @@ export class Button {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("Button", value); return this; }
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("Button", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("Button", "label", this.#label);
     const asset = optionalText("Button", "icon", this.#asset) ?? "";
@@ -495,7 +495,7 @@ export class IconButton {
   #id;
   #asset;
   #description;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
   #outlined = false;
   #bordered = false;
@@ -506,7 +506,7 @@ export class IconButton {
   #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
   /** @param {string} id */
@@ -532,7 +532,7 @@ export class IconButton {
    *
    * Disabled still wins: a command that cannot be pressed has to look like one.
    *
-   * @param {import("gpui").Color | undefined} color
+   * @param {import("gpui-kit").Color | undefined} color
    */
   tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
@@ -543,13 +543,13 @@ export class IconButton {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("IconButton", value); return this; }
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("IconButton", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const asset = requiredText("IconButton", "icon", this.#asset);
     const description = requiredText(
@@ -582,7 +582,7 @@ export class GlyphButton {
   #id;
   #glyph;
   #description;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
   #outlined = false;
   #bordered = false;
@@ -593,7 +593,7 @@ export class GlyphButton {
   #loadingLabel;
   /** @type {ControlSize} */
   #size = "medium";
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
   /** @param {string} id */
@@ -619,7 +619,7 @@ export class GlyphButton {
    *
    * Disabled still wins: a command that cannot be pressed has to look like one.
    *
-   * @param {import("gpui").Color | undefined} color
+   * @param {import("gpui-kit").Color | undefined} color
    */
   tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
@@ -630,13 +630,13 @@ export class GlyphButton {
   loadingLabel(text) { this.#loadingLabel = text; return this; }
   /** @param {string} value */
   size(value) { this.#size = controlSize("GlyphButton", value); return this; }
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("GlyphButton", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const glyph = requiredText("GlyphButton", "glyph", this.#glyph);
     const description = requiredText(
@@ -673,9 +673,9 @@ export class MenuItem {
   #selected = false;
   #danger = false;
   #disabled = false;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
   /** @param {string} id */
@@ -710,18 +710,18 @@ export class MenuItem {
    *
    * Disabled still wins: a row that cannot be pressed has to look like one.
    *
-   * @param {import("gpui").Color | undefined} color
+   * @param {import("gpui-kit").Color | undefined} color
    */
   tone(color) { this.#tone = color; return this; }
   /** @param {boolean} [value] */
   disabled(value = true) { this.#disabled = value; return this; }
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("MenuItem", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("MenuItem", "label", this.#label);
     const detail = optionalText("MenuItem", "detail", this.#detail) ?? "";
@@ -837,7 +837,7 @@ export class Tabs {
   #variant = "underline";
   /** @type {ControlSize} */
   #size = "small";
-  /** @type {((value: string, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((value: string, cx: import("gpui-kit").Context) => void) | undefined} */
   #onChange;
   #label = "";
 
@@ -869,7 +869,7 @@ export class Tabs {
   /** @param {string} value the item currently chosen */
   value(value) { this.#value = optionalText("Tabs", "value", value) ?? ""; return this; }
 
-  /** @param {(value: string, cx: import("gpui").Context) => void} callback */
+  /** @param {(value: string, cx: import("gpui-kit").Context) => void} callback */
   onChange(callback) {
     this.#onChange = optionalCallback("Tabs", "onChange", callback);
     return this;
@@ -885,7 +885,7 @@ export class Tabs {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     if (this.#items.length === 0) {
       throw new Error("Tabs must be given items before it is built");
@@ -969,10 +969,10 @@ export class FieldRow {
   constructor(id) { this.#id = stableId("FieldRow", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   control(element) { this.#control = element; return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("FieldRow", "label", this.#label);
     const control = requiredRenderable("FieldRow", "control", this.#control);
@@ -1002,14 +1002,14 @@ export class FormField {
   constructor(id) { this.#id = stableId("FormField", id); }
   /** @param {string} text */
   label(text) { this.#label = text; return this; }
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   control(element) { this.#control = element; return this; }
   /** @param {string} text */
   helper(text) { this.#helper = text; return this; }
   /** @param {string} message */
   error(message) { this.#error = message; return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("FormField", "label", this.#label);
     const control = requiredRenderable("FormField", "control", this.#control);
@@ -1039,7 +1039,7 @@ export class FormField {
 }
 
 export class Separator {
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     // A panel rule, which is not a control border: `separator` is the derived
     // role for it, and a theme that has not been read falls back to its own
@@ -1053,7 +1053,7 @@ export class Separator {
 }
 
 export class MenuSeparator {
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     return v_flex().flex_none().h(style().space(7)).w_full().justify_center().child(new Separator().build(cx));
   }
@@ -1083,7 +1083,7 @@ export class Keycap {
    */
   quiet(value = true) { this.#quiet = value === true; return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const value = requiredText("Keycap", "value", this.#value);
     const tokens = style();
@@ -1148,7 +1148,7 @@ export class KeyHints {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     return h_flex()
@@ -1188,7 +1188,7 @@ export class ExternalLink {
   /** @param {string} url */
   href(url) { this.#href = url; return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("ExternalLink", "label", this.#label);
     const href = requiredText("ExternalLink", "href", this.#href);
@@ -1258,7 +1258,7 @@ export class TextField {
   /** @param {string} value */
   size(value) { this.#size = controlSize("TextField", value); return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     if (!this.#state || typeof this.#state !== "object") {
       throw new Error("TextField state must be an application-owned InputState");
@@ -1359,7 +1359,7 @@ export class NumberInput {
   /** @param {string} value */
   size(value) { this.#size = controlSize("NumberInput", value); return this; }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     if (!this.#state || typeof this.#state !== "object") {
       throw new Error("NumberInput state must be an application-owned InputState");
@@ -1441,14 +1441,14 @@ export class AvatarButton {
   #initials;
   #asset;
   #description;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tint;
   #selected = false;
   #quiet = false;
   #disabled = false;
   /** @type {ControlSize} */
   #size = "medium";
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
   /** @param {string} id */
@@ -1463,7 +1463,7 @@ export class AvatarButton {
   /** @param {string} text the accessible name and the tooltip */
   description(text) { this.#description = text; return this; }
 
-  /** @param {import("gpui").Color | undefined} color */
+  /** @param {import("gpui-kit").Color | undefined} color */
   tint(color) { this.#tint = color; return this; }
 
   /** @param {boolean} [value] the menu this trigger opens is showing */
@@ -1478,13 +1478,13 @@ export class AvatarButton {
   /** @param {string} value */
   size(value) { this.#size = controlSize("AvatarButton", value); return this; }
 
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("AvatarButton", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const description = requiredText(
       "AvatarButton",

@@ -1,6 +1,6 @@
 // @ts-check
 
-import { svg } from "gpui";
+import { svg } from "gpui-kit";
 import {
   Avatar as BaseAvatar,
   AvatarFallback,
@@ -27,10 +27,10 @@ export class ListRow {
 
   #disabled = false;
 
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
 
-  /** @type {Array<import("gpui").Element | import("gpui").Entity>} */
+  /** @type {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} */
   #children = [];
 
   /** @param {string} id */
@@ -50,25 +50,25 @@ export class ListRow {
     return this;
   }
 
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     this.#onClick = optionalCallback("ListRow", "onClick", callback);
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("ListRow", "child", element));
     return this;
   }
 
-  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
+  /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
   children(elements) {
     this.#children.push(...requiredRenderables("ListRow", "children", elements));
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const interactive = typeof this.#onClick === "function";
     const tokens = style();
@@ -158,7 +158,7 @@ export class Avatar {
   #initials;
   #asset;
   #description;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tint;
   /** @type {number | undefined} */
   #extent;
@@ -181,7 +181,7 @@ export class Avatar {
     return this;
   }
 
-  /** @param {import("gpui").Color | undefined} color */
+  /** @param {import("gpui-kit").Color | undefined} color */
   tint(color) {
     if (color !== undefined && typeof color !== "string") {
       throw new Error("Avatar tint must be a colour string when supplied");
@@ -199,7 +199,7 @@ export class Avatar {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const initials = optionalText("Avatar", "initials", this.#initials);
     const asset = optionalText("Avatar", "icon", this.#asset);
@@ -272,7 +272,7 @@ export class Avatar {
 export class Metric {
   #title;
   #value;
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #tone;
   /** @type {number | undefined} */
   #basis;
@@ -296,7 +296,7 @@ export class Metric {
     return this;
   }
 
-  /** @param {import("gpui").Color | undefined} color a reading, not a state */
+  /** @param {import("gpui-kit").Color | undefined} color a reading, not a state */
   tone(color) {
     this.#tone = color;
     return this;
@@ -317,7 +317,7 @@ export class Metric {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const title = requiredText("Metric", "title", this.#title);
     const value = requiredText("Metric", "value", this.#value);
@@ -341,7 +341,7 @@ export class Metric {
 /** A wrapping row of `Metric`s: the same readings at any pane width. */
 export class MetricGrid {
   #id;
-  /** @type {Array<import("gpui").Element | import("gpui").Entity>} */
+  /** @type {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} */
   #children = [];
 
   /** @param {string} id */
@@ -349,13 +349,13 @@ export class MetricGrid {
     this.#id = stableId("MetricGrid", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("MetricGrid", "child", element));
     return this;
   }
 
-  /** @param {Array<import("gpui").Element | import("gpui").Entity>} elements */
+  /** @param {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} elements */
   children(elements) {
     this.#children.push(
       ...requiredRenderables("MetricGrid", "children", elements),
@@ -363,7 +363,7 @@ export class MetricGrid {
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     const tokens = style();
     return h_flex()
@@ -385,7 +385,7 @@ export class MetricGrid {
  */
 export class DefinitionList {
   #id;
-  /** @type {Array<{title: string, value: string, tone?: import("gpui").Color}>} */
+  /** @type {Array<{title: string, value: string, tone?: import("gpui-kit").Color}>} */
   #entries = [];
 
   /** @param {string} id */
@@ -396,7 +396,7 @@ export class DefinitionList {
   /**
    * @param {string} title
    * @param {string} value
-   * @param {import("gpui").Color} [tone]
+   * @param {import("gpui-kit").Color} [tone]
    */
   entry(title, value, tone) {
     this.#entries.push({
@@ -407,7 +407,7 @@ export class DefinitionList {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     return v_flex()
@@ -447,7 +447,7 @@ export class CodeBlock {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const value = requiredText("CodeBlock", "value", this.#value);
     const tokens = style();

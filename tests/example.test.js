@@ -45,7 +45,7 @@ test("Hello World imports omarchy-ui as a bare module without local package path
 test("Hello World contains only approved top-level source directories", () => {
   // node_modules is gpui-shell's, not the application's: every load links the
   // manifest's Git dependencies into it so an editor can answer a bare import.
-  // It is generated the way gpui.d.ts is, and ignored the same way.
+  // It is generated the way gpui-kit.d.ts is, and ignored the same way.
   const approved = new Set(["assets/", "node_modules/"]);
   const directories = [
     ...new Bun.Glob("*/").scanSync({
@@ -93,7 +93,7 @@ test("Hello World initializes and installs an Omarchy theme before rendering", (
 
 test("Hello World's generated editor files are ignored by Git", async () => {
   for (const path of [
-    "examples/hello-world/gpui.d.ts",
+    "examples/hello-world/gpui-kit.d.ts",
     "examples/hello-world/node_modules/omarchy-ui/package.json",
   ]) {
     const result = Bun.spawnSync(["git", "check-ignore", "-q", path]);

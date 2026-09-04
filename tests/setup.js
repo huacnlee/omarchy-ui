@@ -6,7 +6,7 @@ const libraryUrl = new URL("../src/index.js", import.meta.url).href;
 Bun.plugin({
   name: "local-gpui-stub",
   setup(build) {
-    for (const specifier of ["gpui", "gpui-base"]) {
+    for (const specifier of ["gpui-kit", "gpui-base"]) {
       build.module(specifier, () => ({
         contents: `export * from ${JSON.stringify(stubUrl)};`,
         loader: "js",

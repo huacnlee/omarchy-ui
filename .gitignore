@@ -1,4 +1,4 @@
-examples/hello-world/gpui.d.ts
+examples/hello-world/gpui-kit.d.ts
 node_modules/
 
 # Planning notes and agent working files are working material, not something a
