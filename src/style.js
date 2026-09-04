@@ -315,7 +315,7 @@ function windowControlsInset(platform) {
 /**
  * Build the token set from the shell's own two sources.
  * @param {string} shellSource contents of `theme/shell.toml`
- * @param {{ cornerRadius?: number, fontFamily?: string, platform?: string }} [host]
+ * @param {{ fontFamily?: string, platform?: string }} [host]
  */
 export function omarchyStyle(shellSource, host = {}) {
   const values = parseShellToml(shellSource);
@@ -396,9 +396,6 @@ export function omarchyStyle(shellSource, host = {}) {
   );
 
   return {
-    // Mirrors Hyprland's decoration:rounding, so the app's corners match every
-    // other window on the desktop instead of picking their own roundness.
-    cornerRadius: Math.max(0, Math.round(host.cornerRadius ?? 0)),
     // "monospace" is the fontconfig alias `omarchy font set` rewrites; the
     // host resolves it to a concrete family so gpui, which has no alias
     // support, still follows the user's choice.
@@ -488,7 +485,7 @@ export function style() {
  * Replace the live tokens. Called once at startup with the host's sources, and
  * again if the theme changes underneath a running window.
  * @param {string} shellSource
- * @param {{cornerRadius?:number,fontFamily?:string,platform?:string}} [host]
+ * @param {{fontFamily?:string,platform?:string}} [host]
  */
 export function applyOmarchyStyle(shellSource, host = {}) {
   active = omarchyStyle(shellSource, host);

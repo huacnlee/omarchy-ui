@@ -223,7 +223,6 @@ export class Avatar {
       .flex_none()
       .w(extent)
       .h(extent)
-      .rounded(tokens.cornerRadius)
       .overflow_hidden()
       // A badge is a filled mark, not a resting control surface, so it takes
       // the selected fill rather than the four percent a button rests at: a
@@ -458,7 +457,6 @@ export class CodeBlock {
       .w_full()
       .py(tokens.spacing.lg)
       .px(tokens.spacing.rowPaddingX)
-      .rounded(tokens.cornerRadius)
       .border(tokens.state.normalBorderWidth)
       .border_color(
         alpha(cx.theme().colors.foreground, tokens.state.normalBorderAlpha),

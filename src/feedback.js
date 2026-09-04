@@ -229,7 +229,6 @@ export class Badge {
             .flex_none()
             .w(tokens.space(6))
             .h(tokens.space(6))
-            .rounded(tokens.cornerRadius)
             .bg(color),
         ),
       )
@@ -291,7 +290,6 @@ export class Alert {
       .w_full()
       .gap(tokens.spacing.sm)
       .p(tokens.spacing.sm)
-      .rounded(tokens.cornerRadius)
       .border(tokens.state.normalBorderWidth)
       .border_color(color)
       .bg(alpha(color, tokens.state.normalFillAlpha))
@@ -349,7 +347,6 @@ export class Step {
           .w(extent)
           .h(extent)
           .flex_none()
-          .rounded(tokens.cornerRadius)
           .bg(cx.theme().colors.secondary)
           .child(
             new Label(String(this.#index))

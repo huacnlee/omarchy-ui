@@ -570,14 +570,15 @@ test("workspace and surface classes preserve resolved layout and styling", () =>
     tokens.spacing.hairline,
   ]);
   expect(callsTo(surface, "border_color")[0].args).toEqual(["#777777ff"]);
-  expect(callsTo(surface, "rounded")[0].args).toEqual([tokens.cornerRadius]);
+  // Omarchy is a square desktop: a surface draws no corner at all.
+  expect(callsTo(surface, "rounded")).toHaveLength(0);
   expect(callsTo(surface, "overflow_hidden")).toHaveLength(1);
 
   const popup = new PopupSurface("popup").build(cx);
   expect(callsTo(popup, "flex_none")).toHaveLength(1);
   expect(callsTo(popup, "p")[0].args).toEqual([tokens.space(4)]);
   expect(callsTo(popup, "gap")[0].args).toEqual([tokens.space(2)]);
-  expect(callsTo(popup, "rounded")[0].args).toEqual([tokens.cornerRadius]);
+  expect(callsTo(popup, "rounded")).toHaveLength(0);
   // A popup is a raised surface, not the window's ground.
   expect(callsTo(popup, "bg")[0].args).toEqual([
     resolveSurfaceColor(

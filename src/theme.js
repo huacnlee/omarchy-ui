@@ -149,7 +149,6 @@ export function omarchyTheme(source, fallback, tokens = activeStyle()) {
   // gpui resolves a theme token to a solid colour and drops the alpha, and a
   // dropped alpha here turns every rule in the window pure white.
   const border = mix(roles.background, roles.foreground, state.normalBorderAlpha);
-  const radius = tokens.cornerRadius;
 
   return {
     appearance,
@@ -163,14 +162,16 @@ export function omarchyTheme(source, fallback, tokens = activeStyle()) {
         xl: tokens.spacing.xl,
         xxl: tokens.spacing.xxl,
       },
+      // Omarchy's surfaces are square. The scale is kept so a consumer can
+      // still name a step, but every step is the same corner: none.
       radius: {
         none: 0,
-        sm: radius,
-        md: radius,
-        lg: radius,
-        xl: radius,
-        // `full` is a pill, not a corner treatment, so it stays round even on
-        // a square desktop — it is what draws compact status dots.
+        sm: 0,
+        md: 0,
+        lg: 0,
+        xl: 0,
+        // `full` is a pill rather than a corner treatment, so it stays round —
+        // it is what draws compact status dots.
         full: 9999,
       },
       colors: {
