@@ -15,7 +15,7 @@
 // why `TableRow` takes the body index and adds the offset itself instead of
 // asking every caller to remember it.
 
-import { div } from "gpui";
+import { div } from "gpui-kit";
 import {
   TableCell as BaseTableCell,
   TableHead as BaseTableHead,
@@ -60,7 +60,7 @@ function alignment(component, value) {
 /**
  * `width` is a share of the row (`"31%"`), a fixed extent (`96`), or omitted to
  * take whatever the fixed columns leave.
- * @param {import("gpui").Element} element
+ * @param {import("gpui-kit").Element} element
  * @param {string | number | undefined} width
  */
 function sized(element, width) {
@@ -68,7 +68,7 @@ function sized(element, width) {
   return element.w(width);
 }
 
-/** @param {import("gpui").Element} element @param {ColumnAlignment} align */
+/** @param {import("gpui-kit").Element} element @param {ColumnAlignment} align */
 function aligned(element, align) {
   if (align === "end") return element.justify_end();
   if (align === "center") return element.justify_center();
@@ -127,7 +127,7 @@ export class TableHeaderRow {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     return BaseTableHeader.new(`${this.#id}-header`).child(
@@ -189,7 +189,7 @@ export class TableRow {
   #height;
   #selected = false;
   #dimmed = false;
-  /** @type {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} */
   #onClick;
   /** @type {Array<{width?: string|number, align: ColumnAlignment, element: any}>} */
   #cells = [];
@@ -224,7 +224,7 @@ export class TableRow {
     return this;
   }
 
-  /** @param {((event: import("gpui").ClickEvent, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((event: import("gpui-kit").ClickEvent, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onClick(callback) {
     if (callback !== undefined && typeof callback !== "function") {
       throw new Error("TableRow onClick must be a function when supplied");
@@ -235,7 +235,7 @@ export class TableRow {
 
   /**
    * @param {{width?: string | number, align?: ColumnAlignment}} options
-   * @param {import("gpui").Element | import("gpui").Entity} element
+   * @param {import("gpui-kit").Element | import("gpui-kit").Entity} element
    */
   cell(options, element) {
     const config =
@@ -250,7 +250,7 @@ export class TableRow {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     const foreground = this.#selected
@@ -324,7 +324,7 @@ export class TableRow {
 export class CellStack {
   /** @type {ColumnAlignment} */
   #align = "start";
-  /** @type {Array<import("gpui").Element | import("gpui").Entity>} */
+  /** @type {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} */
   #children = [];
 
   /** @param {ColumnAlignment} value */
@@ -333,13 +333,13 @@ export class CellStack {
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("CellStack", "child", element));
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     const tokens = style();
     // `v_flex`, not `h_flex().flex_col()`: `h_flex` centers on its cross axis,

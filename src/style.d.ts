@@ -18,41 +18,41 @@ export declare function parseColor(value: string): {
     b: number;
     a: number;
 };
-/** @param {{r:number,g:number,b:number,a:number}} color @returns {import("gpui").Color} */
+/** @param {{r:number,g:number,b:number,a:number}} color @returns {import("gpui-kit").Color} */
 export declare function formatColor(color: {
     r: number;
     g: number;
     b: number;
     a: number;
-}): import("gpui").Color;
+}): import("gpui-kit").Color;
 /**
  * The shell's `Util.alpha`: the same color at a new opacity. Every control
  * fill and border in Omarchy is a foreground or accent at an alpha rather than
  * a literal gray, which is what keeps a light theme from getting a dark
  * "muted" and a dark theme a light one.
- * @param {import("gpui").Color|string} color @param {number} value
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color|string} color @param {number} value
+ * @returns {import("gpui-kit").Color}
  */
-export declare function alpha(color: import("gpui").Color | string, value: number): import("gpui").Color;
+export declare function alpha(color: import("gpui-kit").Color | string, value: number): import("gpui-kit").Color;
 /**
  * Mix `color` toward `toward` by `amount`. Secondary text mixes the
  * foreground toward the *background* — on a light theme, darkening an
  * almost-black foreground makes "secondary" text heavier than body text,
  * which is the opposite of what it means.
- * @param {import("gpui").Color|string} color
- * @param {import("gpui").Color|string} toward
+ * @param {import("gpui-kit").Color|string} color
+ * @param {import("gpui-kit").Color|string} toward
  * @param {number} amount
- * @returns {import("gpui").Color}
+ * @returns {import("gpui-kit").Color}
  */
-export declare function mix(color: import("gpui").Color | string, toward: import("gpui").Color | string, amount: number): import("gpui").Color;
+export declare function mix(color: import("gpui-kit").Color | string, toward: import("gpui-kit").Color | string, amount: number): import("gpui-kit").Color;
 /**
  * The same hue and lightness at a capped saturation. Omarchy's palette has no
  * separate "primary": `accent` is it, and an accent near full saturation is
  * right for a compact status indicator and wrong for a link inside a paragraph.
- * @param {import("gpui").Color|string} color @param {number} maximum
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color|string} color @param {number} maximum
+ * @returns {import("gpui-kit").Color}
  */
-export declare function capSaturation(color: import("gpui").Color | string, maximum: number): import("gpui").Color;
+export declare function capSaturation(color: import("gpui-kit").Color | string, maximum: number): import("gpui-kit").Color;
 declare const DEFAULT_SPACING: {
     xxs: number;
     xs: number;
@@ -250,16 +250,16 @@ export declare function applyOmarchyStyle(shellSource: string, host?: {
  * spelling, with the hex digits inside the parentheses rather than the CSS
  * comma-separated form — or `0xAARRGGBB`, or a plain `#` literal.
  * @param {string} value
- * @returns {import("gpui").Color|null}
+ * @returns {import("gpui-kit").Color|null}
  */
-export declare function parseHyprlandColor(value: string): import("gpui").Color | null;
+export declare function parseHyprlandColor(value: string): import("gpui-kit").Color | null;
 /**
  * Resolve a `section.key` reference like `"hyprland.active-border"` to the
  * color it points at, leaving a literal color alone.
  * @param {OmarchyStyle} tokens @param {string} value
- * @param {import("gpui").Color} fallback
+ * @param {import("gpui-kit").Color} fallback
  * @param {number} [opacity] the section's `*-alpha` companion
- * @returns {import("gpui").Color}
+ * @returns {import("gpui-kit").Color}
  */
-export declare function resolveSurfaceColor(tokens: OmarchyStyle, value: string, fallback: import("gpui").Color, opacity?: number): import("gpui").Color;
+export declare function resolveSurfaceColor(tokens: OmarchyStyle, value: string, fallback: import("gpui-kit").Color, opacity?: number): import("gpui-kit").Color;
 export {};

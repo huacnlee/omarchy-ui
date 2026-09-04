@@ -10,7 +10,7 @@
     "",
     "`lib` decides which globals exist. The default hands a script the",
     "browser's — a `console`, a `localStorage`, a `Window` this runtime does",
-    "not have — and their declarations collide with the ones gpui.d.ts makes,",
+    "not have — and their declarations collide with the ones gpui-kit.d.ts makes,",
     "so the file describing the API is itself reported as the error.",
     "",
     "`strictNullChecks` is off, and this one is the runtime's shape rather than",

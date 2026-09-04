@@ -30,10 +30,10 @@ function first(palette, ...keys) {
  * generated from one, a `Color` rather than a string an application would have
  * to cast before it could paint with it.
  * @param {Record<string, string>} palette @param {...string} keys
- * @returns {import("gpui").Color}
+ * @returns {import("gpui-kit").Color}
  */
 function firstColor(palette, ...keys) {
-  return /** @type {import("gpui").Color} */ (first(palette, ...keys));
+  return /** @type {import("gpui-kit").Color} */ (first(palette, ...keys));
 }
 
 /** @param {string} source */
@@ -102,7 +102,7 @@ export function omarchyRoles(source) {
     // translucent, because a theme token drops its alpha.
     separator: mix(background, foreground, 0.12),
     selection:
-      /** @type {import("gpui").Color} */ (palette.selection) ??
+      /** @type {import("gpui-kit").Color} */ (palette.selection) ??
       alpha(accent, 0.35),
     lighterBackground:
       firstColor(palette, "lighter_background", "lighter_bg") ?? background,
@@ -229,8 +229,8 @@ export function roles() {
  * Resolve one derived role, falling back to a theme token when no Omarchy
  * palette has been read — a test, or a desktop that is not Omarchy.
  * @param {"dim"|"dimmer"|"link"|"urgent"|"danger"|"accent"|"selection"|"separator"} name
- * @param {import("gpui").Color} fallback
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color} fallback
+ * @returns {import("gpui-kit").Color}
  */
 export function role(name, fallback) {
   const current = activeRoles;

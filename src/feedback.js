@@ -1,6 +1,6 @@
 // @ts-check
 
-import { div } from "gpui";
+import { div } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { optionalText, requiredText, stableId } from "./internal.js";
 import { alpha, style } from "./style.js";
@@ -25,7 +25,7 @@ export class EmptyState {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const tokens = style();
     const heading = requiredText("EmptyState", "heading", this.#heading);
@@ -72,7 +72,7 @@ export class StatusItem {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     // A window at rest is often a window with nothing to report, and the bar
     // that carries this keeps its height either way — so `""` is a deliberate
@@ -136,7 +136,7 @@ function feedbackTone(component, value) {
  * caller who has not gets the muted foreground, which is honest about the
  * library not knowing.
  * @param {FeedbackTone} tone
- * @param {import("gpui").Context} cx
+ * @param {import("gpui-kit").Context} cx
  */
 function toneColor(tone, cx) {
   if (tone === "danger") return cx.theme().colors.destructive;
@@ -156,7 +156,7 @@ export class Badge {
   #label;
   /** @type {FeedbackTone} */
   #tone = "neutral";
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #color;
   #dot = false;
   #quiet = false;
@@ -179,7 +179,7 @@ export class Badge {
     return this;
   }
 
-  /** @param {import("gpui").Color | undefined} value a palette the tokens cannot supply */
+  /** @param {import("gpui-kit").Color | undefined} value a palette the tokens cannot supply */
   color(value) {
     if (value !== undefined && typeof value !== "string") {
       throw new Error("Badge color must be a colour string when supplied");
@@ -206,7 +206,7 @@ export class Badge {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const label = requiredText("Badge", "label", this.#label);
     const description = optionalText("Badge", "description", this.#description);
@@ -251,7 +251,7 @@ export class Alert {
   #message;
   /** @type {FeedbackTone} */
   #tone = "danger";
-  /** @type {import("gpui").Color | undefined} */
+  /** @type {import("gpui-kit").Color | undefined} */
   #color;
 
   /** @param {string} id */
@@ -271,7 +271,7 @@ export class Alert {
     return this;
   }
 
-  /** @param {import("gpui").Color | undefined} value */
+  /** @param {import("gpui-kit").Color | undefined} value */
   color(value) {
     if (value !== undefined && typeof value !== "string") {
       throw new Error("Alert color must be a colour string when supplied");
@@ -280,7 +280,7 @@ export class Alert {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const message = requiredText("Alert", "message", this.#message);
     const tokens = style();
@@ -334,7 +334,7 @@ export class Step {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const title = requiredText("Step", "title", this.#title);
     const tokens = style();

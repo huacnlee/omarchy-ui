@@ -3,10 +3,10 @@ export declare class AccordionGroup {
     #private;
     /** @param {string} id */
     constructor(id: string);
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    child(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {import("gpui").Context} _cx */
-    build(_cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    child(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {import("gpui-kit").Context} _cx */
+    build(_cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }
 /**
  * One collapsible section.
@@ -38,10 +38,10 @@ export declare class AccordionSection {
     keepMounted(value?: boolean): this;
     /** @param {number} value */
     inset(value: number): this;
-    /** @param {import("gpui").Element | import("gpui").Entity} element */
-    body(element: import("gpui").Element | import("gpui").Entity): this;
-    /** @param {((open: boolean, cx: import("gpui").Context) => void) | undefined} callback */
-    onToggle(callback: ((open: boolean, cx: import("gpui").Context) => void) | undefined): this;
-    /** @param {import("gpui").Context} cx */
-    build(cx: import("gpui").Context): import("gpui").Element;
+    /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
+    body(element: import("gpui-kit").Element | import("gpui-kit").Entity): this;
+    /** @param {((open: boolean, cx: import("gpui-kit").Context) => void) | undefined} callback */
+    onToggle(callback: ((open: boolean, cx: import("gpui-kit").Context) => void) | undefined): this;
+    /** @param {import("gpui-kit").Context} cx */
+    build(cx: import("gpui-kit").Context): import("gpui-kit").Element;
 }

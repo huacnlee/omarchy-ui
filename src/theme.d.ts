@@ -1,11 +1,11 @@
 /** @param {string} source */
-export declare function omarchyBaseColors(source: string): import("gpui").Color[];
+export declare function omarchyBaseColors(source: string): import("gpui-kit").Color[];
 /** @param {string} source */
 export declare function omarchyStatusColors(source: string): {
-    danger: import("gpui").Color;
-    success: import("gpui").Color;
-    warning: import("gpui").Color;
-    info: import("gpui").Color;
+    danger: import("gpui-kit").Color;
+    success: import("gpui-kit").Color;
+    warning: import("gpui-kit").Color;
+    info: import("gpui-kit").Color;
 };
 /**
  * The four foundational roles plus the ones the app derives from them.
@@ -18,21 +18,21 @@ export declare function omarchyStatusColors(source: string): {
  * @param {string} source
  */
 export declare function omarchyRoles(source: string): {
-    background: import("gpui").Color;
-    foreground: import("gpui").Color;
-    accent: import("gpui").Color;
-    urgent: import("gpui").Color;
-    danger: import("gpui").Color;
-    dim: import("gpui").Color;
-    dimmer: import("gpui").Color;
-    link: import("gpui").Color;
-    separator: import("gpui").Color;
-    selection: import("gpui").Color;
-    lighterBackground: import("gpui").Color;
-    darkBackground: import("gpui").Color;
-    lightForeground: import("gpui").Color;
-    brightForeground: import("gpui").Color;
-    mutedForeground: import("gpui").Color;
+    background: import("gpui-kit").Color;
+    foreground: import("gpui-kit").Color;
+    accent: import("gpui-kit").Color;
+    urgent: import("gpui-kit").Color;
+    danger: import("gpui-kit").Color;
+    dim: import("gpui-kit").Color;
+    dimmer: import("gpui-kit").Color;
+    link: import("gpui-kit").Color;
+    separator: import("gpui-kit").Color;
+    selection: import("gpui-kit").Color;
+    lighterBackground: import("gpui-kit").Color;
+    darkBackground: import("gpui-kit").Color;
+    lightForeground: import("gpui-kit").Color;
+    brightForeground: import("gpui-kit").Color;
+    mutedForeground: import("gpui-kit").Color;
 };
 /**
  * Project Omarchy colors into a complete gpui-base semantic theme snapshot.
@@ -58,45 +58,45 @@ export declare function omarchyTheme(source: string, fallback: any, tokens?: imp
 } | null;
 /** The derived palette roles. Null until the host has read a theme. */
 export declare function roles(): {
-    background: import("gpui").Color;
-    foreground: import("gpui").Color;
-    accent: import("gpui").Color;
-    urgent: import("gpui").Color;
-    danger: import("gpui").Color;
-    dim: import("gpui").Color;
-    dimmer: import("gpui").Color;
-    link: import("gpui").Color;
-    separator: import("gpui").Color;
-    selection: import("gpui").Color;
-    lighterBackground: import("gpui").Color;
-    darkBackground: import("gpui").Color;
-    lightForeground: import("gpui").Color;
-    brightForeground: import("gpui").Color;
-    mutedForeground: import("gpui").Color;
+    background: import("gpui-kit").Color;
+    foreground: import("gpui-kit").Color;
+    accent: import("gpui-kit").Color;
+    urgent: import("gpui-kit").Color;
+    danger: import("gpui-kit").Color;
+    dim: import("gpui-kit").Color;
+    dimmer: import("gpui-kit").Color;
+    link: import("gpui-kit").Color;
+    separator: import("gpui-kit").Color;
+    selection: import("gpui-kit").Color;
+    lighterBackground: import("gpui-kit").Color;
+    darkBackground: import("gpui-kit").Color;
+    lightForeground: import("gpui-kit").Color;
+    brightForeground: import("gpui-kit").Color;
+    mutedForeground: import("gpui-kit").Color;
 };
 /**
  * Resolve one derived role, falling back to a theme token when no Omarchy
  * palette has been read — a test, or a desktop that is not Omarchy.
  * @param {"dim"|"dimmer"|"link"|"urgent"|"danger"|"accent"|"selection"|"separator"} name
- * @param {import("gpui").Color} fallback
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color} fallback
+ * @returns {import("gpui-kit").Color}
  */
-export declare function role(name: "dim" | "dimmer" | "link" | "urgent" | "danger" | "accent" | "selection" | "separator", fallback: import("gpui").Color): import("gpui").Color;
+export declare function role(name: "dim" | "dimmer" | "link" | "urgent" | "danger" | "accent" | "selection" | "separator", fallback: import("gpui-kit").Color): import("gpui-kit").Color;
 /** @param {string} source */
 export declare function applyOmarchyRoles(source: string): {
-    background: import("gpui").Color;
-    foreground: import("gpui").Color;
-    accent: import("gpui").Color;
-    urgent: import("gpui").Color;
-    danger: import("gpui").Color;
-    dim: import("gpui").Color;
-    dimmer: import("gpui").Color;
-    link: import("gpui").Color;
-    separator: import("gpui").Color;
-    selection: import("gpui").Color;
-    lighterBackground: import("gpui").Color;
-    darkBackground: import("gpui").Color;
-    lightForeground: import("gpui").Color;
-    brightForeground: import("gpui").Color;
-    mutedForeground: import("gpui").Color;
+    background: import("gpui-kit").Color;
+    foreground: import("gpui-kit").Color;
+    accent: import("gpui-kit").Color;
+    urgent: import("gpui-kit").Color;
+    danger: import("gpui-kit").Color;
+    dim: import("gpui-kit").Color;
+    dimmer: import("gpui-kit").Color;
+    link: import("gpui-kit").Color;
+    separator: import("gpui-kit").Color;
+    selection: import("gpui-kit").Color;
+    lighterBackground: import("gpui-kit").Color;
+    darkBackground: import("gpui-kit").Color;
+    lightForeground: import("gpui-kit").Color;
+    brightForeground: import("gpui-kit").Color;
+    mutedForeground: import("gpui-kit").Color;
 };

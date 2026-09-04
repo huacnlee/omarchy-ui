@@ -67,8 +67,8 @@ test("package.json points applications at the declarations", async () => {
   expect(await Bun.file(new URL(manifest.types, root)).exists()).toBe(true);
 });
 
-// typings/gpui.d.ts stands in for gpui-shell's own generated declarations while
-// the types are emitted. Shipping a second `declare module "gpui"` would
+// typings/gpui-kit.d.ts stands in for gpui-shell's own generated declarations while
+// the types are emitted. Shipping a second `declare module "gpui-kit"` would
 // collide with the one an application already has beside its sources, so the
 // emitted files may only refer to that module, never declare it.
 test("the declarations refer to gpui without declaring it", async () => {

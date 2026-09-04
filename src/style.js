@@ -96,13 +96,13 @@ export function parseColor(value) {
   };
 }
 
-/** @param {{r:number,g:number,b:number,a:number}} color @returns {import("gpui").Color} */
+/** @param {{r:number,g:number,b:number,a:number}} color @returns {import("gpui-kit").Color} */
 export function formatColor(color) {
   const channel = (/** @type {number} */ value) =>
     Math.max(0, Math.min(255, Math.round(value * 255)))
       .toString(16)
       .padStart(2, "0");
-  return /** @type {import("gpui").Color} */ (
+  return /** @type {import("gpui-kit").Color} */ (
     `#${channel(color.r)}${channel(color.g)}${channel(color.b)}${channel(color.a)}`
   );
 }
@@ -112,12 +112,12 @@ export function formatColor(color) {
  * fill and border in Omarchy is a foreground or accent at an alpha rather than
  * a literal gray, which is what keeps a light theme from getting a dark
  * "muted" and a dark theme a light one.
- * @param {import("gpui").Color|string} color @param {number} value
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color|string} color @param {number} value
+ * @returns {import("gpui-kit").Color}
  */
 export function alpha(color, value) {
   const parsed = parseColor(color);
-  if (!parsed) return /** @type {import("gpui").Color} */ (color);
+  if (!parsed) return /** @type {import("gpui-kit").Color} */ (color);
   return formatColor({ ...parsed, a: clampAlpha(value) });
 }
 
@@ -126,15 +126,15 @@ export function alpha(color, value) {
  * foreground toward the *background* — on a light theme, darkening an
  * almost-black foreground makes "secondary" text heavier than body text,
  * which is the opposite of what it means.
- * @param {import("gpui").Color|string} color
- * @param {import("gpui").Color|string} toward
+ * @param {import("gpui-kit").Color|string} color
+ * @param {import("gpui-kit").Color|string} toward
  * @param {number} amount
- * @returns {import("gpui").Color}
+ * @returns {import("gpui-kit").Color}
  */
 export function mix(color, toward, amount) {
   const from = parseColor(color);
   const to = parseColor(toward);
-  if (!from || !to) return /** @type {import("gpui").Color} */ (color);
+  if (!from || !to) return /** @type {import("gpui-kit").Color} */ (color);
   const ratio = Math.min(1, Math.max(0, amount));
   return formatColor({
     r: from.r * (1 - ratio) + to.r * ratio,
@@ -186,12 +186,12 @@ function fromHsl(hsl) {
  * The same hue and lightness at a capped saturation. Omarchy's palette has no
  * separate "primary": `accent` is it, and an accent near full saturation is
  * right for a compact status indicator and wrong for a link inside a paragraph.
- * @param {import("gpui").Color|string} color @param {number} maximum
- * @returns {import("gpui").Color}
+ * @param {import("gpui-kit").Color|string} color @param {number} maximum
+ * @returns {import("gpui-kit").Color}
  */
 export function capSaturation(color, maximum) {
   const parsed = parseColor(color);
-  if (!parsed) return /** @type {import("gpui").Color} */ (color);
+  if (!parsed) return /** @type {import("gpui-kit").Color} */ (color);
   const hsl = toHsl(parsed);
   return formatColor(fromHsl({ ...hsl, s: Math.min(hsl.s, maximum) }));
 }
@@ -508,7 +508,7 @@ export function applyOmarchyStyle(shellSource, host = {}) {
  * spelling, with the hex digits inside the parentheses rather than the CSS
  * comma-separated form — or `0xAARRGGBB`, or a plain `#` literal.
  * @param {string} value
- * @returns {import("gpui").Color|null}
+ * @returns {import("gpui-kit").Color|null}
  */
 export function parseHyprlandColor(value) {
   // Matched rather than split on whitespace: the CSS spelling puts spaces
@@ -551,9 +551,9 @@ export function parseHyprlandColor(value) {
  * Resolve a `section.key` reference like `"hyprland.active-border"` to the
  * color it points at, leaving a literal color alone.
  * @param {OmarchyStyle} tokens @param {string} value
- * @param {import("gpui").Color} fallback
+ * @param {import("gpui-kit").Color} fallback
  * @param {number} [opacity] the section's `*-alpha` companion
- * @returns {import("gpui").Color}
+ * @returns {import("gpui-kit").Color}
  */
 export function resolveSurfaceColor(tokens, value, fallback, opacity) {
   const source =

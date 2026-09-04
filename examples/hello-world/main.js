@@ -1,6 +1,6 @@
 // @ts-check
 
-import { View } from "gpui";
+import { View } from "gpui-kit";
 import { set_theme } from "gpui-base";
 import {
   AppShell,
@@ -37,7 +37,7 @@ scale-with-font = true
 `;
 
 export default class HelloWorld extends View {
-  /** @param {Record<string, unknown>} _props @param {import("gpui").Context} cx */
+  /** @param {Record<string, unknown>} _props @param {import("gpui-kit").Context} cx */
   init(_props, cx) {
     const tokens = applyOmarchyStyle(OMARCHY_SHELL, {
       cornerRadius: 0,
@@ -48,7 +48,7 @@ export default class HelloWorld extends View {
     if (theme) set_theme(theme);
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   render(cx) {
     const tokens = style();
     const card = new Surface()

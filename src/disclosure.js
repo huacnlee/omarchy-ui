@@ -14,7 +14,7 @@
 // the trigger for a hover style to attach to; the row inside fills it, so the
 // lit area is identical either way.
 
-import { div } from "gpui";
+import { div } from "gpui-kit";
 import {
   Accordion,
   AccordionHeader,
@@ -36,7 +36,7 @@ import { role } from "./theme.js";
 /** The container one or more `AccordionSection`s sit in. */
 export class AccordionGroup {
   #id;
-  /** @type {Array<import("gpui").Element | import("gpui").Entity>} */
+  /** @type {Array<import("gpui-kit").Element | import("gpui-kit").Entity>} */
   #children = [];
 
   /** @param {string} id */
@@ -44,13 +44,13 @@ export class AccordionGroup {
     this.#id = stableId("AccordionGroup", id);
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   child(element) {
     this.#children.push(requiredRenderable("AccordionGroup", "child", element));
     return this;
   }
 
-  /** @param {import("gpui").Context} _cx */
+  /** @param {import("gpui-kit").Context} _cx */
   build(_cx) {
     return Accordion.new(this.#id)
       .flex()
@@ -84,7 +84,7 @@ export class AccordionSection {
   /** @type {number | undefined} */
   #inset;
   #body;
-  /** @type {((open: boolean, cx: import("gpui").Context) => void) | undefined} */
+  /** @type {((open: boolean, cx: import("gpui-kit").Context) => void) | undefined} */
   #onToggle;
 
   /** @param {string} id */
@@ -134,13 +134,13 @@ export class AccordionSection {
     return this;
   }
 
-  /** @param {import("gpui").Element | import("gpui").Entity} element */
+  /** @param {import("gpui-kit").Element | import("gpui-kit").Entity} element */
   body(element) {
     this.#body = element;
     return this;
   }
 
-  /** @param {((open: boolean, cx: import("gpui").Context) => void) | undefined} callback */
+  /** @param {((open: boolean, cx: import("gpui-kit").Context) => void) | undefined} callback */
   onToggle(callback) {
     if (callback !== undefined && typeof callback !== "function") {
       throw new Error(
@@ -151,7 +151,7 @@ export class AccordionSection {
     return this;
   }
 
-  /** @param {import("gpui").Context} cx */
+  /** @param {import("gpui-kit").Context} cx */
   build(cx) {
     const title = requiredText("AccordionSection", "title", this.#title);
     const detail = optionalText("AccordionSection", "detail", this.#detail);
